@@ -1,0 +1,65 @@
+name: Dependabot automerge
+
+# Metadata/API operations only. The reusable workflow checks out its own
+# pinned trusted source; neither caller nor callee checks out PR code.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pull-request-number:
+        type: number
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: dependabot-automerge-${{ inputs.pull-request-number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    if: github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      update-type: ${{ steps.metadata.outputs.update-type }}
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b # v2.4.0
+
+  automerge:
+    needs: metadata
+    if: needs.metadata.outputs.update-type == 'version-update:semver-minor' || needs.metadata.outputs.update-type == 'version-update:semver-patch'
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+      statuses: read
+      # The callee reads its own immutable workflow identity from OIDC.
+      id-token: write
+    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@ff1dd759dfffc0db3459e30e833f52437ee62b57 # reviewed baseline
+    with:
+      pull-request-number: ${{ github.event.pull_request.number }}
+      merge-method: squash
+      # Activate only after main requires CI / verify; see the developer guide.
+      dry-run: true
+
+  manual-preview:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+      statuses: read
+      id-token: write
+    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@ff1dd759dfffc0db3459e30e833f52437ee62b57 # reviewed baseline
+    with:
+      pull-request-number: ${{ inputs.pull-request-number }}
+      merge-method: squash
+      # Manual dispatch stays a preview; it has no semver eligibility gate.
+      dry-run: true

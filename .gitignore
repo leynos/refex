@@ -1,3 +1,13 @@
 /node_modules/
 /lib/
 .bsb.lock
+/tests/**/*.res.mjs
+/coverage/
+*.tgz
+/.uv-cache/
+/.uv-tools/
+/.typos-oxendict-base.json
+/.typos-oxendict-base.toml
+.DS_Store
+.idea/
+.vscode/
