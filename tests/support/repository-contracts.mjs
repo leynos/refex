@@ -90,6 +90,30 @@ export function markdownLintContract(metadata, makefile) {
   );
 }
 
+export function spellingGateContract(makefile) {
+  // A CI provisioner exporting UV_CACHE_DIR (astral-sh/setup-uv does) fails
+  // its post-job cache save when uv wrote to a different directory. The
+  // Makefile must therefore default these rather than override them, so the
+  // provisioner's location wins and the step does not skip the cached work.
+  for (const variable of ["UV_CACHE_DIR", "UV_TOOL_DIR"]) {
+    assert.match(
+      makefile,
+      new RegExp(`^${variable} \\?= \\S+$`, "m"),
+      `${variable} must be a default so the environment can override it`,
+    );
+    assert.equal(
+      makefile.includes(`${variable}=.uv-`),
+      false,
+      `${variable} must not be assigned inline, which overrides the environment`,
+    );
+  }
+  assert.match(
+    makefile,
+    /^TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=\$\(UV_CACHE_DIR\)/m,
+    "the gate forwards whatever location was resolved",
+  );
+}
+
 export function workflowContract(name, workflow, bunVersion) {
   const privileged = Object.hasOwn(workflow.on, "pull_request_target");
   if (!privileged) assert.deepEqual(workflow.permissions, { contents: "read" });

@@ -13,6 +13,7 @@ import { parseDocument } from "yaml";
 import {
   markdownLintContract,
   packageContract,
+  spellingGateContract,
   workflowContract,
 } from "./support/repository-contracts.mjs";
 
@@ -174,6 +175,31 @@ describe("package and compiler contracts", () => {
     const metadata = structuredClone(pkg);
     const makefile = mutate(metadata, source("Makefile"));
     expect(() => markdownLintContract(metadata, makefile)).toThrow();
+  });
+
+  test("spelling gate lets the provisioner choose the uv cache location", () => {
+    spellingGateContract(source("Makefile"));
+  });
+
+  test.each([
+    [
+      "an inline cache override",
+      (makefile) => makefile.replace("UV_CACHE_DIR ?=", "UV_CACHE_DIR ="),
+    ],
+    [
+      "an inline tool-directory override",
+      (makefile) => makefile.replace("UV_TOOL_DIR ?=", "UV_TOOL_DIR ="),
+    ],
+    [
+      "a hard-coded environment prefix",
+      (makefile) =>
+        makefile.replace(
+          "UV_CACHE_DIR=$(UV_CACHE_DIR)",
+          "UV_CACHE_DIR=.uv-cache",
+        ),
+    ],
+  ])("spelling gate rejects %s", (_, mutate) => {
+    expect(() => spellingGateContract(mutate(source("Makefile")))).toThrow();
   });
 
   test("compiler rejects Bun in production and accepts it in dev source", () => {

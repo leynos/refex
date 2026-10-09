@@ -11,9 +11,14 @@ MDLINT = $(BUN) run --bun markdownlint --dot
 MDTABLEFIX ?= mdtablefix
 MDTABLEFIX_RULES = --git --include-untracked --wrap --renumber --breaks --ellipsis --fences
 UV ?= uv
+# Defaults, not overrides. A CI provisioner such as astral-sh/setup-uv exports
+# UV_CACHE_DIR and fails its post-job cache save when uv wrote somewhere else,
+# so the environment must win where it supplies a location.
+UV_CACHE_DIR ?= .uv-cache
+UV_TOOL_DIR ?= .uv-tools
 # v0.1.3, pinned to the peeled tag commit rather than a mutable ref.
-TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=.uv-cache UV_TOOL_DIR=.uv-tools $(UV) tool run \
-	--python 3.14.7 --from \
+TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=$(UV_CACHE_DIR) UV_TOOL_DIR=$(UV_TOOL_DIR) \
+	$(UV) tool run --python 3.14.7 --from \
 	"git+https://github.com/leynos/typos-config-builder.git@c8a4f95d7cf7f6a1b7517f2775d122d47d5721eb" \
 	typos-config-builder
 

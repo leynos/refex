@@ -23,6 +23,12 @@ executables through Bun, including the ReScript CLI's JavaScript launcher. Bun
 successfully runs this pinned toolchain; Node is not a library dependency or a
 development prerequisite for these commands.
 
+The spelling gate's uv cache and tool directories are Make defaults
+(`UV_CACHE_DIR ?=`), not inline assignments. A CI provisioner such as
+`astral-sh/setup-uv` exports its own cache directory and fails its post-job
+cache save when uv wrote elsewhere, so the environment must win where it
+supplies a location; locally the defaults keep uv inside the repository.
+
 ## Build and watch
 
 ```bash
