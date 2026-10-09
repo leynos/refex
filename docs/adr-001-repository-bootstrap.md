@@ -41,7 +41,7 @@ compatibility fallback is needed. The upstream Bun bindings' main commit
 | Bun                     | 1.4.2                                               |
 | ReScript Bun bindings   | 2.1.0                                               |
 | Biome                   | 2.5.15                                              |
-| markdownlint-cli2       | 0.23.3                                              |
+| markdownlint-cli        | 0.49.1                                              |
 | YAML contract parser    | 2.9.1                                               |
 | mdtablefix              | 0.6.1                                               |
 | uv                      | 0.12.23                                             |
@@ -53,9 +53,13 @@ mdtablefix 0.6.1 advances the reference's 0.6.0, including released fixes for
 list numbering across nested headings and wrapping only at source whitespace.
 See its
 [release notes](https://github.com/leynos/mdtablefix/releases/tag/v0.6.1).
-Biome advances the reference's 2.5.3 package range to an exact current pin. The
-inspected shared-actions main head `7d751eded578e48dacf43ab173d5820e6437c474`
-has no relevant automerge workflow change; retain the reviewed baseline pin
+Biome advances the reference's 2.5.3 package range to an exact current pin.
+`markdownlint-cli` replaces `markdownlint-cli2` to remove the unpatched
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+`braces` chain; both wrap the same `markdownlint` 0.41.1 rule engine, so the
+policy and its findings are unchanged. The inspected shared-actions main head
+`7d751eded578e48dacf43ab173d5820e6437c474` has no relevant automerge workflow
+change; retain the reviewed baseline pin
 `ff1dd759dfffc0db3459e30e833f52437ee62b57`. Use current checkout v6 at
 `d23441a48e516b6c34aea4fa41551a30e30af803` with credential persistence disabled.
 
@@ -84,9 +88,10 @@ Mermaid diagram, so no diagram tooling belongs in this scaffold.
 
 The foundation can prove its package and platform boundaries without pretending
 to implement effects. New semantic code must replace the disposable module and
-supply real behavioural tests. Tooling advisories remain explicit; the
-[developer guide](developers-guide.md) records patched transitive pins and the
-remaining unpatched advisory, without an audit waiver.
+supply real behavioural tests. The advisory audit passes: transitive pins clear
+the reportable advisories, and the Markdown linter was replaced rather than
+waived, so no severity cutoff or ignore list exists. The
+[developer guide](developers-guide.md) records each disposition.
 
 Required CI protection and repository settings need administrative operations
 the connected integration does not expose. Dependabot automerge remains in

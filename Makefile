@@ -4,7 +4,10 @@ SHELL := bash
 BUN ?= bun
 RESCRIPT = $(BUN) run --bun rescript
 BIOME = $(BUN) run --bun biome
-MDLINT = $(BUN) run --bun markdownlint-cli2
+# --dot lints Markdown under dot-directories such as .github, matching the
+# coverage of the replaced markdownlint-cli2 default. `.markdownlint.jsonc`
+# supplies the rule policy and `.markdownlintignore` the exclusions.
+MDLINT = $(BUN) run --bun markdownlint --dot
 MDTABLEFIX ?= mdtablefix
 MDTABLEFIX_RULES = --git --include-untracked --wrap --renumber --breaks --ellipsis --fences
 UV ?= uv

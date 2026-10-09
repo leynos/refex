@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseDocument } from "yaml";
 import {
+  markdownLintContract,
   packageContract,
   workflowContract,
 } from "./support/repository-contracts.mjs";
@@ -143,6 +144,36 @@ describe("package and compiler contracts", () => {
     const rescript = structuredClone(config);
     mutate(metadata, rescript);
     expect(() => packageContract(metadata, rescript)).toThrow();
+  });
+
+  test("Markdown linting uses a braces-free toolchain", () => {
+    markdownLintContract(pkg, source("Makefile"));
+  });
+
+  test.each([
+    [
+      "the vulnerable linter",
+      (metadata, makefile) => {
+        delete metadata.devDependencies["markdownlint-cli"];
+        metadata.devDependencies["markdownlint-cli2"] = "0.23.3";
+        return makefile;
+      },
+    ],
+    [
+      "a floating linter pin",
+      (metadata, makefile) => {
+        metadata.devDependencies["markdownlint-cli"] = "^0.49.1";
+        return makefile;
+      },
+    ],
+    [
+      "dropped dot-directory coverage",
+      (_, makefile) => makefile.replace("markdownlint --dot", "markdownlint"),
+    ],
+  ])("rejects %s", (_, mutate) => {
+    const metadata = structuredClone(pkg);
+    const makefile = mutate(metadata, source("Makefile"));
+    expect(() => markdownLintContract(metadata, makefile)).toThrow();
   });
 
   test("compiler rejects Bun in production and accepts it in dev source", () => {

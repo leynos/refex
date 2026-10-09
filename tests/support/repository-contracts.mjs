@@ -68,6 +68,28 @@ export function packageContract(metadata, rescript) {
   );
 }
 
+export function markdownLintContract(metadata, makefile) {
+  // markdownlint-cli2 resolves micromatch, whose braces dependency carries
+  // GHSA-vfj7-8cjw-p6xm with no patched release. markdownlint-cli reaches the
+  // same markdownlint 0.41.1 rule engine through tinyglobby and minimatch, so
+  // the policy and its findings are unchanged without the vulnerable chain.
+  assert.equal(
+    metadata.devDependencies["markdownlint-cli2"],
+    undefined,
+    "the braces-bearing linter must not return",
+  );
+  assert.equal(
+    metadata.devDependencies["markdownlint-cli"],
+    "0.49.1",
+    "exact Markdown linter pin",
+  );
+  assert.match(
+    makefile,
+    /^MDLINT = .*markdownlint --dot$/m,
+    "--dot keeps dot-directory coverage on the replacement linter",
+  );
+}
+
 export function workflowContract(name, workflow, bunVersion) {
   const privileged = Object.hasOwn(workflow.on, "pull_request_target");
   if (!privileged) assert.deepEqual(workflow.permissions, { contents: "read" });

@@ -51,8 +51,9 @@ checks authored JavaScript and JSON; it does not analyse ReScript.
 tests, documentation checks, spelling, and package validation sequentially,
 including under `make -j`. `make coverage` reports generated-JavaScript text
 coverage and LCOV without a decorative threshold. `make audit` reports current
-advisories separately. See the [developer guide](docs/developers-guide.md) for
-the current unpatched development-tool advisory and automerge activation.
+advisories separately and passes cleanly. See the
+[developer guide](docs/developers-guide.md) for the advisory dispositions and
+automerge activation.
 
 The package checker accepts only a small explicit file inventory, including the
 ISC `LICENSE`, and executes clean JavaScript and ReScript consumers. Compiler

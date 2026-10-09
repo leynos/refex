@@ -19,7 +19,7 @@ adapter packages, examples, benchmarks, or website exist.
 | `tests/support/repository-contracts.mjs`     | Private invariant assertions for the repository contract suite.    | Owned solely by that suite; no external reuse.                   |
 | `Makefile`                                   | Stable contributor entrypoints and sequential commit gates.        | Root build interface.                                            |
 | `biome.json`                                 | Authored JavaScript and JSON policy.                               | Excludes compiler output.                                        |
-| `.markdownlint-cli2.jsonc`                   | Markdown lint policy.                                              | Documentation gate.                                              |
+| `.markdownlint.jsonc`, `.markdownlintignore` | Markdown rule policy and excluded paths.                           | Documentation gate.                                              |
 | `typos.local.toml`, `typos.toml`             | Narrow spelling overlay and generated shared policy.               | Local exceptions versus shared Oxford authority.                 |
 | `.github/workflows/ci.yml`                   | Authoritative read-only verification and LCOV artefact.            | Unprivileged PR and main validation.                             |
 | `.github/workflows/audit.yml`                | Weekly and manual advisory auditing.                               | Default-branch dependency surveillance.                          |

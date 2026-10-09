@@ -103,11 +103,13 @@ its command list, so CI enforces compiler warnings rather than claiming
 `reanalyze` coverage. No obsolete standalone analyser or community linter is
 installed. See [ADR 003](adr-003-formatting-and-analysis-policy.md).
 
-Biome handles authored JavaScript and JSON. Markdown uses markdownlint-cli2 and
-mdtablefix. The spelling gate regenerates `typos.toml` from the shared live
-en-GB-oxendict authority and the local overlay. This shared policy can advance
-independently of source dependencies; review and commit generated policy
-changes deliberately. Keep technical exceptions narrow.
+Biome handles authored JavaScript and JSON. Markdown uses markdownlint-cli and
+mdtablefix. `.markdownlint.jsonc` holds the rule policy and
+`.markdownlintignore` the excluded paths; the Makefile adds `--dot` so Markdown
+under `.github` is linted too. The spelling gate regenerates `typos.toml` from
+the shared live en-GB-oxendict authority and the local overlay. This shared
+policy can advance independently of source dependencies; review and commit
+generated policy changes deliberately. Keep technical exceptions narrow.
 
 ## Package validation
 
@@ -156,22 +158,30 @@ unrelated advisory could otherwise deadlock every remediation update. They
 still run all ordinary validation and package checks. `audit.yml` compensates
 with default-branch audits each Monday and manual dispatch.
 
-The initial audit identified Markdown-only transitive dependencies:
+The audit reaches a clean report through dependency replacements, not
+suppression. Every advisory below is a development-only transitive dependency;
+none reaches the portable runtime or the packed consumer.
 
-| Dependency      | Finding                                                                  | Disposition                                                                                        |
-| --------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| KaTeX 0.16.47   | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                                            |
-| smol-toml 1.8.0 | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                             |
-| braces 3.0.3    | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | No patched registry release or advisory fix exists at bootstrap. Audit remains failing; no waiver. |
+| Dependency      | Finding                                                                  | Disposition                                                                           |
+| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| KaTeX 0.16.47   | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                               |
+| smol-toml 1.8.0 | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                |
+| js-yaml 5.2.3   | [GHSA-r3ph-w7gj-g6xm](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm) | Pin override to stable 5.4.3 and verify Markdown lint.                                |
+| braces 3.0.3    | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Replace markdownlint-cli2 with markdownlint-cli and verify the identical rule policy. |
 
-The remaining issue is recursive brace expansion against deeply nested glob
-patterns. It enters through markdownlint-cli2, globby, fast-glob, and
-micromatch; it is absent from runtime dependencies and the packed consumer. The
-committed lint command uses a fixed Markdown glob, which narrows exposure but
-does not establish general immunity. Update or replace the shared tooling path
-once upstream supplies a supported fix; do not manufacture an audit pass with a
-severity cutoff or ignore list. Ordinary CI's advisory step reports this
-blocker until then.
+`braces` had no patched registry release and the upstream maintainer disputes
+the advisory, so no upstream fix is pending. Every `markdownlint-cli2` release
+resolves `micromatch`, and therefore `braces`, so no version pin could clear it.
+`markdownlint-cli` reaches the same `markdownlint` 0.41.1 rule engine through
+`tinyglobby` and `minimatch`, removing the dependency rather than masking it.
+The two linters share rule semantics, so the committed policy and its findings
+are unchanged; `--dot` preserves dot-directory coverage, which the replacement
+does not enable by default. The repository-contract suite rejects a return to
+the vulnerable linter, a floating pin, or a loss of `--dot`.
+
+Do not manufacture an audit pass with a severity cutoff or ignore list. If a
+future advisory has no replacement path, record it here and keep `make audit`
+failing rather than silencing it.
 
 Dependabot groups minor/patch Bun and action updates, applies ecosystem labels,
 uses cooldowns, and caps each ecosystem at five open PRs. Major updates require
@@ -199,8 +209,8 @@ existing visibility and any stricter rules. The required manual settings are:
 3. Create `dependencies`, `bun`, and `github-actions` labels.
 4. Require the `verify` check from the CI workflow for `main`, once GitHub has
    registered it. Do not replace or weaken any existing requirement.
-5. Resolve the reported advisory or approve an explicit policy decision in a
-   separate reviewed change. This bootstrap grants no audit waiver.
+5. The advisory audit passes without a waiver. Keep it so: clear a new finding
+   by replacement or an upstream fix, never by a severity cutoff or ignore list.
 6. After required CI protection exists, change only the automated job's
    `dry-run` input to `false` in a reviewed change and adapt its corresponding
    contract assertion. The manual job must remain a preview.

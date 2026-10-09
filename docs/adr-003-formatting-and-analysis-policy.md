@@ -33,10 +33,14 @@ maintenance task before hazardous product idioms exist. Biome checks authored
 JavaScript and JSON only; compiler output is excluded. Oxlint has no
 demonstrated additional role here.
 
-Use pinned markdownlint-cli2 for Markdown, mdtablefix for deterministic
+Use pinned markdownlint-cli for Markdown, mdtablefix for deterministic
 wrapping, numbering, breaks, ellipses, fences, and tables, and the shared
-en-GB-oxendict spelling gate. Generated spelling policy belongs to the shared
-authority; local exceptions stay narrow.
+en-GB-oxendict spelling gate. `markdownlint-cli` reaches the same
+`markdownlint` 0.41.1 rule engine as the replaced `markdownlint-cli2` without
+the `braces` dependency that carries the unpatched
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm); the
+`--dot` flag preserves dot-directory coverage. Generated spelling policy
+belongs to the shared authority; local exceptions stay narrow.
 
 ## Reconsideration criteria
 
