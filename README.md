@@ -64,6 +64,8 @@ rather than the generated JavaScript.
 
 Start at the [documentation index](docs/contents.md):
 
+- [User guide](docs/users-guide.md): installing, importing, and the limits of
+  the current API.
 - [ADR 001: repository bootstrap](docs/adr-001-repository-bootstrap.md).
 - [ADR 002: portable core and Bun boundary](docs/adr-002-portable-core-and-bun-boundary.md).
 - [ADR 003: formatting and analysis](docs/adr-003-formatting-and-analysis-policy.md).

@@ -1,8 +1,19 @@
+/**
+Generated-output synchronization gate for production ReScript JavaScript.
+
+The ReScript build owns every generated `.res.mjs` file under `src`. This
+script rebuilds nothing: `make check-generated` compiles first, then this check
+rejects a production artefact that is missing, untracked, or stale against
+Git's index.
+Git's index is the reviewable baseline, including staged files during the
+initial bootstrap, so a generated output staged but not committed would still
+be rejected on the next run. ReScript-format ownership makes hand-editing the
+output a defect rather than a fix; see `docs/developers-guide.md`.
+*/
+
 import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 
-// The build owns all production output. Git's index supplies the reviewable
-// baseline, including staged files during the initial bootstrap.
 function generatedFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = `${directory}/${entry.name}`;

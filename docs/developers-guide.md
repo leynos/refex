@@ -23,6 +23,16 @@ executables through Bun, including the ReScript CLI's JavaScript launcher. Bun
 successfully runs this pinned toolchain; Node is not a library dependency or a
 development prerequisite for these commands.
 
+Use the pinned interpreter for every gate, not whichever `bun` the shell finds.
+Bun refuses to parse the committed `bun.lock` when the running version is older
+than the one that wrote it, and the failure surfaces as unrelated errors: a
+1.3.14 binary reading this textual lockfile reports `Unknown lockfile version`
+and fails `bun pm pack`, which makes `make package-check` and the archive
+contract test fail for no real reason. CI pins `bun-version: '1.4.2'`; match it
+locally, for example with `PATH=/path/to/bun-1.4.2:$PATH`. `package.json`
+records the same version in `packageManager`, which `make install` does not
+enforce on its own.
+
 The spelling gate's uv cache and tool directories are Make defaults
 (`UV_CACHE_DIR ?=`), not inline assignments. A CI provisioner such as
 `astral-sh/setup-uv` exports its own cache directory and fails its post-job
@@ -61,6 +71,13 @@ changes. During bootstrap, stage the initial generated file before the gate.
 Contract helpers stay private in their corresponding test suite. Search for an
 existing equivalent and document ownership before extracting a new helper.
 
+ReScript 12.3.1 does not copy doc comments from `.res`/`.resi` source into
+generated JavaScript. Neither a leading `/** ... */` module comment nor a
+`@doc` attribute survives the build, so `src/Bootstrap.res.mjs` carries no
+docstrings by design. Document the ReScript source and its interface; do not
+hand-edit the output to add comments, and do not read the absence of docstrings
+there as missing documentation.
+
 ## Tests and coverage
 
 ```bash
@@ -72,9 +89,18 @@ The test target compiles first and explicitly selects
 `tests/Bootstrap.test.res.mjs`, the authored JavaScript consumer, and
 repository contracts. This prevents a green run that never executes the
 ReScript smoke. Contract tests cover package and compiler boundaries, workflow
-permissions and pins, privileged metadata-only operations, and `make -j` gate
-order. Controlled bad fixtures must fail the same invariant checks that accept
-the repository.
+permissions and pins, privileged metadata-only operations, `make -j` gate
+order, the Dependabot configuration, the Markdown rule policy and its ignore
+paths, and the Bun coverage exclusion. Controlled bad fixtures must fail the
+same invariant checks that accept the repository; every contract helper has at
+least one paired negative control.
+
+`scripts/check-generated.mjs` cannot be tested as a helper, because it is a
+script that reads Git state. The suite therefore builds throwaway Git
+repositories and runs it as a subprocess, asserting the exit status for
+matching output, stale output, missing output, untracked output, and a
+repository with no committed production output. A gate that always exited `0`
+would pass the real repository and fail these.
 
 Coverage uses Bun's text and LCOV reporters for the behavioural and consumer
 tests. It measures generated JavaScript under ReScript 12, not perfect ReScript
@@ -231,6 +257,20 @@ mergeable PR, and an unprotected repository supplies no required CI barrier.
 The automated caller admits only verified minor/patch metadata. Unknown or
 major changes cannot reach live automerge. Manual dispatch previews a named
 Dependabot PR; it cannot bypass version review.
+
+The `manual-preview` job is an accepted unavailability. The pinned callee
+builds its dry-run snapshot from `event["pull_request"]`, which a
+`workflow_dispatch` payload never carries, and it ignores the
+`pull-request-number` input that exists to serve that trigger. A manual run
+therefore exits before any API call instead of reporting a decision. The
+failure is inert, because dry-run performs no mutation, and the alternatives
+are worse: `dry-run: false` would merge without the semver eligibility gate on
+a repository with no required-check protection, and deleting the job would
+remove the input the live path will need. The workflow comment and the issue
+`leynos/shared-actions#613` record the defect; this job starts working again
+when the pin moves to a revision that resolves a dispatch payload. Do not
+weaken the contract to hide it: `workflowContract` still asserts
+`dry-run: true` on both jobs.
 
 ## Future adapters and workspace migration
 

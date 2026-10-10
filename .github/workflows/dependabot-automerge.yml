@@ -49,6 +49,17 @@ jobs:
       # Activate only after main requires CI / verify; see the developer guide.
       dry-run: true
 
+  # Accepted unavailability: this job cannot currently report a decision.
+  # The pinned callee's dry-run path builds its snapshot from
+  # event["pull_request"], which a workflow_dispatch payload never carries,
+  # and it ignores the pull-request-number input that exists to serve this
+  # case. A manual run therefore exits before any API call rather than
+  # printing a preview. The failure is inert: dry-run performs no mutation.
+  # The alternatives are worse — dry-run false would merge without the
+  # semver eligibility gate, on a repository with no required-check
+  # protection. Upstream defect tracked in leynos/shared-actions#613; this
+  # job starts working again when the pin moves to a fix. See the developer
+  # guide, "Repository settings and automerge activation".
   manual-preview:
     if: github.event_name == 'workflow_dispatch'
     permissions:

@@ -26,7 +26,8 @@ adapter packages, examples, benchmarks, or website exist.
 | `.github/workflows/dependabot-automerge.yml` | Dependabot metadata and reusable workflow previews.                | Privileged API operations only; never PR code.                   |
 | `.github/dependabot.yml`                     | Bounded Bun and action updates.                                    | Minor/patch grouping, separate major review.                     |
 | `docs/contents.md`                           | Canonical documentation index.                                     | Documentation inventory owner.                                   |
-| `docs/`                                      | Developer guidance and bootstrap ADRs.                             | Engineering decisions, not a fabricated product design.          |
+| `docs/users-guide.md`                        | Installable surface, import path, and API limits.                  | Consumer-facing truth; states what does not exist.               |
+| `docs/`                                      | Consumer and developer guidance plus bootstrap ADRs.               | Engineering decisions, not a fabricated product design.          |
 | `AGENTS.md`                                  | Contributor and agent guidance.                                    | Repository-wide authored-code policy.                            |
 | `README.md`, `CHANGELOG.md`, `LICENSE`       | Status, change record, and ISC terms.                              | Package introduction and legal metadata.                         |
 | `.gitignore`                                 | Compiler internals, test output, coverage, and local state.        | Preserve production generated output.                            |

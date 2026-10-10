@@ -1,6 +1,19 @@
+/**
+Repository contract tests.
+
+Each test feeds a real repository file, or a real subprocess, through the
+shared contract helpers in `support/repository-contracts.mjs`. The fixture
+tests below exist because a contract that cannot fail is not a contract: every
+helper is exercised against a deliberately mutated or broken input, and
+`scripts/check-generated.mjs` runs against temporary Git repositories whose
+generated inventory is wrong in a specific way. Anything that changes an
+assertion here should also keep its paired negative control passing.
+*/
+
 import { describe, expect, test } from "bun:test";
 import assert from "node:assert/strict";
 import {
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -11,7 +24,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseDocument } from "yaml";
 import {
+  coverageConfigContract,
+  dependabotContract,
   markdownLintContract,
+  markdownPolicyContract,
   packageContract,
   spellingGateContract,
   workflowContract,
@@ -24,6 +40,13 @@ const json = (path) => JSON.parse(readFileSync(path, "utf8"));
 const pkg = json("package.json");
 const config = json("rescript.json");
 const source = (path) => readFileSync(path, "utf8");
+const jsonc = (path) => JSON.parse(source(path).replace(/^\s*\/\/.*$/gm, ""));
+const yamlFile = (path) => {
+  const document = parseDocument(source(path));
+  assert.equal(document.errors.length, 0, `${path}: valid YAML`);
+  return document.toJS();
+};
+const dependabot = yamlFile(".github/dependabot.yml");
 const workflows = ["ci.yml", "audit.yml", "dependabot-automerge.yml"].map(
   (name) => {
     const document = parseDocument(source(`.github/workflows/${name}`));
@@ -177,6 +200,113 @@ describe("package and compiler contracts", () => {
     expect(() => markdownLintContract(metadata, makefile)).toThrow();
   });
 
+  test("Dependabot keeps grouping, cooldowns and the ReScript 13 exclusion", () => {
+    dependabotContract(dependabot);
+  });
+
+  test.each([
+    [
+      "an unprotected dependency major",
+      (configuration) => {
+        configuration.updates[0].groups["minor-and-patch"]["update-types"] = [
+          "minor",
+          "patch",
+          "major",
+        ];
+      },
+    ],
+    [
+      "a dropped ReScript 13 exclusion",
+      (configuration) => {
+        configuration.updates[0].ignore.pop();
+      },
+    ],
+    [
+      "a raised adoption cooldown requirement",
+      (configuration) => {
+        configuration.updates[0].cooldown = {};
+      },
+    ],
+    [
+      "an unbounded pull-request limit",
+      (configuration) => {
+        configuration.updates[1]["open-pull-requests-limit"] = 50;
+      },
+    ],
+    [
+      "a lost ecosystem",
+      (configuration) => {
+        configuration.updates.pop();
+      },
+    ],
+  ])("Dependabot contract rejects %s", (_, mutate) => {
+    const configuration = structuredClone(dependabot);
+    mutate(configuration);
+    expect(() => dependabotContract(configuration)).toThrow();
+  });
+
+  test("Markdown policy and ignore paths survive the linter replacement", () => {
+    markdownPolicyContract(
+      jsonc(".markdownlint.jsonc"),
+      source(".markdownlintignore").trim().split("\n"),
+    );
+  });
+
+  test.each([
+    [
+      "a reopened wrapping exemption",
+      (rules) => {
+        rules.MD013.tables = true;
+      },
+    ],
+    [
+      "a widened code-block width",
+      (rules) => {
+        rules.MD013.code_block_line_length = 200;
+      },
+    ],
+    [
+      "a silenced tab rule",
+      (rules) => {
+        rules.MD010.code_blocks = true;
+      },
+    ],
+  ])("Markdown policy rejects %s", (_, mutate) => {
+    const rules = jsonc(".markdownlint.jsonc");
+    mutate(rules);
+    expect(() =>
+      markdownPolicyContract(rules, source(".markdownlintignore").split("\n")),
+    ).toThrow();
+  });
+
+  test("coverage excludes generated test bodies and they stay untracked", () => {
+    coverageConfigContract(source("bunfig.toml"), source(".gitignore"));
+  });
+
+  // Every row supplies all three elements. Bun's test.each binds arguments
+  // positionally across rows, so a row of a different length silently shifts
+  // the mutation functions and the negative control stops testing anything.
+  const identity = (value) => value;
+  test.each([
+    [
+      "a dropped coverage exclusion",
+      (bunfig) => bunfig.replace('["tests/**"]', "[]"),
+      identity,
+    ],
+    [
+      "a tracked generated test",
+      identity,
+      (gitignore) => gitignore.replace("/tests/**/*.res.mjs", ""),
+    ],
+  ])("coverage configuration rejects %s", (_, mutateConfig, mutateIgnore) => {
+    expect(() =>
+      coverageConfigContract(
+        mutateConfig(source("bunfig.toml")),
+        mutateIgnore(source(".gitignore")),
+      ),
+    ).toThrow();
+  });
+
   test("spelling gate lets the provisioner choose the uv cache location", () => {
     spellingGateContract(source("Makefile"));
   });
@@ -303,6 +433,37 @@ describe("workflow security contracts", () => {
 
   test.each([
     [
+      "an audit that stops being scheduled",
+      (workflow) => {
+        delete workflow.on.schedule;
+      },
+    ],
+    [
+      "an audit that no longer runs the target",
+      (workflow) => {
+        workflow.jobs.audit.steps.find(
+          (step) => step.run === "make audit",
+        ).run = "make test";
+      },
+    ],
+    [
+      "an audit against an unfrozen graph",
+      (workflow) => {
+        workflow.jobs.audit.steps.find((step) =>
+          step.run?.startsWith("bun install"),
+        ).run = "bun install";
+      },
+    ],
+  ])("audit workflow rejects %s", (_, mutate) => {
+    const workflow = structuredClone(workflows[1][1]);
+    mutate(workflow);
+    expect(() =>
+      workflowContract("audit.yml", workflow, pkg.packageManager.slice(4)),
+    ).toThrow();
+  });
+
+  test.each([
+    [
       "PR checkout",
       (workflow) => {
         workflow.jobs.metadata.steps.push({
@@ -349,6 +510,101 @@ describe("workflow security contracts", () => {
   test("structured YAML parser rejects duplicate job keys", () => {
     const document = parseDocument("jobs:\n  verify: {}\n  verify: {}\n");
     expect(document.errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("generated-output gate", () => {
+  // The gate is a script, not a helper, so it can only be tested by running
+  // it. Each case builds a throwaway Git repository whose generated inventory
+  // is wrong in exactly one way and asserts the gate's exit status. Without
+  // these, a gate that always exits 0 would pass the real repository too.
+  const script = join(root, "scripts", "check-generated.mjs");
+  const generated = "// Generated by ReScript, PLEASE EDIT WITH CARE\n";
+  const git = (directory, ...args) => {
+    const result = Bun.spawnSync(["git", ...args], {
+      cwd: directory,
+      env: {
+        ...process.env,
+        GIT_AUTHOR_NAME: "contract fixture",
+        GIT_AUTHOR_EMAIL: "fixture@example.invalid",
+        GIT_COMMITTER_NAME: "contract fixture",
+        GIT_COMMITTER_EMAIL: "fixture@example.invalid",
+      },
+    });
+    assert.equal(
+      result.exitCode,
+      0,
+      `git ${args.join(" ")}\n${result.stdout}\n${result.stderr}`,
+    );
+  };
+  const runGate = (directory) =>
+    Bun.spawnSync([process.execPath, script], { cwd: directory }).exitCode;
+  const fixture = (prepare) => {
+    const directory = mkdtempSync(join(tmpdir(), "refex-generated-"));
+    try {
+      git(directory, "init", "--quiet");
+      mkdirSync(join(directory, "src"));
+      prepare(directory);
+      return runGate(directory);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  };
+
+  test("accepts committed output that matches the worktree", () => {
+    expect(
+      fixture((directory) => {
+        writeFileSync(join(directory, "src/Module.res.mjs"), generated);
+        git(directory, "add", "--", "src");
+        git(directory, "commit", "--quiet", "--message", "generated output");
+      }),
+    ).toBe(0);
+  });
+
+  test("rejects output that is committed but stale in the worktree", () => {
+    expect(
+      fixture((directory) => {
+        writeFileSync(join(directory, "src/Module.res.mjs"), generated);
+        git(directory, "add", "--", "src");
+        git(directory, "commit", "--quiet", "--message", "generated output");
+        writeFileSync(
+          join(directory, "src/Module.res.mjs"),
+          `${generated}// drifted\n`,
+        );
+      }),
+    ).not.toBe(0);
+  });
+
+  test("rejects generated output that is missing from the worktree", () => {
+    expect(
+      fixture((directory) => {
+        writeFileSync(join(directory, "src/Module.res.mjs"), generated);
+        git(directory, "add", "--", "src");
+        git(directory, "commit", "--quiet", "--message", "generated output");
+        rmSync(join(directory, "src/Module.res.mjs"));
+      }),
+    ).not.toBe(0);
+  });
+
+  test("rejects generated output that is present but untracked", () => {
+    expect(
+      fixture((directory) => {
+        writeFileSync(join(directory, "src/Module.res.mjs"), generated);
+        git(directory, "add", "--", "src");
+        git(directory, "commit", "--quiet", "--message", "generated output");
+        writeFileSync(join(directory, "src/Extra.res.mjs"), generated);
+      }),
+    ).not.toBe(0);
+  });
+
+  test("rejects a repository with no committed production output", () => {
+    expect(
+      fixture((directory) => {
+        writeFileSync(join(directory, "src/Module.res"), "let x = 1\n");
+        git(directory, "add", "--", "src");
+        git(directory, "commit", "--quiet", "--message", "source only");
+      }),
+    ).not.toBe(0);
   });
 });
 

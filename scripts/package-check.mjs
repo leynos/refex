@@ -1,3 +1,15 @@
+/**
+Archive and package-consumer gate for the published `refex` tarball.
+
+Unlike the contract tests, which inspect metadata, this script inspects the
+real produced archive and then installs it into a temporary fixture: a plain
+JavaScript consumer executes the generated ESM, and a separate ReScript
+consumer compiles and executes against the packed interface. The archive must
+match an explicit allowlist, so the check tests what `bun pm pack` actually
+emits rather than what `package.json` claims. Nothing here publishes; see
+`docs/developers-guide.md` for the release boundary.
+*/
+
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
