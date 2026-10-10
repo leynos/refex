@@ -4,11 +4,11 @@ Generated-output synchronization gate for production ReScript JavaScript.
 The ReScript build owns every generated `.res.mjs` file under `src`. This
 script rebuilds nothing: `make check-generated` compiles first, then this check
 rejects a production artefact that is missing, untracked, or stale against
-Git's index.
-Git's index is the reviewable baseline, including staged files during the
-initial bootstrap, so a generated output staged but not committed would still
-be rejected on the next run. ReScript-format ownership makes hand-editing the
-output a defect rather than a fix; see `docs/developers-guide.md`.
+Git's index. That index is the reviewable baseline, including staged files
+during the initial bootstrap, so generated output that is staged but not
+committed is still rejected on the next run. ReScript-format ownership makes
+hand-editing the output a defect rather than a fix; see
+`docs/developers-guide.md`.
 */
 
 import assert from "node:assert/strict";
