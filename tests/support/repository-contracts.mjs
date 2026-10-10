@@ -1,14 +1,15 @@
 /**
-Contract assertions shared only by `repository-contracts.test.mjs`.
+Contract assertions shared only by the repository contract suites.
 
 Each export encodes one repository invariant — package portability, the
-Markdown toolchain, the spelling gate's cache contract, and workflow security
-boundaries — and is written to reject a weakened implementation, not merely to
-describe the current one. The suite feeds both the real repository and
-deliberately mutated fixtures through the same functions, so an assertion that
-accepts everything fails its negative control. These helpers are private to
-that suite and register no plugin, no generic workflow engine, and no reusable
-policy layer; see `docs/developers-guide.md` before extracting anything here.
+Markdown toolchain, the spelling gate's cache contract, dependency-update
+policy, and workflow security boundaries — and is written to reject a weakened
+implementation, not merely to describe the current one. The suites feed both
+the real repository and deliberately mutated fixtures through the same
+functions, so an assertion that accepts everything fails its negative control.
+These helpers are private to those suites and register no plugin, no generic
+workflow engine, and no reusable policy layer; see `docs/developers-guide.md`
+before extracting anything here.
 */
 
 import assert from "node:assert/strict";

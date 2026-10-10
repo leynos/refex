@@ -86,14 +86,21 @@ make coverage
 ```
 
 The test target compiles first and explicitly selects
-`tests/Bootstrap.test.res.mjs`, the authored JavaScript consumer, and
-repository contracts. This prevents a green run that never executes the
+`tests/Bootstrap.test.res.mjs`, the authored JavaScript consumer, and the
+repository contract suites. This prevents a green run that never executes the
 ReScript smoke. Contract tests cover package and compiler boundaries, workflow
 permissions and pins, privileged metadata-only operations, `make -j` gate
 order, the Dependabot configuration, the Markdown rule policy and its ignore
 paths, and the Bun coverage exclusion. Controlled bad fixtures must fail the
 same invariant checks that accept the repository; every contract helper has at
 least one paired negative control.
+
+The contract tests are split one concern per file — `package-contracts`,
+`dependency-contracts`, `markdown-contracts`, `workflow-contracts`,
+`generated-gate`, and `makefile-contracts` — so each stays within the authored
+file size limit. They share `tests/support/repository-contracts.mjs`, which
+belongs to these suites alone. Add a new contract to the file that owns its
+subject rather than reopening a general-purpose test file.
 
 `scripts/check-generated.mjs` cannot be tested as a helper, because it is a
 script that reads Git state. The suite therefore builds throwaway Git
