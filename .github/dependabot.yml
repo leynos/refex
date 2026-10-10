@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, bun]
+    groups:
+      minor-and-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    # ReScript 13 needs an explicit compiler/runtime migration decision.
+    ignore:
+      - dependency-name: rescript
+        versions: ['>=13.0.0']
+      - dependency-name: '@rescript/runtime'
+        versions: ['>=13.0.0']
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, github-actions]
+    groups:
+      minor-and-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7

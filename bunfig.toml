@@ -1,0 +1,4 @@
+[test]
+# Bun does not recognize ReScript's .test.res.mjs suffix as a test pattern.
+# Keep text and LCOV coverage scoped to implementation, not test bodies.
+coveragePathIgnorePatterns = ["tests/**"]
