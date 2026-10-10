@@ -24,7 +24,7 @@ Configure official `reanalyze` dead-code analysis with `analysis: [dce]`, empty
 suppression lists, and `transitive: false`. The official editor extension's
 `Start Code Analyzer` command owns this analysis. The installed 12.3.1 CLI
 exposes build, watch, clean, format, and compiler arguments, but no official
-`reanalyze` command. Therefore this bootstrap does not claim CI-enforced dead
+`reanalyze` command. Therefore, this bootstrap does not claim CI-enforced dead
 code analysis and does not install an obsolete standalone analyser.
 
 Do not adopt `plow-technologies/rescript-linter`, an experimental ast-grep

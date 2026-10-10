@@ -7,9 +7,9 @@ repository today. It is short because almost nothing is: Refex is an
 experimental structured-effects library with no effect-system API yet. The only
 published symbol is a disposable toolchain probe.
 
-If you are looking for `Effect`, `Exit`, `Cause`, `Fiber`, `Scope`, `Context`,
-`Layer`, or `Schedule`, they do not exist here. See
-[ADR 001](adr-001-repository-bootstrap.md) for the bootstrap scope.
+`Effect`, `Exit`, `Cause`, `Fiber`, `Scope`, `Context`, `Layer`, and `Schedule`
+do not exist here. See [ADR 001](adr-001-repository-bootstrap.md) for the
+bootstrap scope.
 
 ## Installing
 
