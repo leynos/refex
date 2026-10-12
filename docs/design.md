@@ -313,14 +313,27 @@ The proposed lifecycle is:
 
 ```text
 Open -> Closing(attempt) -> Released(receipt)
-                        -> Unresolved(owner, generation, report)
-Unresolved -> Recovering(new attempt) -> Released | Unresolved
+                        -> UnresolvedPending(owner, generation, attempt, report)
+                        -> UnresolvedSettledFailed(owner, generation, attempt, report)
+UnresolvedPending -> Released(receipt)                 [same attempt succeeds]
+                   -> UnresolvedSettledFailed(report)   [same attempt fails]
+UnresolvedSettledFailed -> Recovering(newAttempt) -> Released(receipt)
+                                                 -> UnresolvedPending(report)
+                                                 -> UnresolvedSettledFailed(report)
 ```
 
-Concurrent closes join one in-progress attempt and observe its same report.
-Further close calls may observe that settled report; they do not implicitly
-retry failed cleanup. Explicit recovery creates or joins a serialized recovery
-attempt. Distinguish attempt identity, resource generation, and release receipt.
+A bounded close or recovery report is an observation, not proof that its
+operation settled. It may report `UnresolvedPending` while the same attempt
+continues under its owner, or `UnresolvedSettledFailed` after that attempt
+fails. Every close or recovery attempt may remain pending, succeed, or fail.
+Concurrent closes join one in-progress attempt and receive a report for that
+same attempt. A pending attempt that later succeeds yields `Released(receipt)`
+for its own generation; one that later fails becomes settled-failed. Further
+close calls join pending work or may observe its settled report. They do not
+start another destructive attempt. Retry is permitted only from settled-failed,
+subject to the adapter's identity and safety contract. Distinguish attempt
+identity, resource generation, report, and release receipt. Every transition
+retains its owner and generation; only explicit recovery creates a new attempt.
 
 A live owner registry or supervisor retains unresolved resources independently
 of returned errors. A diagnostic can expose a recovery reference, but is not
@@ -347,11 +360,15 @@ interrupting an old fibre joined cleanup or made its external identity
 reusable. For exclusive replacement, wait for a confirmed release receipt or a
 verified isolation mechanism that prevents old work affecting the successor.
 
-Retain the original external cleanup operation while it is pending. A waiter
-timeout neither cancels that operation nor permits a duplicate destructive
-attempt. Join pending or already-successful operations. Only a settled failed
+Retain the original external cleanup operation while it is pending. A bounded
+report or waiter timeout neither settles nor cancels that operation, and does
+not permit a duplicate destructive attempt. A subsequent close or recovery
+joins pending work; it does not start another attempt. Only a settled failed
 attempt may be retried, subject to the adapter's identity and safety contract.
-Late completion must retire only its own generation.
+Late success yields a receipt for and retires only its own generation; late
+failure settles that same attempt as failed. The owner retains the obligation
+through either outcome until release is confirmed or ownership is acknowledged
+by another live owner.
 
 Lody's delayed-unlink case motivates this rule: reissuing cleanup against a
 reused path can delete the successor. Local generation checks alone are not a
@@ -710,18 +727,18 @@ one minimal portable workflow with an injectable external-operation adapter,
 two consumers, and an inspectable owner. This is the first semantic vertical
 experiment, not a collection of independent primitive demonstrations.
 
-| Scenario                    | Observable acceptance                                        |
-| --------------------------- | ------------------------------------------------------------ |
-| Lazy start/retry            | No work on construction; fresh execution per attempt.        |
-| Cancelled queued waiter     | Its claim disappears and cannot acquire later.               |
-| Two readers                 | Cancelling one leaves the other producer lease usable.       |
-| Last lease                  | Owner initiates and joins cleanup or reports unresolved.     |
-| Concurrent close            | Callers join one attempt and receive its same report.        |
-| Mixed failure               | Mapping/result/Direct/boundary retain all relevant reasons.  |
-| Ignored abort               | Local wait ends without a false termination receipt.         |
-| Delayed release/replacement | Successor waits; old completion cannot target it.            |
-| Discarded diagnostic        | A live owner still exposes and can recover the resource.     |
-| Failed retry                | Same generation remains owned; no false successful disposal. |
+| Scenario                    | Observable acceptance                                                                               |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| Lazy start/retry            | No work on construction; fresh execution per attempt.                                               |
+| Cancelled queued waiter     | Its claim disappears and cannot acquire later.                                                      |
+| Two readers                 | Cancelling one leaves the other producer lease usable.                                              |
+| Last lease                  | Owner initiates and joins cleanup or reports unresolved.                                            |
+| Concurrent close            | Callers join one attempt and receive its same report.                                               |
+| Mixed failure               | Mapping/result/Direct/boundary retain all relevant reasons.                                         |
+| Ignored abort               | Local wait ends without a false termination receipt.                                                |
+| Delayed release/replacement | Pending then late success; no second destructive call; old generation retires, successor untouched. |
+| Discarded diagnostic        | A live owner still exposes and can recover the resource.                                            |
+| Failed retry                | Same generation remains owned; no false successful disposal.                                        |
 
 First await readiness that proves admission, producer start, or finalizer
 entry. Then advance the controlled clock or cancel. Join affected managed work

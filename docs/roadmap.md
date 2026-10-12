@@ -481,8 +481,8 @@ design.md §§6, 9.3.
   - See design.md §§5.3, 9.3.
   - [ ] Register listeners before triggering events and preserve
     lifecycle/network-idle waits and active-page selection.
-  - Success: Synchronous-event races are covered and normalized CDP output plus
-    external-session ownership match the oracle contract.
+  - Success: Synchronous-event races are covered, and both the normalized CDP
+    output and external-session ownership match the oracle contract.
 
 ### 4.4. Reproduce agent-browser as a process dependency
 
