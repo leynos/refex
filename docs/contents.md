@@ -8,15 +8,16 @@ or establish a working effects API.
 
 - [Terms of reference](terms-of-reference.md): problem, users, scope,
   constraints, success criteria, and open questions.
-- [Technical design](design.md): proposed computation and ownership contracts,
-  adapters, validator applications, and experimental acceptance gates.
+- [Technical design](design.md): computation, complete outcomes, retained
+  ownership, adapters, validators, and experimental acceptance gates.
 - [Context](context.md): shared vocabulary, evidence status, prior art, and
-  traceability to the user's edited GIST roadmap.
+  the version-specific Lody learning crosswalk.
+- [GIST roadmap](roadmap.md): the supplied edited plan extended with lifecycle
+  contracts and vertical experiments, retaining original task identifiers.
 
-The supplied roadmap is not yet a repository-local checklist. Its original task
-identifiers and validator sequence appear in
-[the roadmap context](context.md#6-validation-and-roadmap-traceability).
-No documentation addition marks those tasks complete.
+All roadmap tasks remain unchecked. Specified, implemented, consumer-exercised,
+and interpreter/platform-verified behaviour are separate facts. Lody's probes
+and documentation are source evidence, not refex conformance results.
 
 ## Implemented bootstrap and contribution
 

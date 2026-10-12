@@ -93,8 +93,8 @@ ______________________________________________________________________
 - [Terms of reference](docs/terms-of-reference.md): users, scope, and outcomes.
 - [Technical design](docs/design.md): contracts and acceptance experiments.
 - [Context](docs/context.md): vocabulary, evidence, and prior art.
-- [Roadmap context](docs/context.md#6-validation-and-roadmap-traceability):
-  traceability to the supplied edited GIST plan, not a completion checklist.
+- [GIST roadmap](docs/roadmap.md): vertical slices and lifecycle experiments,
+  preserving the supplied edited plan's identifiers.
 - [Documentation index](docs/contents.md): guides and accepted bootstrap ADRs.
 
 ______________________________________________________________________

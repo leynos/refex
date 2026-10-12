@@ -1,113 +1,140 @@
 # refex technical design
 
-Status: draft v0.1, proposed for experimental validation.
+Status: draft v0.2, proposed for experimental validation.
 Last substantive revision: 12 October 2026.
 Audience: implementers and reviewers of the library and its validators.
 Companions: [terms of reference](terms-of-reference.md), [context](context.md),
-and [accepted bootstrap decisions](contents.md).
+[GIST roadmap](roadmap.md), and [bootstrap decisions](contents.md).
 
 ## 1. Design intent and authority
 
 refex proposes a ReScript-native interface for lazy computation, typed
-requirements, expected failures, and owned execution. The intended difference
-from direct Effect bindings is the application programming model, not new
-scheduler capabilities. The three validators must demonstrate that difference
-before the project freezes a supported surface.
+requirements, complete failures, and accountable resource ownership. Its
+intended difference from direct Effect bindings is the programming model and
+explicit behavioural contract, not an assertion of new scheduler capabilities.
+The three validators must demonstrate that difference before API acceptance.
 
-The repository currently implements only the bootstrap described by its
-[user guide](users-guide.md). Every API below is a design contract, not an
-existing export. Signature blocks use explanatory notation and have not passed
-the proposed compiler experiments. Documentation acceptance does not constitute
-an accepted runtime ADR, an implementation result, or publication approval.
+The repository implements only the bootstrap described in the
+[user guide](users-guide.md). All signatures here are explanatory proposals,
+not compiled interfaces or existing exports. Draft acceptance neither selects
+a runtime dependency nor approves publication. Goals G1-G6 live in the
+[terms of reference](terms-of-reference.md); [context](context.md) owns
+vocabulary and source provenance; [roadmap](roadmap.md) owns delivery tasks.
 
-Goals G1-G6 and non-goals live in the
-[terms of reference](terms-of-reference.md).
-[Context](context.md) defines terminology and preserves the edited roadmap's
-identifiers. The design deliberately avoids adding a second roadmap checklist.
+[Relude RIO][rio] motivates Reader around IO and environment projection.
+[Primavera][primavera] motivates structural capability requirements. Neither
+establishes equivalent inference through ReScript `.resi` boundaries; E1 must.
 
-The monadic starting points are [Relude's RIO][rio] and [Primavera][primavera].
-Relude provides environment adaptation around IO; Primavera motivates tracking
-capability requirements through object types. Neither source proves that the
-same inference survives ReScript interfaces. Experiment E1 decides that.
+The supplied Lody learning note and [PR #1452][lody-pr] motivate this revision.
+The PR changes documentation and guidance, not product code. Lody reports five
+selected probes against Effect 4.0.2, not end-to-end migration verification.
+Supporting process/file-lock notes have their own revisions and limits. Their
+results have not been rerun for refex. [Context
+§8](context.md#8-lody-learning-crosswalk)
+separates source observations from proposed refex contracts.
 
 ## 2. Architecture and boundaries
 
 ### 2.1. Computational separation
 
-The proposed opaque abstractions have these conceptual meanings:
+The opaque abstractions retain these conceptual meanings:
 
 ```text
 IO<A, E>        = lazy computation with success A and expected failure E
 Fx<A, E, R>     = R -> IO<A, E>
-Resource<A, E>  = acquisition and scoped use of A, retaining cleanup
+Resource<A, E>  = acquisition and scoped use of A, retaining release obligations
 Layer<A, E, R>  = R -> Resource<A, E>
 ```
 
-Application workflows consume `Fx`, mapping helpers, and service accessors.
-Resource constructors assemble dependencies. An internal execution adapter
-interprets IO and preserves ownership and outcomes. Platform adapters supply
-browser, React, network, and process operations. The portable core never
-imports a platform adapter.
+Workflows consume `Fx`, helpers, and service accessors. Resource constructors
+assemble dependencies. An internal execution adapter interprets IO; a live
+owner retains lifecycle obligations. Platform adapters establish browser,
+network, and process observations. Core source never imports those adapters.
 
-These equations explain semantics; they do not commit the public representation
-to functions, a generalized algebraic datatype, or a backend object. The first
-implementation chooses one compile-time backend. Runtime-selectable interpreter
-plugins and a general higher-kinded encoding are not initial requirements.
+These equations do not select a function representation, instruction tree,
+or backend object. The first implementation uses one compile-time backend.
+A general higher-kinded encoding or interpreter plugin system is not required.
+An environment-free IO is not necessarily pure: captured state, time, and
+randomness still require the appropriate boundary.
 
 ### 2.2. Bootstrap compatibility
 
-[ADR 002](adr-002-portable-core-and-bun-boundary.md) currently allows only the
-matching ReScript runtime as a production dependency and keeps platform calls
-outside core source. This documentation changes neither that dependency graph
-nor the public-module allowlist.
+[ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
+ReScript runtime as a production dependency. This revision changes no
+package, dependency, generated source, or public-module allowlist.
 
-The preferred experiment reuses Effect execution through a small private
-adapter. Before adding it, an ADR must explicitly address the bootstrap's
-runtime-dependency restriction, dependency discovery, browser bundle behaviour,
-and adapter placement. An internal portable execution dependency is different
-from importing Bun or React into core source, but it still requires a reviewed
-change to the accepted baseline.
+The preferred experiment uses a private Effect execution adapter. Before
+adoption, an ADR must address the bootstrap dependency restriction, adapter
+placement, dependency discovery, and browser bundle behaviour. A portable
+execution dependency differs from importing Bun or React into core source,
+but still requires a reviewed change to the baseline.
 
-Keep the root package until a second package has real source, tests, and an
-independent dependency boundary, as the existing workspace trigger requires.
-React and Bun adapters remain planned seams, not empty packages created by this
-PR. Use the ReScript 12 standard library, not an additional core library.
+Keep one root package until a second has real source, tests, and an independent
+dependency boundary. React and Bun remain planned seams, not empty packages.
+Use the ReScript 12 standard library rather than adding a replacement core.
 
-### 2.3. Backend selection
+### 2.3. Backend selection and execution boundary
 
-Compare direct Effect foreign function interface (FFI) bindings with
-`@reventlessdev/rescript-effect`. The
-[package describes alpha bindings][bindings] across Effect modules. It is a
-candidate source of existing interoperation work,
-not a certified foundation. Audit the exact package archive and selected Effect
-version, including licensing notices, before adoption.
+Compare direct Effect FFI with [`@reventlessdev/rescript-effect`][bindings].
+Audit the selected archive, resolved runtime, licence, and actual semantics.
+Existing binding coverage is useful work, not a certified foundation.
 
-The adapter may weaken types only inside an explicit, reviewed FFI boundary.
-It must not export backend tags, contexts, effects, scopes, or unchecked error
-conversions. Binding audit targets include provision, construction errors,
-calling conventions, native variant representation, child interruption, and
-scope ownership. A hidden dependency does not excuse unsound semantics.
+Contain weakened types in a narrow foreign function interface (FFI). Public
+interfaces must not expose backend tags, contexts, scopes, or unchecked error
+conversions. Audit provision, error conversion, native variant representation,
+calling conventions, cancellation, close, and keyed replacement.
 
-Backend replacement is a later experiment against the same conformance corpus.
-Opaque interfaces reduce coupling; they do not guarantee cost-free migration or
-identical behaviour across arbitrary runtimes.
+Lody's guide documents version-specific differences between primitive names
+and needed behaviour: repeated `Scope.close`, `FiberMap.run` replacement,
+`mapError` on mixed causes, and promise failure projection. Treat these as
+conformance targets, not universal claims about Effect versions. [Lody
+guide][lody-guide]
+
+Only identified runtime entries launch programs. Composition that happens to
+contain `run` in its name is not automatically execution. Follow injected
+callbacks and handles as well as imports when inspecting boundaries; wrapping
+an internal promise workflow does not make its descendants structured.
+
+Backend upgrades and any later replacement must rerun the same observable
+contracts. If upstream behaviour disagrees, repair the adapter, narrow the
+supported operation, or reject the backend. Do not silently weaken the contract.
+
+### 2.4. Behaviour before primitives
+
+Every resource-owning operation answers five questions in its existing design
+or evidence record before selecting a primitive:
+
+| Question     | Required answer                                                    |
+| ------------ | ------------------------------------------------------------------ |
+| Trigger      | What input starts work; what ordering and re-entry are allowed?    |
+| Owner        | Who owns the producer, raw work, resource, and individual waiters? |
+| Cancellation | Which wait or work stops, and what establishes termination?        |
+| Handoff      | What observable condition permits replacement or a successor?      |
+| Recovery     | Who retains unresolved work and the complete failure?              |
+
+This adapts Lody's behavioural contract without importing its application
+architecture. Link existing answers rather than require a new checklist file
+for every edit. Service inputs and pure helpers need no new dependency service.
+
+The first executable slice is one shared producer with two consumers, local
+cancellation, delayed cleanup, and failed release. It exercises the smallest
+necessary interaction of IO, outcomes, ownership, and time before broad APIs.
 
 ## 3. IO, requirements, and pipelines
 
 ### 3.1. Lazy construction and sequencing
 
-`IO.succeed` accepts an already evaluated value. `IO.sync` accepts a deferred
-callback. `suspend` defers construction of the next description. Promise
-adapters accept a thunk that creates work during execution; an adapter for an
-already-running promise must identify that different ownership contract.
+`IO.succeed` accepts an evaluated value; `IO.sync` defers a callback;
+`suspend` defers description construction. Promise adapters create work inside
+a thunk on execution. Retrying invokes that thunk anew. An already-started
+promise adapter must explicitly identify its weaker start/ownership contract.
 
-Repeated execution repeats work unless the caller explicitly introduces a
-shared allocation or cache. Environment access and projection also run during
-execution, not while `provide` assembles a description. Exceptions thrown by
-callbacks enter the defect channel unless a named adapter classifies them.
+Repeated execution repeats work unless sharing or caching explicitly says
+otherwise. Environment access and projection execute lazily, not during
+`provide`. Callback exceptions become defects unless a named adapter classifies
+them. Laziness alone does not establish interruption of the resulting work.
 
-A Reader wrapper must not consume the JavaScript stack before a stack-safe
-backend gets control. Conceptually, sequence it as follows:
+A Reader wrapper must not exhaust the stack before its backend gets control:
 
 ```text
 flatMap(first, next)(environment) =
@@ -115,17 +142,13 @@ flatMap(first, next)(environment) =
     .flatMap(value => IO.suspend(() => next(value)(environment)))
 ```
 
-E2 checks long IO and Reader chains separately. Runtime fairness still requires
-cooperative yielding; an unbounded pure loop inside a callback is not made
-interruptible merely by returning an effect afterwards.
+E2 tests IO and Reader chains separately. Cooperative yields remain necessary;
+an unbounded pure loop is not made interruptible by later returning an effect.
 
-### 3.2. Requirement contracts
+### 3.2. Requirements, construction, and observation timing
 
-Use ordinary service records inside a structurally typed outer environment as
-the preferred interface. Each service accessor requests only its own field.
-Use native error variants rather than backend tagged-error classes.
-
-The proposed type relationships are:
+Prefer ordinary service records inside a structural outer environment. Each
+accessor requests its own capability and uses native error variants.
 
 ```text
 map:                  (Fx<A,E,R>, A -> B) -> Fx<B,E,R>
@@ -137,489 +160,655 @@ provide:              (Fx<A,E,R>, R) -> IO<A,E>
 contramapEnvironment: (Fx<A,E,Small>, Large -> Small) -> Fx<A,E,Large>
 ```
 
-`accessEffect` suspends its callback and executes the returned workflow with the
-same environment; it must not introduce an implicit runner. It corresponds to
-the name in roadmap task (1.2.1), while `accessIO` serves bound services.
+`accessEffect` suspends its callback and executes its result in the same
+environment, without a runner. `accessIO` serves bound-service methods.
 
-A shared `R` in `flatMap` can accumulate constraints through unification only
-when sufficiently open types survive the interface. E1 must test independent
-services, explicit `.resi` files, extra fields, and incompatible field types.
-If that fails, use explicit projections and named environment records. Never
-claim an arbitrary output requirement type or erase it to `unit` without
-supplying the complete environment.
+A common `R` accumulates requirements only if open types survive exported
+interfaces. E1 covers independent services, extra fields, and conflicts. Use
+explicit projections and named environments if inference fails. Never erase
+requirements or invent an arbitrary combined type.
 
-Partial provision is a typed environment-building function. Initially there is
-no generic field-subtraction operation. Lexical overrides affect enclosed open
-operations and their owned children; they do not rebuild bound services that
-captured different dependencies earlier.
+Partial provision is a typed environment-building function, not generic field
+subtraction. Lexical overrides affect open operations and their children;
+they do not rebuild a bound service that captured different inputs.
+
+Document three independent service contracts: construction inputs, invocation
+requirements, and lifetime owner. A workflow composing services is not thereby
+a platform adapter. Deterministic reducers/codecs remain ordinary functions.
+
+Snapshot configuration and a live provider differ. The layer must not replace
+per-operation observation with construction-time capture without an explicit
+contract change. E6 changes a supplied configuration source between operations
+and checks both advertised behaviours. Lody's file-lock directory correction
+is the motivating example, not a reason to add filesystem calls to core.
+[Lody file-lock note][lody-lock]
 
 ### 3.3. Mapping and collection helpers
 
-Use data-first functions and ReScript's native pipe. Do not duplicate the API
-with data-last overloads. Keep the following meanings distinct:
+Use data-first functions and ReScript's native pipe; avoid data-last overloads.
 
-- `map` transforms a success; `flatMap` returns another description; `tap`
-  performs an effect and retains the original success. A failed tap fails the
-  workflow unless explicitly recovered.
-- `mapError` changes expected failure; `catchError` recovers it. `match` folds
-  expected success/failure into a success, not defects or interruption.
-- `fromResult`, `fromOption`, `mapResult`, and `mapOption` explicitly introduce
-  expected failure. `result` exposes expected failure as a native result value.
-- `extend` combines an intermediate result with another result using a typed
-  merge function. It does not synthesize records from string field names.
-- Container helpers traverse native arrays, options, and results. Pure inner
-  mapping remains ordinary standard-library code.
+- `map` transforms success; `flatMap` sequences descriptions; `tap` performs
+  work while retaining success. A failing tap fails unless explicitly handled.
+- `mapError` transforms only expected-error leaves while preserving the complete
+  cause structure. Recovery obeys §4, not a backend function's convenient name.
+- `fromResult`, `fromOption`, `mapResult`, and `mapOption` introduce explicit
+  expected failure. `result` must not absorb lifecycle failures.
+- `extend` retains intermediate values through a typed merge function rather
+  than constructing records from string field names.
+- Traversals use native arrays, options, and results. Pure inner mapping stays
+  ordinary standard-library code.
 
-Sequential traversal remains sequential. Parallel traversal takes an explicit
-positive concurrency bound, preserves input order, stops admitting new work on
-failure, and joins owned children before completing. Validation accumulation
-collects expected errors; it does not absorb defects or cancellation.
+Sequential traversal stays sequential. Parallel traversal requires a positive
+concurrency bound, preserves input order, stops admission on failure, and joins
+owned children. If external work remains unresolved, joining a child is not
+proof of release; §5's recovery owner must still account for it.
 
-Introduce helpers as a validator needs them. No arbitrary target module count
-or reproduction of Effect's collection hierarchy defines completeness.
+Validation accumulation collects expected errors, not defects, interruption,
+or failed cleanup. Introduce helpers only as validators need them.
 
-## 4. Expected failures, defects, and interruption
+## 4. Expected failures, defects, interruption, and release failures
 
-A workflow's expected-error type is an explicit contract. Ordinary application
-variants can inject service-specific errors into a domain sum. Open
-polymorphic variants remain an optional inference experiment, not the only
-supported style.
+### 4.1. Complete outcomes
 
-`flatMap` does not merge unrelated closed error types by assertion. Callers
-supply real injection functions, an explicit sum, or compiler-checked open-row
-composition. An infallible type has no public inhabitants; `unit` is not empty.
-Any widening operation accepts only a genuinely uninhabited expected channel.
+Ordinary variants inject service errors into a domain sum. Open polymorphic
+variants are optional. `flatMap` cannot merge unrelated closed errors by
+assertion. Infallibility means no inhabitant in the expected-error channel;
+`unit` is not empty and infallibility does not imply release success.
 
-`Exit<A,E>` reports success or a complete `Cause<E>`. Keep cause representation
-opaque, but expose inspection of expected failure, defect, interruption, and
-combined failure. Cleanup failure must not overwrite the original failure.
-Deterministic tests compare meaningful outcomes and order, not backend-specific
-stack-trace formatting.
+The proposed opaque `Cause<E>` preserves expected failures, defects,
+interruption, release issues, and sequential/parallel composition. Sequential
+ordering is significant. Parallel causes preserve branches without inventing a
+wall-clock total order. Inspection must not require backend stack formatting.
 
-`Runtime.runExit` accepts only dependency-free IO and returns the complete
-outcome in a promise. The adapter must contain execution failures rather than
-rejecting with an arbitrary value cast to `E`. A convenience promise runner can
-reject at an explicitly documented JavaScript boundary; library combinators
-must not call it internally.
+A release issue identifies the owner, resource generation, release phase,
+observed condition, and remaining obligation. An adapter may classify an
+anticipated inability to release as a release failure rather than a programmer
+defect. An unexpected exception in cleanup remains a defect with release
+context. No public implementation may drop the original reason or simultaneous
+failures merely to fit this classification.
 
-Cancellation bypasses ordinary expected-error recovery and retry. A handler
-that needs to inspect a complete cause must do so explicitly. The initial
-surface must not provide an accidental catch-all that turns interrupted work
-back into apparent success.
+The exact `ReleaseIssue` payload and adapter-specific detail representation
+remain D8, decided by E3/E9 before a public interface freezes. The initial
+proposal keeps lifecycle issues separate from `E`, avoiding a requirement for
+every domain error sum to absorb every backend finalizer exception.
+
+### 4.2. Error transformation and recovery
+
+For `mapError(f)`, transform every expected-error leaf and preserve unrelated
+reasons, resource identities, branch structure, and ordering. If `f` itself
+throws, record the mapping defect without silently dropping the existing cause.
+If a mapper throws, retain the original cause as opaque diagnostic provenance,
+not as old typed leaves relabelled with the new error type. The FFI audit must
+demonstrate this behaviour for the installed backend.
+
+Lody documents an acquisition failure whose simultaneous release defect
+vanished through its installed Effect 4.0.2 `mapError`; it changed that
+conversion to map inside the full cause. This motivates a refex contract,
+not a claim that all versions behave alike. [Process-release note][lody-process]
+
+Default `catchError`, `match`, and `result` recover a standalone expected
+failure.
+They propagate a compound cause containing defects, interruption, or release
+issues. A handler for multiple expected-only failures requires an explicit
+aggregation policy; it must not choose the first leaf silently.
+
+A conservative initial `result` relationship is:
+
+```text
+result: Fx<A,E,R> -> Fx<Result<A,E>,E,R>
+```
+
+The retained `E` permits an unconverted mixed cause to propagate losslessly.
+This narrows the earlier sketch: recovery must not promise an arbitrary new
+error type while unexplained old typed failures remain possible. E1/E9 must
+validate this constraint. A future complete-outcome-as-value operation is
+explicit, and still cannot dispose an owner by discarding its returned value.
+
+### 4.3. Runtime and promise boundaries
+
+`Runtime.runExit` accepts dependency-free IO and returns its complete outcome.
+A defined submission failure is distinct from the workflow's `E`. Do not cast
+arbitrary JavaScript rejections into domain errors.
+
+A convenience promise runner may project failures only at a documented outer
+boundary. Lifecycle-sensitive callers use full outcomes; any lossy exception
+projection must be explicit. Preserve the full cause behind the projection and
+retain unresolved owners independently of the exception's reachability.
+
+Lody #1452 corrects its earlier account: its pinned `runPromise` already uses
+`Cause.squash`. refex must test its own contract rather than depend on either
+remembered rejection shape. [Reference and probe note][lody-probes]
 
 ## 5. Resources and dependency construction
 
 ### 5.1. Ownership contract
 
-A resource describes acquisition and scoped use. Its consumer runs before its
-cleanup obligations end:
+A resource retains acquisition and release obligations throughout scoped use:
 
 ```text
 Resource.use: (Resource<A,E>, A -> IO<B,E>) -> IO<B,E>
 ```
 
-Normalize acquisition and consumer errors into a common domain error before
-composition. Finalizer defects remain visible through the cause rather than
-requiring every domain error type to include cleanup exceptions.
+Normalize acquisition/body errors before composition. Lifecycle failure stays
+visible even after body success. Acquire, register ownership, publish a handle,
+and cancel form one protocol. Every successful allocation has one release
+owner before publication, including a result arriving after cancellation.
 
-Acquisition, ownership registration, and cancellation form one protocol. Once
-an allocation succeeds, exactly one owner must account for release, even if
-cancellation arrived during acquisition. Finalizers run once, in dependency
-order, with interruption protection appropriate to the chosen backend.
-[Effect's scope contract][scope] is reference behaviour to verify at this
-boundary, not evidence that the wrapper already implements it.
+Register the finalizer once and run each close attempt once. Do not describe
+this as unconditional 'exactly-once successful release': attempts can fail,
+remain pending, or require deliberate recovery. Normal dependency ordering
+releases dependants before their supporting resources.
 
-Foreign acquisition can finish after cancellation. The adapter must either
-retain ownership of that late result and dispose it, or document a weaker
-contract that excludes the operation from the managed surface. Sending an
-abort signal alone does not discharge the release obligation.
+Adapters must retain late foreign acquisitions until disposal or confirmed
+termination. Sending abort alone does not discharge ownership. Borrowed browser
+sessions and owned processes have different release predicates; closing an
+owned connection does not authorize destroying everything reachable through it.
 
-The resource protocol distinguishes an owned process/browser from a borrowed
-session. Closing an owned connection is not permission to destroy everything
-reachable through it. In `css-view`, detaching a connection and terminating the
-operator's browser are different operations.
+ReScript does not provide a non-escape proof here. Wrappers can reject use
+after closure, but cannot revoke arbitrary captured third-party values. No
+unrestricted resource-to-IO conversion may silently discard ownership.
 
-This is not linear typing. An application can capture a handle or closure beyond
-its scope. refex-owned wrappers may reject use after closure, but cannot revoke
-all escaped third-party values. Do not expose unrestricted resource-to-IO
-conversion that silently drops lifetime obligations.
+### 5.2. Joined closure and retained recovery
 
-### 5.2. Layer composition and sharing
+The proposed lifecycle is:
 
-A layer receives inputs and builds a resource-managed output. `map`, `flatMap`,
-explicit `zipWith`, and input projection suffice for initial assembly. Provision
-has the relationship:
+```text
+Open -> Closing(attempt) -> Released(receipt)
+                        -> Unresolved(owner, generation, report)
+Unresolved -> Recovering(new attempt) -> Released | Unresolved
+```
+
+Concurrent closes join one in-progress attempt and observe its same report.
+Further close calls may observe that settled report; they do not implicitly
+retry failed cleanup. Explicit recovery creates or joins a serialized recovery
+attempt. Distinguish attempt identity, resource generation, and release receipt.
+
+A live owner registry or supervisor retains unresolved resources independently
+of returned errors. A diagnostic can expose a recovery reference, but is not
+the sole ownership record. Transfer requires acknowledgement by a destination
+owner before the source drops responsibility. This is a refex proposal stronger
+than Lody's process note, which explicitly warns that discarded failures can
+abandon caller-held leases. [Process-release note][lody-process]
+
+The outer host retains an unresolved runtime/owner after a bounded close report;
+it cannot discard it as disposed. D9 decides the API for inspection, retry,
+transfer, and force-exit reporting. Until that exists, an uncooperative adapter
+cannot advertise fully managed release. In-memory retention does not survive
+host termination and is not durable crash recovery.
+
+A receipt confirms only its adapter's stated predicate. Process-tree absence
+need not mean drained output; socket closure need not mean remote rollback.
+Log failures must not suppress ownership transfer or change failed release into
+success. Recovery history retains the original obligation and later failures.
+
+### 5.3. Generations, pending work, and handoff
+
+A resource name is not a generation. Key replacement must not assume that
+interrupting an old fibre joined cleanup or made its external identity reusable.
+For exclusive replacement, wait for a confirmed release receipt or a verified
+isolation mechanism that prevents old work affecting the successor.
+
+Retain the original external cleanup operation while it is pending. A waiter
+timeout neither cancels that operation nor permits a duplicate destructive
+attempt. Join pending or already-successful operations. Only a settled failed
+attempt may be retried, subject to the adapter's identity and safety contract.
+Late completion must retire only its own generation.
+
+Lody's delayed-unlink case motivates this rule: reissuing cleanup against a
+reused path can delete the successor. Local generation checks alone are not a
+cross-process compare-and-delete primitive. Any filesystem or process adapter
+must record the real identity guarantees and unverified platform limits.
+[Lody file-lock note][lody-lock]
+
+Publication is a separate transition from preparation. Register observations
+before triggering synchronous events, keep partially initialized resources
+private, and establish ownership before exposing them. A migration that inserts
+an await can alter these boundaries despite unchanged signatures. No assumption
+of cross-process atomicity follows from synchronous JavaScript execution.
+
+### 5.4. Layers, sharing, and observation
+
+A layer builds a resource-managed output from inputs. Initial assembly uses
+`map`, `flatMap`, explicit `zipWith`, and input projection:
 
 ```text
 provideLayer: (Fx<A,E,Out>, Layer<Out,E,In>) -> Fx<A,E,In>
 ```
 
-Constructor failures remain in `E`, and `In` remains required. Services built
-before a later constructor fails must still finalize. A managed runtime can
-build one application environment and submit many request-scoped workflows.
+Constructor failures and residual inputs remain visible. Earlier services still
+require release or recovery ownership when a later constructor fails.
 
-Initially, sharing means allocating a dependency once and passing that value to
-multiple consumers. Reusing a layer recipe does not promise memoized allocation.
-Automatic graph memoization stays deferred until identity, configuration,
-failure caching, and per-runtime scope isolation have explicit contracts.
+Initially share an allocation by building once and passing its value to multiple
+consumers. Reusing a recipe promises neither memoization nor sharing. Test one
+acquisition, identical instance observation, and release at the actual owner.
+Explicit fresh construction remains separate, including across runtimes.
 
-A future cache must key a bound construction node, not merely a factory. Two
-applications or tenants with different configuration must not share a service
-because they invoked the same constructor function.
+Two readers of a shared producer own their waits, not the producer. Cancelling
+one reader preserves the other's lease. The producer owner defines the
+last-lease policy: retire and join cleanup, or retain an application-owned
+cache.
+The first experiment uses retire-on-last-release; it does not build a cache.
+
+Graph memoization remains deferred. Any future key identifies a bound node and
+its configuration within a scope, not merely a constructor function. Snapshot
+versus live dependency observation remains explicit under §3.2.
 
 ## 6. Execution, concurrency, and policies
 
 ### 6.1. Managed runtime lifecycle
 
-The runtime has four states: starting, open, closing, and closed. Initialization
-failure closes acquired resources without exposing a usable runtime. Only open
-admits submissions. Closing first rejects new work, then settles request owners,
-then releases their supporting application resources. Disposal is idempotent.
+Starting admits no work; successful construction moves to open. Close atomically
+stops admission, settles request ownership, and attempts release of supporting
+services. It reports released or unresolved, never unconditional 'closed'.
+Failed initialization also retains any unresolved partial construction.
 
-Submitting after closure yields a defined submission error, not a fabricated
-inhabitant of the submitted workflow's expected-error type. Distinguish this
-boundary from errors returned after successful admission.
+Owned child interruption requests cancellation and joins managed termination.
+No public detached spawning is needed initially. Joining a fibre does not by
+itself confirm foreign termination. A successful shutdown requires all owned
+obligations released or explicitly transferred to an acknowledged live owner;
+a mere unresolved transfer must not be labelled global quiescence.
 
-Owned child execution must expose join, outcome inspection, and interruption.
-Public detached or daemon spawning is unnecessary for the first validators.
-An owner cannot report successful shutdown while an admitted child remains
-unaccounted for. A non-terminating finalizer can block quiescence; any bounded
-shutdown escape must report that loss of guarantee explicitly.
+### 6.2. Three cancellation contracts
 
-### 6.2. Time, retry, and synchronization
+Expose the distinction in names or operation documentation, not just footnotes:
 
-Clock and random capabilities make delays, deadlines, and jitter controllable.
-Virtual-time advancement runs due work until the test reaches a documented
-quiescent point; it is not merely a fake timestamp disconnected from scheduling.
+- **Stop waiting:** cancel one observer and remove its admission/interest claim.
+  The producer and raw operation may remain under another owner.
+- **Interrupt and join:** request managed interruption and observe the fibre's
+  termination plus applicable finalizer attempts. Return unresolved details
+  rather than infer successful external release.
+- **Confirm termination:** the adapter establishes its external release
+  predicate before handoff. Cooperative abort is evidence only when verified.
 
-Timeout requests interruption and observes owned cleanup before reporting the
-timeout outcome. Thus elapsed completion time can exceed the nominal deadline.
-A separate 'stop waiting' API would need a visibly weaker ownership contract.
+A promise adapter declares which it provides. The scope bridge must preserve
+that classification. A bounded wait, confirmed termination, and immediate safe
+reuse cannot all be promised for work that may ignore cancellation forever.
 
-Schedules compose only the operations demanded by validators: bounded retries,
-delay/backoff, jitter where needed, and repetition. State resets per execution.
-Retries do not include defects or cancellation by default. Retrying acquisition
-and retrying use of an acquired service remain distinct compositions.
+The ordinary owned timeout interrupts and joins; cleanup can exceed the
+execution deadline. A bounded cleanup observation returns an unresolved report
+with a retained owner. Do not stack 'stop waiting' and 'release' and call it an
+owned timeout. Independent waiters may have different deadlines.
 
-Expose `Deferred`, `Ref`, a semaphore, or a bounded queue when a concrete
-workflow requires them. Specify single completion, atomic update, permit
-release, and queue shutdown respectively. The CDP dispatcher is a reason to
-introduce correlation and completion primitives, not an excuse to port every
-upstream concurrency module.
+### 6.3. Time, admission, and retry placement
+
+Clock and randomness make delay and jitter controllable. Tests await explicit
+readiness before advancing time or cancelling; a fake timestamp alone does not
+establish a queued waiter or running finalizer.
+
+Specify exclusion, fairness, re-entry, cancellation removal, and handoff
+separately. A semaphore is not automatically FIFO. The initial admission helper
+promises exclusion and cancelled-waiter removal; strict FIFO requires an
+explicitly named policy and evidence. Test immediate reacquisition as well as
+queued cancellation. Reject or document re-entry rather than deadlock silently.
+
+Schedules include only demanded bounded retries, backoff, jitter, and
+repetition.
+State resets per execution. Default retries exclude defects and interruption.
+Document four distinct placements:
+
+| Retried region  | Repetition permitted                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| Acquisition     | A new acquisition attempt, never the already-executed body.          |
+| Body            | Only an explicitly repeatable body while the resource remains valid. |
+| Whole lifecycle | A new acquire/use/release cycle with an explicit policy.             |
+| Recovery        | A safe settled-failure retry for the original unresolved generation. |
+
+A release failure must not accidentally retry a non-idempotent body. Pending
+cleanup is joined, not retried. Lody's acquisition-only correction supplies the
+counterexample; its exact delays are not refex defaults. [File-lock
+note][lody-lock]
+
+Introduce `Deferred`, `Ref`, semaphore, or bounded queue only for a consuming
+slice. Specify single completion, atomic update, permit release, and shutdown
+where relevant. Measurements can justify keeping pure hot paths outside effects,
+but not unmanaged background work.
 
 ## 7. Native await as a gated experiment
 
-[ReScript `await` requires a promise][await]. A library cannot make an opaque
-`Fx` directly awaitable by choosing a convenient type alias. The proposed
-bridge uses a typed scope:
+[Native ReScript await requires promises][await]. The typed bridge is a
+proposal, not transparent `await Fx.t` or a source transformation:
 
 ```text
 Direct.make:   (Scope<E,R> -> Promise<A>) -> Fx<A,E,R>
 Direct.run:    (Scope<E,R>, Fx<A,E,R>) -> Promise<A>
-Direct.result:(Scope<Outer,R>, Fx<A,Inner,R>) -> Promise<Result<A,Inner>>
+Direct.result: (Scope<E,R>, Fx<A,E,R>) -> Promise<Result<A,E>>
 ```
 
-Each `run` constrains the same scope's errors and requirements; the promise
-itself does not gain a typed rejection parameter. `make` stores the callback
-and invokes it afresh on execution. `result` handles the operation's expected
-failures as values while preserving defects and interruption.
+`make` stores a callback and invokes it afresh per execution. Each operation
+constrains the same environment/error scope. `result` converts standalone
+expected failure but propagates mixed causes through that scope. This narrows
+the earlier unconstrained `Outer`/`Inner` sketch to preserve §4.2's failures.
+No typed rejection channel appears in a native promise.
 
-The bridge needs block-owned execution, inherited execution context, and
-finalizers spanning the relevant awaits. Independent root `runPromise` calls
-are not equivalent. Compare an owner-managed driver with supervised child
-execution, including nested blocks and fibre-local context, before selecting
-an implementation. Do not claim that those alternatives have identical
-semantics.
-
-Expected failures can leave native async code through a private rejection
-signal tied to the block's typed state and per-execution identity. The boundary
-must reject forged or foreign signals as defects rather than cast arbitrary
-exceptions to `E`. Broad native catches can swallow such signals. E5 must
-exercise that case and retain cancellation state independently of the signal.
+The bridge needs one block owner, inherited context, and resource lifetimes
+spanning awaits. Compare a driver and supervised child execution; independent
+root runners are not equivalent. Private rejection signals must refer to
+scope-owned typed state and execution identity. Foreign signals become defects,
+not unchecked casts. Broad catches cannot erase cancellation state or recovery
+ownership. E5 and E9 cover nested blocks and mixed failures.
 
 Raw promises, detached continuations, escaped scopes, and raw side effects
-remain outside complete management. refex cannot forcibly stop an arbitrary
-JavaScript async continuation. A callback awaiting an uncooperative promise
-may never settle; one that settles later may still execute raw code. The bridge
-must document whether it waits or reports an incomplete shutdown, not quietly
-promise prompt cancellation and total lifetime safety together.
+remain outside complete control. The bridge cannot pre-empt arbitrary async
+continuations. Late work may still mutate state after the local wait ends.
+Retain raw-work ownership, classify adapter cancellation honestly, and reject
+new scope submissions after closure. These runtime checks are not non-escape
+proofs. Unsupported operations must not advertise managed termination.
 
-For the managed subset, all asynchronous operations needing refex ownership
-pass through the scope. Parallel work uses refex's owned combinators rather
-than untracked native promise fan-out. Closed scopes reject new work, but this
-runtime check is not a static non-escape proof.
-
-Compare native-await and pipeline versions of the same Minesweeper controller.
-Keep `Direct` experimental or omit it if the resulting contract is too weak or
-its complexity outweighs the ergonomic gain. Transparent monadic await needs a
-pre-typecheck transformation or compiler feature and remains deferred.
+Parallel work uses owned refex combinators. Compare the same Minesweeper
+controller with pipelines and `Direct`. Retain a restricted bridge or omit it
+if its contract or complexity fails the experiment. Later validators must not
+depend on its acceptance. Compiler-assisted monadic await remains deferred.
 
 ## 8. React and external boundaries
 
 ### 8.1. React ownership
 
-React owns rendering and local presentation state. A provider supplies a stable
-application runtime; a hook or event handler starts an owned workflow. Do not
-start effects during render, or create a fresh application runtime for every
-request. Dependency changes and unmount request cancellation of obsolete work.
+React owns rendering and presentation state. A stable provider supplies the
+application runtime; committed hooks and handlers launch work, never render.
+Keep component-local execution separate from application-owned shared producers.
+Unmount releases a shared subscription, not every producer it can reach.
 
-[React's lifecycle documentation][react] defines setup and cleanup, including
-an additional development Strict Mode cycle. Cleanup is a synchronous request,
-not a callback whose returned shutdown promise React will await. The runtime
-must retain ownership of asynchronous finalization after that request.
+[React documents an additional development Strict Mode lifecycle][react].
+Cleanup requests cancellation synchronously; React does not join the returned
+shutdown promise. A runtime owner must retain asynchronous finalization and any
+unresolved report after that request. Provider ownership distinguishes borrowed
+from owned runtimes and avoids reusing a disposed instance on remount.
 
-Use a generation identity to reject stale results before publishing state.
-Cancellation alone cannot guarantee that a response does not race with a new
-render. The provider must distinguish an owned runtime from a borrowed runtime,
-and avoid reusing a disposed instance after the development cleanup cycle.
+Use generation identities to reject stale publishers. Exclusive external
+identity reuse also requires §5.3's release gate; a UI generation guard alone
+cannot prevent old cleanup affecting the new resource. Independent resources
+may overlap only under an explicit ownership policy.
 
-Test committed mount, cleanup, remount, dependency replacement, failure, and
-completion. Request-server rendering and server components remain outside the
-first React adapter contract. No client singleton may become a cross-request
-server singleton by accident. Suspense and server-state caches remain separate
-future integration decisions.
+E4 covers component-local work, two subscribers, last-lease release,
+replacement,
+Strict Mode, and finalization failure. Server components, request-server
+rendering, Suspense, and query caches remain separate future decisions. Never
+reuse a client singleton as an accidental cross-request server singleton.
 
-### 8.2. Schema, network, and process adapters
+### 8.2. Schemas, network, and process adapters
 
-Use the selected `rescript-schema` package through a narrow adapter, not a new
-schema language. Decode external values before the domain receives them and
-preserve decode paths in typed protocol errors. Successful decoding still
-requires domain validation and authorization where applicable.
+Use `rescript-schema` through a narrow adapter. Preserve decode paths in typed
+protocol errors; decoding alone is not authorization or all domain validation.
+The [Sury deployment caveat][sury] remains a version/policy question. Verify
+the chosen package before integration; do not silently allow dynamic evaluation.
 
-The upstream [Sury documentation][sury] describes dynamic code generation and a
-strict content-security-policy limitation. Pin and verify the actual ReScript
-package/API and deployment policy before adopting it. Do not add an
-`unsafe-eval` policy to make a demonstration pass without an explicit decision.
+Network adapters distinguish transport, protocol, domain, and lifecycle
+outcomes.
+Client abort does not undo a committed command. Process adapters own only their
+spawned resources, drain pipes according to contract, and establish termination
+using platform evidence, not just a wrapper exit or signal delivery.
 
-Network adapters distinguish transport, protocol, and domain failures and wire
-cancellation to the supported foreign API. Aborting a client wait does not
-undo a committed server operation. Process adapters own their spawned child,
-consume stdout and stderr without pipe deadlock, and reap it after termination.
-They never kill unrelated processes by name.
-
-CDP endpoints and tab contents are sensitive. Validation uses controlled
-loopback fixtures, redacts session URLs and secrets, avoids shell interpolation
-of arguments, and never treats schema validation as permission to contact an
-arbitrary privileged endpoint.
+CDP endpoints and tab data are sensitive. Use controlled loopback fixtures,
+redact session URLs and credentials, and pass process arguments without shell
+interpolation. Generation bookkeeping grants no authority over borrowed sessions
+and no protection against arbitrary external actors reusing an identity.
 
 ## 9. Vertical validation contracts
 
 ### 9.1. Animated React Minesweeper solver
 
-Keep board generation, observations, inference, and move selection in pure
-modules. The solver receives only revealed state and rules; hidden mine
-positions belong to the board authority. Return an explicit 'no justified move'
-result when deterministic inference cannot proceed. Any guessing strategy must
-be explicit and seeded, not presented as a guaranteed safe deduction.
+Keep generation, inference, and move selection pure. The solver receives
+revealed state and rules, not hidden mines. A 'no justified move' result is
+valid; any guessing must be explicit and seeded.
 
-The controller owns solve, pause/resume, speed, reset, and new-board operations.
-Inject time for pacing and publish progress through the React boundary. Bound
-computation between yields so animation and cancellation have opportunities to
-run; defer a worker abstraction unless measured main-thread cost requires it.
+The controller owns solve, pause/resume, speed, reset, and new-board work.
+Inject pacing time and bound work between yields. Defer workers unless measured
+main-thread cost requires them. Compare fixed-seed traces under virtual and
+browser time, including no stale publication after reset/unmount.
 
-Acceptance compares fixed-seed traces under virtual and browser time, verifies
-no stale board update after reset/unmount, and checks owned work at quiescence.
-Use this identical controller contract to compare pipelines and `Direct` rather
-than rewriting the solver algorithm to favour either surface.
+Add two independent React views of one solver producer. Cancel one pending
+reader without stopping the other; release the last lease and observe cleanup.
+Block and fail release, then request replacement and verify the generation gate
+and retained recovery owner. An explicit inspection surface can show the
+unresolved state instead of pretending reset disposed everything.
+
+Use this same controller and domain implementation for pipeline/Direct
+comparison. This is lifecycle validation, not a new reactive-state framework.
 
 ### 9.2. Nine-room client-server roguelike
 
-Deliver exactly nine connected rooms, movement, room descriptions, one inventory
-interaction, and a win condition. A React client communicates with an
-in-memory authoritative server through shared checked protocol values. World
-transitions stay pure; session store, transport, time, randomness, and logging
-have narrow replaceable interfaces.
+Deliver nine connected rooms, descriptions, movement, an inventory interaction,
+and a win condition. The in-memory authoritative server and React client share
+checked protocol types. World transitions remain pure; services stay narrow.
 
-Each server request owns its execution but not the shared application store.
-The initial protocol must serialize commands per session or reject stale state
-revisions. The design preference is a command identity plus expected revision:
-repeated accepted identities return the recorded outcome rather than repeat the
-mutation. Store update and outcome recording must share one atomic boundary.
-Any simpler alternative must prohibit automatic retries of ambiguous writes.
+A request owns its execution, not the application store. Prefer command identity
+plus expected revision: accepted duplicates return the recorded outcome, and
+mutation plus outcome recording share an atomic boundary. A simpler protocol
+must prohibit retries of ambiguous writes. Disconnection does not prove
+rollback;
+reconcile uncertain outcomes and reject stale UI revisions.
 
-A disconnected client may not know whether a command committed. Display and
-reconcile that uncertainty instead of assuming cancellation rolls it back.
-Keep monotonic state revisions in UI updates so an older response cannot undo
-a newer state. In-memory state and deduplication need only survive the declared
-server lifetime; durable recovery is not part of this validator.
+Test per-session admission with queued cancellation and immediate re-entry.
+If FIFO is required, prove that policy rather than infer it from a semaphore.
+Change a configuration provider between calls to distinguish live observation
+from a snapshot. Count one shared store acquisition and separate explicitly
+fresh instances; request cancellation must not destroy the shared service.
 
-Acceptance uses the same domain transitions with live and fake services, checks
-malformed request/response rejection, duplicate and reordered commands, storage
-failure, client cancellation, and clean server shutdown. Game scope must not
-grow into authentication, matchmaking, or a general database framework.
+Exercise body-plus-release and acquisition-plus-release failure, lost responses,
+and retry placement without repeating movement/inventory mutation. In-memory
+state and deduplication cover the declared server lifetime, not crash
+durability.
+No authentication or database framework is added by this validator.
 
 ### 9.3. Reimplementation of css-view
 
-Keep the original implementation unchanged and pin the oracle revision recorded
-in [context §7](context.md#7-source-register). Reimplement behaviour, not its
-file structure. The [existing guide][css-guide] identifies the capture paths,
-fixture policy, target filtering, and bounded transient-open retry.
+Keep the original unchanged and pin [the context
+oracle](context.md#7-source-register).
+Reimplement behaviour, not source layout. The [existing guide][css-guide]
+defines capture paths, fixtures, target filtering, and bounded open retry.
 
-Deliver local Playwright walker capture first, then local Chromium CDP,
-direct external CDP, agent-browser navigation, and agent-browser current-page
-capture. Preserve valid/invalid option combinations, output metadata and stable
-payload facts, property selection, style inheritance, custom properties, and
-node/text limits.
+Deliver local Playwright walker, local Chromium CDP, direct CDP, agent-browser
+navigation, and current-page capture. Preserve invalid combinations, metadata,
+style inheritance, custom properties, selected fields, node/text limits, active
+targets, and stable output facts.
 
-CDP connection state includes request identity, pending completions, event
-waiters, and owned timers. Match replies by identity and session; settle every
-pending completion on response, timeout, cancellation, or connection failure.
-Register lifecycle observation before triggering events that could race it.
-Cleanup detaches listeners and timers without closing a borrowed browser.
+CDP requests carry identity/session correlation. Register listeners before
+triggering events; settle every waiter on reply, timeout, cancellation, or
+connection failure. Cancelling a waiter must not leave it eligible for later
+completion. Detach only owned connections, not borrowed browsers.
 
-The existing transient-open rule retries once only for the documented non-zero
-exit and `Event stream closed` condition. Virtual time must show that
-cancellation during the delay prevents that second command. Never generalize
-this into retries for every process failure.
+For owned browser/process work, delay external termination beyond a waiter
+budget, fail release, discard its diagnostic, and inspect the retained owner.
+A successor sharing an external session identity must wait for its predicate.
+Keep process-tree absence, drained output, and browser/session detachment as
+separate adapter assertions, including their platform limitations.
 
-Normalize only documented volatile fields, such as capture time, when comparing
-outputs. Geometry still needs shape/range checks and deterministic-fixture
-assertions where it is part of the contract. Do not erase differences in style
-values, selected tabs, node limits, or errors to obtain parity. Oracle defects
-require a recorded adjudication, not blind reproduction or silent correction.
+The existing `Event stream closed` open rule retries once only for its specified
+non-zero exit. Cancellation during delay prevents the second command. A body or
+release failure must not re-run capture or output publication. Complete result
+and recovery details survive both native and CLI/promise boundaries.
+
+Normalize documented volatile fields only. Geometry still needs shape/range
+and deterministic-fixture checks. Never erase style, target, limit, or error
+differences to manufacture parity. Record oracle defects for adjudication rather
+than reproduce or correct them silently. No filesystem lock framework is added.
 
 ## 10. Experimental validation
 
-Each experiment produces a record containing the claim, revision and tool pins,
-inputs/seeds, executed command, observations, limits, and accept/revise/reject
-decision. Record proposed numerical budgets before collecting comparative
-results. A missing tool or unexecuted scenario is an explicit gap.
+Record specified, implemented, consumer-exercised, and
+interpreter/platform-verified states separately. Each evidence entry includes
+claim, source/runtime
+pins, readiness event, seeds, command, observations, resource state, negative
+control, limits, and accept/revise/reject decision. Missing coverage is not an
+implementation result in either direction. Set budgets before comparison.
 
 ### 10.1. Compiler and algebra experiments
 
-**E1: requirements and errors, G1/G2, roadmap (1.2.1)-(1.2.3).** Compile
-services and consumers through independent `.resi` boundaries on the pinned
-compiler.
-Accept complete and projected environments; reject absent fields, incompatible
-services, wrong error injections, and unresolved requirements at a runner.
-Every negative fixture must fail at its intended diagnostic. If open rows do
-not compose soundly, select explicit projections rather than weaken types.
+**E1: requirements/errors, G1/G2; (1.2.1)-(1.2.3).** Use independent `.resi`
+consumers. Accept complete/projected environments and reject missing fields,
+wrong injections, unresolved requirements, and unsound mixed-cause recovery
+signatures for the intended diagnostic. Choose explicit projection if open
+rows fail. Type evidence does not establish runtime ownership.
 
-**E2: laziness and composition, G4, roadmap (1.3.1).** Record visible callbacks
-and result/cause order. Test fresh repeated execution, deferred provision, and
-at least 100,000 sequential binds in both IO and Reader paths as an initial
-stress workload, not a throughput guarantee. Check identity, associativity,
-and projection laws over generated terminating programs with pure callbacks.
-Shrink failing descriptions to the smallest disagreeing trace. Exclude raw
-side effects and scheduler-step counts from the law equivalence relation.
+**E2: laziness/composition, G4; (1.3.1).** Record callbacks and cause order.
+Run repeated executions, lazy provision, fresh promise retries, and at least
+100,000 binds separately for IO and Reader as a stress workload, not a speed
+promise. Check algebra/projection laws on terminating generated descriptions
+with pure callbacks, shrinking disagreement traces. Exclude raw side effects
+and scheduler step counts from equivalence.
 
 ### 10.2. Ownership and direct-style experiments
 
-**E3: acquisition and termination, G3, roadmap (1.3.2)-(1.3.3).** Enumerate
-bounded schedules containing acquire, register, cancel, complete, and release
-for one owner and two resources/children. Assert: each successful acquisition
-has one release owner; release occurs once; children settle before required
-parent resources close; cleanup failure retains the initial cause.
+**E3: acquisition/termination, G3; (1.3.2)-(1.3.3).** Enumerate bounded
+schedules
+for acquire, register, publish, cancel, close, and recover with one owner and
+two
+resources/children. Each acquired generation has an owner; one attempt runs
+once;
+released status requires its predicate; dependants finish or transfer ownership
+before supporting release. Compare adapter traces with an explicit-state model.
 
-Implement an explicit-state reference model and compare adapter event traces
-against it. Cover late acquisition, duplicate completion, partial construction,
-and cancellation at every transition. Shrink by removing independent events
-while preserving their happens-before constraints. This checks bounded
-interleavings, not all possible foreign APIs or unbounded progress.
+Cover late acquisition, duplicate completion, partial construction, joined
+close,
+recovery after scope closure, and failure at every transition. Shrink events
+while preserving happens-before constraints. This bounds interleavings; it does
+not prove unbounded liveness or arbitrary platform operations.
 
-**E4: React ownership, G3/G5, roadmap (2.2.1)-(2.3.2).** Run development Strict
-Mode and production lifecycle scenarios with reset, dependency replacement,
-unmount/remount, delayed finalization, and completion races. Assert one current
-publisher and no admitted owned work after observed quiescence. Test virtual
-scheduling separately from real browser rendering; fake time alone does not
-prove React integration.
+**E4: React ownership, G3/G5; (2.2.1)-(2.3.3).** Use development Strict Mode
+and production builds with local work and two shared subscribers. Readiness
+must establish attachment before cancellation. Require one current publisher,
+reader independence, observable last-lease cleanup, generation-safe replacement,
+and inspectable unresolved release. Separate fake-time results from browser
+observations. Do not report unresolved external activity as quiescent.
 
-**E5: native await, G1-G4, roadmap (1.4.1)-(1.4.2), (2.3.1).** Compare the same
-controller with pipelines and the typed bridge. Exercise nested blocks, raw
-promise waits, caught internal failures, escaped scopes, post-close submission,
-and execution-context propagation. Failure to contain raw continuations must
-remain documented. Reject general lifetime-equivalence claims if traces differ;
-retain a narrower bridge only with an explicit supported contract.
+**E5: native await, G1-G4; (1.4.1)-(1.4.2), (2.3.1).** Compare the same
+controller with pipelines and scoped awaits. Cover nested blocks, raw waits,
+ignored abort, caught rejection signals, mixed failures, escaped scopes,
+post-close submission, and context propagation. Inspect retained raw-work owners
+and late mutation. Reject stronger equivalence claims when traces differ.
 
 ### 10.3. Application and comparison experiments
 
-**E6: client-server semantics, G2/G5, roadmap (3.4.1)-(3.4.2).** Generate
-command sequences and transport schedules, then compare authoritative state
-and visible revision with the pure domain model. Verify no duplicate mutation
-for an
-accepted command identity and no application of stale responses. Combine fake
-clock/random/store with live HTTP and React end-to-end scenarios. The model
-covers the single-server lifetime, not distributed durability.
+**E6: client-server semantics, G2/G5; (3.4.1)-(3.4.2).** Generate command and
+transport sequences against the pure model. Verify single mutation for each
+accepted identity, monotonic UI revision, explicit ambiguous outcomes, cancelled
+admission removal, snapshot/live observation, and shared/fresh ownership.
+Combine
+fake services with live HTTP/React. Bound the claim to one server lifetime.
 
-**E7: tooling parity and ownership, G3/G5, roadmap (4.5.1)-(4.5.2).** Run every
-supported backend/mode and explicit invalid combination against the pinned
-oracle. Add pairwise coverage for independent formatting/property options, and
-full targeted cases for borrowing versus ownership, active tabs with duplicate
-URLs, timeout plus socket closure, and operation plus cleanup failure. Inspect
-live handles/processes as well as `Exit`; clean counters alone are insufficient.
+**E7: tooling parity/ownership, G3/G5; (4.5.1)-(4.5.2).** Run all supported
+backend/mode paths and invalid combinations against the pinned oracle. Use
+pairwise independent options and full targeted lifecycle interactions:
+borrowing,
+duplicate tab URLs, delayed teardown plus replacement, timeout plus closure,
+and body/acquisition plus release failure. Inspect real handles and processes,
+not only counters or mocks; record operating-system/browser coverage explicitly.
 
-**E8: abstraction cost, G4/G6, roadmap (5.2.1)-(5.2.2).** Compare one shared
-workload per validator under ordinary promises, direct bindings, and refex.
-Keep domain logic, error/cancellation contract, compiler, bundler, and runtime
-constant where meaningful. Mark comparisons with different semantics as such.
-Report generated/browser bundle size, sequential overhead, admission and
-cancellation-to-quiescence latency, acquisition cost, and build/CI resource use.
-Separate cold/warm runs and report distributions, not one convenient number.
+**E8: abstraction cost, G4/G6; (5.2.1)-(5.2.2).** Hold domain logic, error and
+ownership semantics, compiler, bundler, and runtime constant where meaningful.
+Label weaker promise baselines. Report bundle size, long-chain overhead,
+admission, cancellation-to-report versus cancellation-to-confirmed-release,
+acquisition, and build/CI resource use. Separate cold/warm distributions.
 
-Ergonomics review records signatures, wiring sites, unsafe/platform escapes,
-diagnostic quality, and the steps required for a representative change.
-Reviewers assess clarity against a stated rubric; line count is not a proxy for
-correctness. Publish negative results and confirm which APIs should disappear.
+Ergonomics review records signatures, wiring, escapes, diagnostics, and the
+steps
+for a representative change against an agreed rubric. Line count is not safety.
+Publish negative results and remove APIs that did not earn their complexity.
+
+### 10.4. First shared-producer conformance slice
+
+**E9: shared work and unresolved release, G2/G3/G5; (1.3.4)-(1.3.5).** Build
+one minimal portable workflow with an injectable external-operation adapter,
+two consumers, and an inspectable owner. This is the first semantic vertical
+experiment, not a collection of independent primitive demonstrations.
+
+| Scenario                    | Observable acceptance                                        |
+| --------------------------- | ------------------------------------------------------------ |
+| Lazy start/retry            | No work on construction; fresh execution per attempt.        |
+| Cancelled queued waiter     | Its claim disappears and cannot acquire later.               |
+| Two readers                 | Cancelling one leaves the other producer lease usable.       |
+| Last lease                  | Owner initiates and joins cleanup or reports unresolved.     |
+| Concurrent close            | Callers join one attempt and receive its same report.        |
+| Mixed failure               | Mapping/result/Direct/boundary retain all relevant reasons.  |
+| Ignored abort               | Local wait ends without a false termination receipt.         |
+| Delayed release/replacement | Successor waits; old completion cannot target it.            |
+| Discarded diagnostic        | A live owner still exposes and can recover the resource.     |
+| Failed retry                | Same generation remains owned; no false successful disposal. |
+
+First await readiness that proves admission, producer start, or finalizer entry.
+Then advance the controlled clock or cancel. Join affected managed work and
+inspect raw-work state plus owner records. A fake clock alone is insufficient.
+
+Temporarily remove close joining, owner retention, generation checks, or
+cause-preserving conversion one at a time. The corresponding behavioural case
+must fail; restore and rerun the baseline. Keep temporary ablation scripts
+outside product code and retain reproducible patches/results in evidence.
+Unit/behavioural checks belong in delivery tasks; the combined E9 acceptance
+matrix is a genuine end-to-end conformance task, not a coverage quota.
+
+Real-boundary tests remain mandatory when adapters exist. A simulated unlink
+cannot prove filesystem publication and a mocked process table cannot prove
+process-tree termination. The same corpus guards later backend upgrades.
 
 ## 11. Operations and change discipline
 
-Use existing public Make entrypoints and the pinned toolchain described in the
-[developer guide](developers-guide.md). Keep generated production output under
-compiler ownership and public modules behind `.resi` interfaces. Add actual
-product scenarios to executed gates rather than accepting a test command that
-never runs them.
+Use public Make targets and pinned tooling from the [developer
+guide](developers-guide.md).
+Preserve compiler-owned output, explicit interfaces, and the public allowlist.
+No new enforcement tool or platform dependency follows from this document.
 
-Keep browser/process-heavy validation scoped and bounded. Reuse trusted binary
-and browser caches where possible; record runner size, concurrency, wall time,
-and resource use before expanding continuous-integration (CI) workloads.
-Do not copy another repository's entire validation framework or create routine
-heavy schedules without measured need.
+Keep lifecycle work inside the task's purpose. Review compares evidence;
+debugging isolates causes; a feature/fix changes relevant behaviour; migration
+needs explicit scope and complete dependency/consumer ownership. Defer a larger
+migration with named blockers instead of expanding a local fix. Trace callbacks
+and resources, not only imports. Pure code remains pure.
 
-Diagnostic events should identify execution, owner, resource, and phase without
-logging credentials or full privileged endpoint URLs. Runtime diagnostics are
-opt-in observations, not an application dependency on backend cause formatting.
+Static boundary checks should identify actual launch operations with explicit
+adapter exceptions, not ban `run*`, all promises, maps, or callbacks. Add guards
+only when a demonstrated boundary warrants them. They complement, not replace,
+observable lifecycle acceptance. Lody's synthetic guidance cases are proposed
+evaluations, not proof of agent effectiveness. [Probe note][lody-probes]
 
-A release candidate requires all three validators, explicit platform pins,
-accepted API decisions, measured budgets, and ownership conformance. No release,
-merge, dependency installation, or stable API follows from this draft. Existing
-bootstrap tests remain necessary but insufficient.
+Bound browser/process-heavy validation and record runner size, concurrency,
+wall time, and memory before expanding CI. Reuse trusted binary caches. Do not
+copy Lody's migration ledger or another repository's validation framework.
+
+Diagnostics identify execution, owner, generation, attempt, and phase without
+secrets. An error formatter or logger cannot be the only recovery store.
+Maintain a small evidence record per contract; no manual application-tier ledger
+is required. Release readiness depends on exercised consumers and declared
+platform coverage, not only merged kernels or passing document checks.
 
 ## 12. Open decisions and adoption
 
-- **D1, backend:** choose direct FFI or audited Reventless bindings and pin the
-  runtime after E1-E3. Record the dependency-policy change as an ADR.
-- **D2, requirements:** accept structural rows only after E1 across exported
-  interfaces. Otherwise keep explicit projection as the public model.
-- **D3, direct style:** decide supported, experimental, or omitted from E5 and
-  the Minesweeper comparison. Do not make later validators depend on its
-  success.
-- **D4, schema deployment:** resolve the package/API, browser policy, and
-  dynamic-evaluation compatibility before codec integration claims.
-- **D5, numerical budgets:** approve the comparison workloads and thresholds
-  before E8. Until then, no zero-cost or bundle-size promise is justified.
-- **D6, package and release surface:** apply the existing real-source workspace
-  trigger, then decide exports and compatibility from the three validators.
-- **D7, extensions:** require a new vertical use case for graph memoization,
-  streams, request caches, a native runtime, or a source transform.
+- **D1, backend:** select direct FFI or audited bindings after E1-E3/E9 and
+  explicitly revise dependency policy before installation.
+- **D2, requirements:** validate open rows or choose explicit projection.
+- **D3, direct style:** accept, restrict, or omit it from E5; later validators
+  must remain independent of that outcome.
+- **D4, schemas:** resolve package/API, browser policy, and deployment caveats.
+- **D5, budgets:** approve workloads and thresholds before E8.
+- **D6, packaging/release:** apply the real-source workspace trigger and derive
+  exports/compatibility from consumer evidence; no publication is authorized.
+- **D7, extensions:** require a new use case for graph memoization, streams,
+  request caches, a native runtime, or syntax transformation.
+- **D8, complete outcomes:** settle release-issue representation and
+  conservative
+  recovery types through compiler fixtures plus E3/E9, before exposing `.resi`.
+- **D9, recovery owner:** choose a core owner or higher-level supervisor seam;
+  prove retention after discarded errors, joined close/recovery attempts, and
+  explicit host shutdown limits. Do not create a general process manager.
+- **D10, admission/publication:** decide which operations need FIFO, re-entry,
+  generation exclusion, or atomic publication. Require adapter-level evidence
+  instead of asserting universal guarantees from primitive names.
 
-Implementation owners remain unassigned. The repository owner accepts scope and
-ADRs. Each experiment can accept, revise, narrow, or reject its proposal. The
-library earns its surface through those outcomes, not by exhausting an upstream
-module list.
+Owners remain unassigned; the repository owner accepts scope and ADRs.
+Experiments may accept, revise, narrow, or reject proposals. No implementation,
+release, compatibility, or cross-platform claim follows from this draft.
 
 ## References
 
-Sources accessed on 12 October 2026; [context §7](context.md#7-source-register)
-contains the full source/provenance register.
+Sources inspected or supplied on 12 October 2026. Full provenance and limits
+appear in [context §§7-8](context.md#7-source-register).
 
-- [Relude RIO][rio] and [Primavera][primavera]: monadic and dependency prior
+- [Relude RIO][rio], [Primavera][primavera], and [Reventless][bindings]: prior
   art.
-- [Reventless package][bindings]: candidate bindings and consumer alternative.
-- [Effect scope][scope]: resource-lifetime reference behaviour.
-- [ReScript await][await]: native suspension contract.
-- [React useEffect][react]: setup/cleanup and Strict Mode contract.
-- [Sury][sury]: schema integration and deployment constraints.
-- [css-view developer guide][css-guide]: behavioural reference and fixtures.
+- [Effect scope][scope], [ReScript await][await], and [React useEffect][react]:
+  reference contracts; test the selected implementation rather than infer it.
+- [Sury][sury] and [css-view guide][css-guide]: existing integration
+  constraints.
+- [Lody #1452][lody-pr], [guide][lody-guide], [process release][lody-process],
+  [file locks][lody-lock], and [probe limits][lody-probes]: pinned evidence.
 
 [rio]: https://github.com/reazen/relude/blob/main/src/Relude_RIO.re
 [primavera]: https://github.com/cargocut/primavera
@@ -629,3 +818,8 @@ contains the full source/provenance register.
 [react]: https://react.dev/reference/react/useEffect
 [sury]: https://github.com/DZakh/sury
 [css-guide]: https://github.com/leynos/css-view/blob/305bd947bdb063d3b93785186f2d0bc33d0a5ea3/docs/developers-guide.md
+[lody-pr]: https://github.com/LodyAI/Lody/pull/1452
+[lody-guide]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/docs/cli-effect-ts.md
+[lody-process]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/bug-fix/2026-10-10-effect-process-release-failure.md
+[lody-lock]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/architecture/2026-10-10-effect-file-lock-lifecycle.md
+[lody-probes]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/process/2026-10-11-effect-reference-skills.md
