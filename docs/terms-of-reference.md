@@ -2,16 +2,17 @@
 
 Status: draft v0.2 for review. Last substantive revision: 12 October 2026.
 Audience: the repository owner, contributors, and technical reviewers.
-Companions: [context](context.md), [technical design](design.md),
-[GIST roadmap](roadmap.md), and the [documentation index](contents.md).
+Companions:
+[context](context.md), [technical design](design.md), [GIST roadmap](roadmap.md),
+and the [documentation index](contents.md).
 
 ## 1. Background and motivation
 
-ReScript application authors need to coordinate asynchronous operations,
-supply dependencies, recover expected failures, and stop work when its owner
-no longer needs it. Those concerns cross component, request, and resource
-boundaries. Writing each boundary independently makes ownership and error
-policy difficult to inspect together.
+ReScript application authors need to coordinate asynchronous operations, supply
+dependencies, recover expected failures, and stop work when its owner no longer
+needs it. Those concerns cross component, request, and resource boundaries.
+Writing each boundary independently makes ownership and error policy difficult
+to inspect together.
 
 The initiating design discussion asks whether an effects library designed
 around ReScript can make that work clearer than either ordinary promises or
@@ -21,11 +22,11 @@ lacks these runtime capabilities. The [roadmap](roadmap.md) uses three
 applications to test it and preserves the supplied edited task identifiers.
 
 The supplied Lody learning note adds a specific pressure: a computation can
-stop waiting or finish finalization without establishing that its external
-work stopped or its resource became safe to reuse. Lody's documented process
-and file-lock corrections motivate requirements for complete failures,
-confirmed handoff, and retained recovery responsibility. They do not establish
-refex correctness. [Context §7](context.md#7-source-register) records the
+stop waiting or finish finalization without establishing that its external work
+stopped or its resource became safe to reuse. Lody's documented process and
+file-lock corrections motivate requirements for complete failures, confirmed
+handoff, and retained recovery responsibility. They do not establish refex
+correctness. [Context §7](context.md#7-source-register) records the
 version-specific sources and their verification limits.
 
 The repository contains a development bootstrap, not an effect system. This
@@ -39,14 +40,14 @@ React applications as the primary validation setting. Client-server behaviour
 and command-line tooling provide additional boundaries against which the
 library must justify its generality.
 
-Distinguish descriptions from executions, requirements from supplied
-services, local cancellation from external termination, and cleanup attempts
-from confirmed release. [Context §2](context.md#2-ubiquitous-language) defines
-these terms. A type-correct program can encounter hostile input, unavailable
+Distinguish descriptions from executions, requirements from supplied services,
+local cancellation from external termination, and cleanup attempts from
+confirmed release. [Context §2](context.md#2-ubiquitous-language) defines these
+terms. A type-correct program can encounter hostile input, unavailable
 services, or an external operation that ignores cancellation.
 
-No sector-specific regulatory or contractual requirement has been supplied.
-The repository's [ISC licence](../LICENSE) and contributor policies remain in
+No sector-specific regulatory or contractual requirement has been supplied. The
+repository's [ISC licence](../LICENSE) and contributor policies remain in
 force; this brief introduces no commercial or support model.
 
 ## 3. Market context
@@ -57,21 +58,21 @@ parameters, direct use of TypeScript Effect, and
 justification based solely on making Effect accessible from ReScript.
 
 [Relude][relude] and [Primavera][primavera] provide prior art for computation
-and dependency composition, not proof of modern ReScript compatibility.
-React and schema libraries solve adjacent jobs. refex should cooperate with
-these libraries rather than require their application-wide replacement.
+and dependency composition, not proof of modern ReScript compatibility. React
+and schema libraries solve adjacent jobs. refex should cooperate with these
+libraries rather than require their application-wide replacement.
 
-Lody supplies lifecycle case studies, not a competing library or a blueprint
-to copy wholesale. Its PR #1452 changes documentation and guidance; supporting
+Lody supplies lifecycle case studies, not a competing library or a blueprint to
+copy wholesale. Its PR #1452 changes documentation and guidance; supporting
 implementation notes record narrower process and file-lock fixes. Neither a
 merged documentation PR nor selected upstream probes prove a completed
-application migration. See [context
-§5](context.md#5-prior-art-and-corrected-assumptions).
+application migration. See
+[context §5](context.md#5-prior-art-and-corrected-assumptions).
 
 The proposed gap is a consistent ReScript-facing model whose requirements,
-complete outcomes, and continuing ownership remain intelligible through
-public interfaces. If representative applications do not demonstrate that
-advantage, retaining existing alternatives is a valid outcome.
+complete outcomes, and continuing ownership remain intelligible through public
+interfaces. If representative applications do not demonstrate that advantage,
+retaining existing alternatives is a valid outcome.
 
 ## 4. Users and stakeholders
 
@@ -113,8 +114,8 @@ that the previous generation permits handoff, so delayed old work cannot
 corrupt its successor.
 
 When a maintainer changes an execution mechanism, they want to replay
-representative behaviours and inspect the evidence, so a simpler interface
-does not conceal weaker guarantees or changed observation timing.
+representative behaviours and inspect the evidence, so a simpler interface does
+not conceal weaker guarantees or changed observation timing.
 
 These are functional jobs. No evidence supports additional emotional personas,
 adoption forecasts, or claims about how users wish others to perceive them.
@@ -134,8 +135,8 @@ adoption forecasts, or claims about how users wish others to perceive them.
   release retains an identifiable owner until confirmed release or an explicit
   transfer; discarding a diagnostic does not discard that responsibility.
 - **G4: usable composition.** Mapping, sequencing, and dependency substitution
-  follow ReScript conventions without imposing effects on pure calculations
-  or silently changing snapshot-versus-live observation semantics.
+  follow ReScript conventions without imposing effects on pure calculations or
+  silently changing snapshot-versus-live observation semantics.
 - **G5: credible validation.** The shared-producer experiment and the three
   applications challenge one model without validator-specific core escapes.
 - **G6: proportionate adoption.** Record code, dependency, build, and runtime
@@ -168,9 +169,9 @@ adoption forecasts, or claims about how users wish others to perceive them.
 ### 7.1. User-facing outcomes
 
 G1 requires separate-module examples that accept complete environments and
-reject omitted or incompatible capabilities for the intended diagnostic.
-G2 requires full failures to survive mapping, recovery, and JavaScript
-boundaries, including failed acquisition followed by failed release.
+reject omitted or incompatible capabilities for the intended diagnostic. G2
+requires full failures to survive mapping, recovery, and JavaScript boundaries,
+including failed acquisition followed by failed release.
 
 G3 requires observable answers to five questions for each lifecycle: trigger,
 owner, cancellation, handoff, and failure recovery. Concurrent close callers
@@ -178,11 +179,11 @@ must observe one in-progress attempt. An unresolved attempt must not masquerade
 as successful release or authorize unsafe replacement. A retained owner must
 remain recoverable when the caller drops the failure value.
 
-The first end-to-end semantic experiment has two consumers, one shared producer,
-a cancelled local waiter, delayed cleanup, and a failing release. Observable
-resource state, not only returned values, decides its outcome. The animated
-Minesweeper solver, nine-room roguelike, and `css-view` then challenge the same
-contracts through React, network, browser, and subprocess boundaries.
+The first end-to-end semantic experiment has two consumers, one shared
+producer, a cancelled local waiter, delayed cleanup, and a failing release.
+Observable resource state, not only returned values, decides its outcome. The
+animated Minesweeper solver, nine-room roguelike, and `css-view` then challenge
+the same contracts through React, network, browser, and subprocess boundaries.
 
 G4 and G5 require a reviewable advantage over existing approaches. Comparisons
 must include pure-code counterexamples, observation timing, scope placement,
@@ -205,26 +206,26 @@ simultaneously. It must report the unresolved obligation and its owner.
 
 ### 7.3. Strategic outcome
 
-The owner can make an evidence-backed continue, narrow, or stop decision.
-No download, revenue, or adoption target has been agreed. Keeping direct
-bindings can satisfy the investigation without producing a stable library.
+The owner can make an evidence-backed continue, narrow, or stop decision. No
+download, revenue, or adoption target has been agreed. Keeping direct bindings
+can satisfy the investigation without producing a stable library.
 
 ## 8. Constraints and assumptions
 
 ### 8.1. Hard constraints
 
-The brief fixes ReScript, React for both game clients, the named validators,
-and `rescript-schema` as the schema starting point. These are constraints,
-not interoperability results.
+The brief fixes ReScript, React for both game clients, the named validators, and
+`rescript-schema` as the schema starting point. These are constraints, not
+interoperability results.
 
 Accepted bootstrap ADRs keep core source portable, maintain explicit public
 interfaces, and separate development bindings from production. Their packaging
-and toolchain rules remain in force until a reviewed decision changes them.
-No calendar commitment follows from this brief.
+and toolchain rules remain in force until a reviewed decision changes them. No
+calendar commitment follows from this brief.
 
 Retained ownership must not require platform calls in the portable core.
-Platform adapters establish their own release predicates. Process-tree
-absence, drained output, detached sessions, and remote rollback are distinct
+Platform adapters establish their own release predicates. Process-tree absence,
+drained output, detached sessions, and remote rollback are distinct
 observations; one must not serve as evidence for another without a contract.
 
 ### 8.2. Assumptions
@@ -246,18 +247,18 @@ observations; one must not serve as evidence for another without a contract.
 ### 8.3. Dependencies
 
 Compiler and React host contracts constrain the surface. Effect and Reventless
-are candidate execution dependencies, not installed choices. Codec work needs
-a checked package/API. `css-view` supplies a pinned behavioural reference.
-Lody supplies version-specific evidence that must not become an implicit
-requirement to adopt its Effect version or architecture.
+are candidate execution dependencies, not installed choices. Codec work needs a
+checked package/API. `css-view` supplies a pinned behavioural reference. Lody
+supplies version-specific evidence that must not become an implicit requirement
+to adopt its Effect version or architecture.
 
 The repository owner accepts scope. No external team delivery, commercial
 deadline, or assigned implementation owner has been supplied.
 
 ## 9. Open questions
 
-**Q1: Who beyond the validators needs refex?** Additional consumers must support
-wider adoption claims; this does not block the initial investigation.
+**Q1: Who beyond the validators needs refex?** Additional consumers must
+support wider adoption claims; this does not block the initial investigation.
 
 **Q2: Which budgets define acceptance?** The owner must approve workloads,
 reporting, and numerical budgets before comparative measurement.
@@ -266,16 +267,16 @@ reporting, and numerical budgets before comparative measurement.
 package, content-security policy, and browser matrix before compatibility
 claims.
 
-**Q4: What cancellation contract can direct style offer?** Require compiler
-and lifecycle evidence, including uncooperative raw work and mixed failures.
+**Q4: What cancellation contract can direct style offer?** Require compiler and
+lifecycle evidence, including uncooperative raw work and mixed failures.
 
 **Q5: What publication commitment is acceptable?** The owner must decide
 compatibility, upgrades, licences, and maintenance before any release change.
 
-**Q6: Who retains unresolved work at the outermost boundary?** Decide the host's
-retention, inspection, retry, transfer, and force-exit policy. Require an
-experiment showing that ignoring a diagnostic does not lose a recovery owner;
-record separately what cannot survive process exit.
+**Q6: Who retains unresolved work at the outermost boundary?** Decide the
+host's retention, inspection, retry, transfer, and force-exit policy. Require
+an experiment showing that ignoring a diagnostic does not lose a recovery
+owner; record separately what cannot survive process exit.
 
 **Q7: What permits resource replacement?** Each adapter must name its release
 predicate, identity/generation guarantees, and any cross-process limits.

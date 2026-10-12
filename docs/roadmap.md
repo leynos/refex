@@ -3,10 +3,10 @@
 This GIST roadmap sequences the [technical design](design.md) against goals
 G1-G6 in the [terms of reference](terms-of-reference.md). It retains the
 user-edited plan's six phases and original identifiers while integrating the
-Lody lifecycle learnings recorded in [context
-§8](context.md#8-lody-learning-crosswalk). Phases state testable ideas, steps
-ask delivery questions, and tasks are review-sized execution units. It makes no
-date commitments.
+Lody lifecycle learnings recorded in
+[context §8](context.md#8-lody-learning-crosswalk). Phases state testable
+ideas, steps ask delivery questions, and tasks are review-sized execution
+units. It makes no date commitments.
 
 The first semantic experiment is a shared producer with two consumers,
 controlled cancellation, delayed cleanup, and failed release. The application
@@ -16,12 +16,12 @@ reimplementation of leynos/css-view against the pinned oracle. Pure domain work
 remains pure; each slice introduces only the abstractions its behaviour
 requires.
 
-All boxes remain unchecked: specifying a contract, implementing it, exercising a
-consumer, and verifying an interpreter/platform are separate facts. Accepted
+All boxes remain unchecked: specifying a contract, implementing it, exercising
+a consumer, and verifying an interpreter/platform are separate facts. Accepted
 bootstrap ADRs remain authoritative in scope; pending decisions live in
-design.md §12 and become ADRs only through review. This roadmap materializes and
-extends the edited plan, not an earlier conversational draft. References below
-resolve through [the source register](context.md#7-source-register).
+design.md §12 and become ADRs only through review. This roadmap materializes
+and extends the edited plan, not an earlier conversational draft. References
+below resolve through [the source register](context.md#7-source-register).
 
 ## 1. Prove the refex type and lifecycle model across ReScript boundaries
 
@@ -183,9 +183,9 @@ design.md §§4-6, 10.2, 10.4.
 
 ### 1.4. Determine whether real ReScript await is useful without weakening refex
 
-Can native syntax preserve the managed-operation contract? Failure must restrict
-or reject Direct rather than block the application validators. See design.md
-§§7, 10.2.
+Can native syntax preserve the managed-operation contract? Failure must
+restrict or reject Direct rather than block the application validators. See
+design.md §§7, 10.2.
 
 - [ ] 1.4.1. Prototype a typed direct-style scope around native ReScript async
   and await.
@@ -207,9 +207,9 @@ or reject Direct rather than block the application validators. See design.md
 
 ## 2. Vertical slice 1: an animated Minesweeper solver in React
 
-Idea: Capability. If animated solving and two views can share a producer without
-coupling their lifetimes, refex provides useful interactive behaviour while
-making failed teardown visible.
+Idea: Capability. If animated solving and two views can share a producer
+without coupling their lifetimes, refex provides useful interactive behaviour
+while making failed teardown visible.
 
 Minesweeper tests computation pacing, React ownership, cancellation, and
 replacement with a small domain. It also compares pipelines and the conditional
@@ -380,8 +380,8 @@ tests the same model across a real boundary. See design.md §§8-9.
 ### 3.4. Stress dependency substitution, admission, and retry policy end to end
 
 Do failures change only intended outcomes rather than observation timing or
-ownership? The result validates the portable service model. See design.md §§6.3,
-10.3.
+ownership? The result validates the portable service model. See design.md
+§§6.3, 10.3.
 
 - [ ] 3.4.1. Introduce controllable latency and failures through test service
   implementations.

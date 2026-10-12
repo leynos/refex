@@ -1,8 +1,8 @@
 # Documentation contents
 
 The product documents distinguish intended outcomes and proposed mechanisms
-from the implemented bootstrap. Draft designs do not supersede accepted ADRs
-or establish a working effects API.
+from the implemented bootstrap. Draft designs do not supersede accepted ADRs or
+establish a working effects API.
 
 ## Product intent and design
 

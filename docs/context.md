@@ -1,17 +1,17 @@
 # refex context
 
-Status: draft v0.2 vocabulary and provenance record.
-Last substantive revision: 12 October 2026.
-Audience: contributors, reviewers, and agents working on refex.
-Companions: [terms of reference](terms-of-reference.md),
-[technical design](design.md), [roadmap](roadmap.md), and [contents](contents.md).
+Status: draft v0.2 vocabulary and provenance record. Last substantive revision:
+12 October 2026. Audience: contributors, reviewers, and agents working on
+refex. Companions:
+[terms of reference](terms-of-reference.md), [technical design](design.md), [roadmap](roadmap.md),
+and [contents](contents.md).
 
 ## 1. Status and document authority
 
 The inspected implementation baseline is
 `aa3c0f71816b84da95765616589f38a075b2f26c`. It contains a private `0.0.0`
-package and disposable `Bootstrap.identity`, not an effects API. Draft PR #7
-at `569f1b0f1d3d93983df71dd0f00951dbd4e8230a` adds product documents but no
+package and disposable `Bootstrap.identity`, not an effects API. Draft PR #7 at
+`569f1b0f1d3d93983df71dd0f00951dbd4e8230a` adds product documents but no
 semantic implementation. [Package metadata](../package.json), the
 [source interface](../src/Bootstrap.resi), and [user guide](users-guide.md)
 describe the implemented state.
@@ -48,8 +48,7 @@ Reusing a description does not imply reusing an execution.
 but absence of open requirements does not prove purity.
 
 **Fx:** the proposed environment-dependent computation, parameterized by
-success,
-expected error, and required environment.
+success, expected error, and required environment.
 
 **Reader:** a computation receiving an environment. Reader does not itself
 provide cancellation, finalization, or dependency lifetime guarantees.
@@ -63,9 +62,9 @@ process environment variables or React context.
 **Requirement:** a type-level obligation on that environment. A missing service
 differs from a supplied service that fails during execution.
 
-**Open operation:** a workflow requesting capabilities on execution.
-**Bound service:** a service capturing construction dependencies. Replacing an
-outer field does not rebuild that captured service.
+**Open operation:** a workflow requesting capabilities on execution. **Bound
+service:** a service capturing construction dependencies. Replacing an outer
+field does not rebuild that captured service.
 
 **Construction input:** what builds a service. **Invocation requirement:** what
 one method requests when run. Neither names the resulting service's owner.
@@ -83,8 +82,8 @@ It is an intentional interface, not permission to erase requirements.
 ### 2.2. Ownership and outcomes
 
 **Owner:** the live party accountable for work, resources, and unresolved
-cleanup. **Scope:** an admission/lifetime boundary that records finalizers.
-A closed scope need not imply confirmed external release.
+cleanup. **Scope:** an admission/lifetime boundary that records finalizers. A
+closed scope need not imply confirmed external release.
 
 **Resource:** an acquisition recipe retaining release obligations, not merely
 its handle. **Layer:** a dependency-aware resource constructor, not a global
@@ -101,25 +100,25 @@ of a recorded result under a key/scope. Recipe reuse alone promises neither.
 thread. Public identifiers may use `Fiber`; prose uses 'fibre'.
 
 **Stop waiting:** withdraw one observer or admission claim without asserting
-producer cancellation. **Interrupt and join:** request managed interruption
-and observe termination plus applicable finalizer attempts. **Confirm external
+producer cancellation. **Interrupt and join:** request managed interruption and
+observe termination plus applicable finalizer attempts. **Confirm external
 termination:** establish the adapter's stated external predicate. These are
 three different contracts.
 
 **Finalization:** executing registered cleanup. **Close attempt:** one joined
 execution of cleanup obligations. **Release receipt:** confirmation of a named
 release predicate for a particular generation, not simply a timeout or ended
-fibre. **Recovery attempt:** explicit work on an unresolved obligation, distinct
-from repeating a completed `Scope.close`.
+fibre. **Recovery attempt:** explicit work on an unresolved obligation,
+distinct from repeating a completed `Scope.close`.
 
 **Generation:** one resource incarnation. A key, path, session name, or numeric
 process identifier is not a generation. **Handoff:** permission for a successor
 under a confirmed release or verified isolation contract.
 
 **Unresolved:** release is unconfirmed and a live owner retains responsibility.
-**Recovery reference:** a way to inspect or request recovery, not the sole owner
-stored inside a disposable error. **Transfer:** an acknowledged move of that
-responsibility between live owners.
+**Recovery reference:** a way to inspect or request recovery, not the sole
+owner stored inside a disposable error. **Transfer:** an acknowledged move of
+that responsibility between live owners.
 
 **Quiescence:** no remaining work or cleanup in the stated observation domain.
 Local waiter termination, a scope attempt ending, and global quiescence differ.
@@ -127,10 +126,10 @@ A transfer must state which domain remains active.
 
 **Expected failure:** a value in the domain's declared error channel.
 **Defect:** unexpected execution failure. **Release issue:** failure to
-establish
-an external release condition; it is not automatically a programmer defect.
-**Exit:** complete terminal execution outcome. **Cause:** information retaining
-all relevant reasons and their meaningful sequential/parallel structure.
+establish an external release condition; it is not automatically a programmer
+defect. **Exit:** complete terminal execution outcome. **Cause:** information
+retaining all relevant reasons and their meaningful sequential/parallel
+structure.
 
 **Infallible:** no inhabitant in the expected-error channel, not immunity to
 interruption, defects, or failed release.
@@ -138,8 +137,7 @@ interruption, defects, or failed release.
 ### 2.3. Integration and evidence
 
 **Direct:** experimental native `async`/`await` with a typed scope. It is
-neither
-transparent monadic await nor an accepted API.
+neither transparent monadic await nor an accepted API.
 
 **React Effect:** React's setup/cleanup mechanism, distinct from Effect-library
 or refex computations. React cleanup does not join asynchronous disposal.
@@ -162,16 +160,16 @@ atomicity.
 **Ablation:** temporarily removing a coordination mechanism to check that its
 behavioural acceptance detects the loss, then restoring the baseline.
 
-**Evidence record:** claim, revisions, inputs, readiness, command, observations,
-resulting state, negative control, limits, and decision. A green exit without
-executed scenarios is not evidence for their contracts.
+**Evidence record:** claim, revisions, inputs, readiness, command,
+observations, resulting state, negative control, limits, and decision. A green
+exit without executed scenarios is not evidence for their contracts.
 
 ## 3. Relationships that must remain explicit
 
 An environment can satisfy a database requirement without establishing that
 captured handles remain live. A scope can run finalizers without establishing
-foreign termination. A typed error can describe failure without owning recovery.
-Each claim needs its own contract and evidence.
+foreign termination. A typed error can describe failure without owning
+recovery. Each claim needs its own contract and evidence.
 
 A component can own a local request or merely subscribe to an application
 producer. Unmounting must not terminate unrelated readers. A client stopping
@@ -181,8 +179,8 @@ Construction inputs, invocation requirements, and service ownership are three
 axes. Snapshot/live observation is a fourth relevant choice. Ordinary inputs
 and pure helpers do not need services merely to fit an effects architecture.
 
-Provision differs from serialization: the roguelike sends checked values,
-not closures, environments, fibres, or runtime objects. Each side owns local
+Provision differs from serialization: the roguelike sends checked values, not
+closures, environments, fibres, or runtime objects. Each side owns local
 executions; committed server mutations have a separate reconciliation policy.
 
 A pending external cleanup operation remains the same attempt when its waiter
@@ -199,13 +197,13 @@ and Bun development-only. [ADR 003](adr-003-formatting-and-analysis-policy.md)
 sets formatting/analysis policy. These decisions remain unchanged.
 
 Reader/IO, structural requirements, scoped layers, and private Effect execution
-are proposed mechanisms. Open rows must survive `.resi` tests. Direct FFI versus
-Reventless is an experiment, not an installed dependency selection.
+are proposed mechanisms. Open rows must survive `.resi` tests. Direct FFI
+versus Reventless is an experiment, not an installed dependency selection.
 
 Joined closure, generation-safe handoff, cause-preserving conversion, and an
-owner independent of diagnostic reachability are proposed refex contracts.
-The last is deliberately stronger than Lody's caller-held process recovery
-lease. Its implementation location remains open; no root registry exists here.
+owner independent of diagnostic reachability are proposed refex contracts. The
+last is deliberately stronger than Lody's caller-held process recovery lease.
+Its implementation location remains open; no root registry exists here.
 
 Transparent await, graph memoization, streams, transactional memory, query
 caching, and a native runtime remain deferred. The shared-producer experiment
@@ -218,10 +216,10 @@ budget, compatibility promise, or production commitment has been established.
 [Primavera][primavera] combines Reader with OCaml objects. Neither proves
 identical ReScript inference or lifetime rules.
 
-[Reventless][reventless] supplies an alternative and candidate private bindings.
-Audit a selected package, not claims about maturity inferred from module count.
-[Effect scope documentation][effect-scope] is a reference, not proof that a
-wrapper or another version meets refex's closure contract.
+[Reventless][reventless] supplies an alternative and candidate private
+bindings. Audit a selected package, not claims about maturity inferred from
+module count. [Effect scope documentation][effect-scope] is a reference, not
+proof that a wrapper or another version meets refex's closure contract.
 
 [ReScript await][await] is promise-specific. [React useEffect][react] specifies
 setup/cleanup and a development Strict Mode cycle. These motivate boundary
@@ -233,10 +231,10 @@ dynamic evaluation still needs checking against the selected release and
 browser policy. This lifecycle update does not resolve that earlier question.
 
 Lody's [guide][lody-guide] reports for its pinned Effect 4.0.2 that a repeated
-scope close does not join the first, keyed fibre replacement need not await
-old finalizers, mixed-cause error mapping can lose other reasons, and
-`runPromise` already squashes causes. These statements are attributed,
-version-specific evidence, not refex results or universal Effect behaviour.
+scope close does not join the first, keyed fibre replacement need not await old
+finalizers, mixed-cause error mapping can lose other reasons, and `runPromise`
+already squashes causes. These statements are attributed, version-specific
+evidence, not refex results or universal Effect behaviour.
 
 No inspected source establishes that refex is faster, safer overall, smaller,
 or easier than direct bindings. Comparison remains an experiment.
@@ -244,30 +242,28 @@ or easier than direct bindings. Comparison remains an experiment.
 ## 6. Validation and roadmap traceability
 
 [The roadmap](roadmap.md) is the repository-local continuation of the edited
-GIST plan. Existing IDs remain stable; new IDs append to their workstreams.
-All task boxes remain unchecked. [Design
-§10](design.md#10-experimental-validation)
+GIST plan. Existing IDs remain stable; new IDs append to their workstreams. All
+task boxes remain unchecked. [Design §10](design.md#10-experimental-validation)
 defines E1-E9 and their limits.
 
 ### 6.1. Foundation and Minesweeper
 
 Existing (1.1.1)-(1.4.2) retain their intent, with stronger outcomes/ownership
 criteria. New (1.1.5) records the five-question contract; (1.3.4)-(1.3.5)
-deliver the two-consumer lifecycle slice and its end-to-end acceptance.
-This adds behaviour, not an upstream primitive catalogue.
+deliver the two-consumer lifecycle slice and its end-to-end acceptance. This
+adds behaviour, not an upstream primitive catalogue.
 
 Existing (2.1.1)-(2.3.2) retain animated solver and direct-style comparison.
 New (2.2.3) supplies two views sharing a producer; (2.3.3) challenges their
-combined React lifecycle. Hidden mine positions remain out of solver inputs;
-no justified deduction is a valid result. Ordinary React state remains ordinary.
+combined React lifecycle. Hidden mine positions remain out of solver inputs; no
+justified deduction is a valid result. Ordinary React state remains ordinary.
 
 ### 6.2. Nine-room client-server roguelike
 
 Existing (3.1.1)-(3.4.2) retain nine rooms, a React client, authoritative
-server,
-checked protocol, and replaceable services. Expanded criteria cover queued
-cancellation, observation timing, shared/fresh instances, and ambiguous writes.
-They do not authorize durable storage or a multiplayer platform.
+server, checked protocol, and replaceable services. Expanded criteria cover
+queued cancellation, observation timing, shared/fresh instances, and ambiguous
+writes. They do not authorize durable storage or a multiplayer platform.
 
 ### 6.3. Reimplementing css-view
 
@@ -278,16 +274,16 @@ and borrowed sessions belong in those existing workstreams.
 
 The [existing guide][css-guide] supplies backend/mode, fixture, active-page,
 and transient-open contracts. Record browser/source pins and normalize only
-documented volatile fields. Adjudicate oracle mismatches rather than erase them.
-The original `css-view` repository remains unchanged.
+documented volatile fields. Adjudicate oracle mismatches rather than erase
+them. The original `css-view` repository remains unchanged.
 
 ### 6.4. Convergence and deferred scope
 
 Existing (5.1.1)-(5.3.2) retain evidence-driven API reduction and comparison.
-New (5.1.3) keeps delivery state separate from interpreter/platform verification
-without copying Lody's application ledger. Existing (6.1.1)-(6.5.1) stay
-deferred
-and gain conformance prerequisites, not automatic promotion into core scope.
+New (5.1.3) keeps delivery state separate from interpreter/platform
+verification without copying Lody's application ledger. Existing
+(6.1.1)-(6.5.1) stay deferred and gain conformance prerequisites, not automatic
+promotion into core scope.
 
 ## 7. Source register
 
@@ -317,8 +313,8 @@ Sources inspected or supplied on 12 October 2026:
   guidance. The [probe note][lody-probes] reports five selected Effect 4.0.2
   probes on Node 22.22.0, not Lody integration, platform, or production proof.
 - **C11:** [Lody process-release note][lody-process] at that head, describing
-  earlier #1379 corrections, cause preservation, and caller-held recovery.
-  Its tests and platform limitations are separate from #1452's probes.
+  earlier #1379 corrections, cause preservation, and caller-held recovery. Its
+  tests and platform limitations are separate from #1452's probes.
 - **C12:** [Lody file-lock note][lody-lock] at that head, describing earlier
   #1377 corrections, admission, publication, and retained pending cleanup.
   Linux evidence does not establish unsupported filesystems or real Windows.

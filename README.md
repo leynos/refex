@@ -3,8 +3,8 @@
 *An experimental ReScript-first model for typed effects and dependencies.*
 
 refex explores lazy workflows, explicit capabilities, typed failures, and owned
-resources without exposing a backend runtime's API to application code.
-React is the primary application target; the core remains portable ReScript.
+resources without exposing a backend runtime's API to application code. React
+is the primary application target; the core remains portable ReScript.
 
 **Status: development bootstrap only. No effects API exists yet.** The private
 `0.0.0` package exports one disposable toolchain probe, not a stable library.
@@ -17,13 +17,13 @@ ______________________________________________________________________
 
 ReScript workflows should make their dependencies, failures, and lifetimes
 readable together. refex investigates whether native variants, modules, and
-pipelines offer a useful alternative to exposing Effect's API directly.
-The project must earn that distinction through working applications, not a
-longer list of combinators.
+pipelines offer a useful alternative to exposing Effect's API directly. The
+project must earn that distinction through working applications, not a longer
+list of combinators.
 
 The [terms of reference](docs/terms-of-reference.md) define the problem and
-non-goals. The [context](docs/context.md) records prior art, vocabulary, and the
-limits of the current evidence.
+non-goals. The [context](docs/context.md) records prior art, vocabulary, and
+the limits of the current evidence.
 
 ______________________________________________________________________
 
@@ -31,8 +31,8 @@ ______________________________________________________________________
 
 ### Installation
 
-Use a local checkout. The package is private and has no npm release.
-For this smoke check, install Bun 1.4.2, Make, and Git. See the
+Use a local checkout. The package is private and has no npm release. For this
+smoke check, install Bun 1.4.2, Make, and Git. See the
 [developer guide](docs/developers-guide.md) for the complete pinned gate tools.
 
 ```bash
@@ -54,9 +54,9 @@ It prints `Hello, refex.`. This verifies the current import path; it does not
 exercise effects, dependencies, fibres, or cleanup. `Bootstrap.identity` will
 be removed or replaced when real library code exists.
 
-For package consumers, the concrete export is
-`refex/src/Bootstrap.res.mjs`, not bare `refex`. The
-[user guide](docs/users-guide.md) explains local consumption and current limits.
+For package consumers, the concrete export is `refex/src/Bootstrap.res.mjs`,
+not bare `refex`. The [user guide](docs/users-guide.md) explains local
+consumption and current limits.
 
 ______________________________________________________________________
 
@@ -64,8 +64,8 @@ ______________________________________________________________________
 
 Available today: a pinned ReScript 12.3.1 bootstrap, explicit interfaces,
 committed generated production JavaScript, a consumer smoke test, and
-sequential Make gates. Bun runs development tools and tests; it is not a
-core dependency. Core source must not call React, Bun, Node, or browser APIs.
+sequential Make gates. Bun runs development tools and tests; it is not a core
+dependency. Core source must not call React, Bun, Node, or browser APIs.
 
 Planned and unvalidated: typed `Fx` workflows, dependency-aware resources and
 layers, pipeline helpers, owned concurrency, deterministic time, a React
@@ -108,9 +108,9 @@ ______________________________________________________________________
 ## Contributing
 
 Contributions that make a design claim testable are welcome. Start with
-[AGENTS.md](AGENTS.md) and the [developer guide](docs/developers-guide.md).
-Run `make all` before committing; the guide lists the additional gate tools.
-Use `make help` for the contributor interface.
+[AGENTS.md](AGENTS.md) and the [developer guide](docs/developers-guide.md). Run
+`make all` before committing; the guide lists the additional gate tools. Use
+`make help` for the contributor interface.
 
 Keep pure application logic pure, preserve the platform boundary, and report
 negative experiment results. This project does not publish packages or merge
