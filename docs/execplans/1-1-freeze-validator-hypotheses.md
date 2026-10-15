@@ -302,7 +302,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   All four returned "revise". Their findings are recorded in `Decision log`.
 - [x] (2026-10-15 22:30Z) Revised the plan to address every blocker and
   concern.
-- [ ] Draft pull request opened for plan review.
+- [x] (2026-10-15 22:50Z) Draft pull request opened for plan review:
+  [leynos/refex#8](https://github.com/leynos/refex/pull/8).
 - [ ] Owner approval of this plan. Implementation must not start before it.
 - [ ] EP-M0: baseline gates green on the branch with Bun 1.4.2.
 - [ ] EP-M1: documentation contract and test-registration contract.
