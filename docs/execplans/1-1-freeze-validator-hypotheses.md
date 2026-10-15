@@ -228,12 +228,20 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     feature. Formal-proof selection for the lifecycle reducer depends on
     that verdict. Bounded exhaustive enumeration is the gate in every
     outcome.
-- R-5. The local global Bun is 1.3.14, which cannot read the repository's
-  Bun 1.4.2 lockfile.
-  - Severity medium; certain on this host.
-  - Mitigation: a checksum-verified Bun 1.4.2 has been unpacked into
-    `$HOME/.local/share/bun-versions/1.4.2/bin`. Prepend it to `PATH` for
-    every command. Never replace the global Bun.
+- R-5. The local Bun can differ from the repository pin. `package.json` and
+  CI pin Bun 1.4.2. During planning, the global Bun was 1.3.14, which cannot
+  read the lockfile. The owner has since upgraded the global Bun to 1.4.3,
+  which reads it (`bun install --frozen-lockfile --dry-run` succeeds).
+  - Severity low; likelihood low for a patch-level difference.
+  - Mitigation: run local gates with the global Bun 1.4.3 and record
+    `bun --version` in every gate log and evidence record. Hosted CI, on
+    the pinned 1.4.2, is authoritative.
+  - If a local result might depend on the Bun version, rerun it under the
+    exact pin. A checksum-verified Bun 1.4.2 is kept at
+    `$HOME/.local/share/bun-versions/1.4.2/bin` for that purpose, and its
+    result takes precedence.
+  - Changing the repository's Bun pin is out of scope. It is a toolchain
+    upgrade, not part of roadmap 1.1.
 - R-6. Readers confuse the ADR status, the context evidence labels, and the
   brief's capability statuses.
   - Severity medium; likelihood medium.
@@ -305,7 +313,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - [x] (2026-10-15 22:50Z) Draft pull request opened for plan review:
   [leynos/refex#8](https://github.com/leynos/refex/pull/8).
 - [ ] Owner approval of this plan. Implementation must not start before it.
-- [ ] EP-M0: baseline gates green on the branch with Bun 1.4.2.
+- [ ] EP-M0: baseline gates green on the branch with the recorded Bun version.
 - [ ] EP-M1: documentation contract and test-registration contract.
 - [ ] EP-M2: design brief, glossary additions, and capability map (1.1.1).
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
@@ -603,6 +611,18 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - Decision: no Verus milestone. Verus verifies Rust, and refex is ReScript.
   The corresponding proof route is LemmaScript with Dafny, which FX-1 evaluates.
   - Date/Author: 2026-10-15.
+
+- Decision: run local gates with the global Bun 1.4.3, which the owner
+  installed after the plan was drafted.
+  - The repository pin stays at 1.4.2, and hosted CI on that pin is
+    authoritative.
+  - Each gate log and evidence record notes the Bun version.
+  - A result that might depend on the version is rerun under the
+    side-by-side 1.4.2.
+  - Rationale: 1.4.3 reads the frozen lockfile, and a patch-level
+    difference does not justify a second toolchain. Changing the pin would
+    be a toolchain upgrade outside roadmap 1.1.
+  - Date/Author: 2026-10-15, planning agent, after the owner's upgrade.
 
 ## Outcomes & retrospective
 
@@ -925,9 +945,9 @@ VP-4: runtime-boundary audit probes (task 1.1.2).
     failures. For each case, record whether the line exposes ordering and
     branches, and whether `Scope.close(scope, exit)` or a finalizer can
     observe body and finalizer exits separately.
-- Method: executable scratch probes under Bun 1.4.2. Each probe runs twice,
-  once against the newest Effect 4.0.x patch at the start of the audit and once
-  against Effect 3.22.2, both pinned exactly.
+- Method: executable scratch probes under the recorded Bun version. Each probe
+  runs twice, once against the newest Effect 4.0.x patch at the start of the
+  audit and once against Effect 3.22.2, both pinned exactly.
 - Artefact: `docs/evidence/runtime-boundary-audit.md`, with each probe's
   source, its install and run commands, and its transcript.
 - Evidence: each probe prints one JSON line with a verdict label:
@@ -1009,7 +1029,7 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 - Location: `$HOME/scratch/refex-1-1/fx1/`. Nothing from it is committed
   except the Markdown evidence record.
 - Pins:
-  - Bun 1.4.2;
+  - Bun 1.4.3 (global) or 1.4.2 (repository pin), recorded with the results;
   - ReScript 12.3.1, with genType configured as
     `{"language": "typescript", "generatedFileExtension": ".gen.ts"}`;
   - `lemmascript` 0.6.4, integrity
@@ -1075,7 +1095,8 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 - Commands, run from `$HOME/scratch/refex-1-1/fx1/`:
 
   ```sh
-  export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$HOME/scratch/refex-1-1/z3/z3-4.12.1-x64-glibc-2.35/bin:$PATH"
+  export PATH="$HOME/scratch/refex-1-1/z3/z3-4.12.1-x64-glibc-2.35/bin:$PATH"
+  bun --version                                 # record it: 1.4.3 global or 1.4.2 pin
   z3 --version                                  # expect: Z3 version 4.12.1 - 64 bit
   dafny --version                               # expect: 4.11.0+fcb2042d...
   bun add --exact rescript@12.3.1 @rescript/runtime@12.3.1 lemmascript@0.6.4 \
@@ -1515,8 +1536,8 @@ milestone. `make check-fmt`, `make lint`, and `make test` all run within it.
 
 EP-M0: baseline.
 
-- Outcome: `make all` passes with Bun 1.4.2 before any change, so later
-  failures can be attributed.
+- Outcome: `make all` passes with the recorded Bun version before any change,
+  so later failures can be attributed.
 - Requirements and gaps: none; this is a precondition only.
 - Acceptance evidence: scrutineer reports exit 0, with the log at
   `/tmp/all-refex-1-1-freeze-validator-hypotheses.out`.
@@ -1858,12 +1879,20 @@ worktree used during planning is:
 /home/leynos/.lody/repos/github---leynos---refex/worktrees/4c10984f-2c00-4e9b-9d17-f7a799adc218
 ```
 
-Every shell needs the pinned Bun first:
+Check the Bun version and install dependencies first:
+
+```sh
+bun --version   # expect 1.4.3 (global) or 1.4.2 (repository pin)
+make install    # expect "81 packages installed" or "no changes"
+```
+
+Use the global Bun 1.4.3 by default, and record its version in each gate log
+and evidence record (R-5). To reproduce a result under the exact repository
+pin, prepend the side-by-side install:
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"
 bun --version   # expect 1.4.2
-make install    # expect "81 packages installed" or "no changes"
 ```
 
 If `$HOME/.local/share/bun-versions/1.4.2/bin/bun` is missing:
@@ -1874,7 +1903,7 @@ If `$HOME/.local/share/bun-versions/1.4.2/bin/bun` is missing:
    `grep ' bun-linux-x64.zip$' SHASUMS256.txt | sha256sum -c -`.
 3. Unzip it, and move `bun-linux-x64/bun` to `bin/bun`.
 
-Never upgrade the global Bun.
+Do not change the Bun version pinned in `package.json` or CI.
 
 The `scrutineer` sub-agent runs every gate, sequentially, and tees output to
 `/tmp/<action>-refex-1-1-freeze-validator-hypotheses.out`. Do not run gates in
@@ -2339,3 +2368,8 @@ added in this step. Each needs its own approved plan and lockfile change.
   The milestones were renumbered (EP-M4 split into probe and ADR milestones).
   Implementation has not started, so no remaining work is affected beyond the
   larger scope recorded under `Tolerances`.
+- 2026-10-15, third revision: the owner upgraded the global Bun to 1.4.3,
+  which reads the repository's lockfile. R-5, the concrete steps, and the FX-1
+  commands now use the global Bun and record its version. The side-by-side Bun
+  1.4.2 remains for exact-pin reproduction. The repository pin is unchanged,
+  and no remaining work is otherwise affected.
