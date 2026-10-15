@@ -16,314 +16,592 @@ tasks 1.1.1 to 1.1.5.
 ## Purpose / big picture
 
 refex is an experimental ReScript library for lazy computations, typed
-requirements, complete failures, and accountable resource ownership. Today the
-repository contains only a disposable bootstrap module (`src/Bootstrap.res`)
-and a long draft design. Roadmap step 1.1 asks a narrower question before any
-semantic code exists: which promises can the library defend, and what evidence
-would reject each one?
+requirements, complete failures, and accountable resource ownership. The
+repository currently contains only a disposable bootstrap module
+(`src/Bootstrap.res`) and a long draft design. Before any semantic code exists,
+roadmap step 1.1 asks a narrower question: which promises can the library
+defend, and what evidence would reject each one?
 
-After this plan is delivered, a reader of the repository can do four things
-that are not possible today:
+When this plan has been delivered, a reader of the repository can do four
+things that are not possible today:
 
-1. Open one concise design brief (`docs/design-brief.md`) and see every public
-   abstraction refex intends to offer (`Fx`, `Layer`, resources, fibres,
-   schedules, deterministic time, React ownership, and schema-backed codecs),
-   every deferred capability, and a capability map in which each validator need
-   (Minesweeper, the nine-room roguelike, and the css-view reimplementation)
-   points to a named contract or a delegated library. Every row states whether
-   it is proposed, delegated, deferred, or implemented, so specification is
-   never mistaken for delivery.
+1. Open one concise design brief, `docs/design-brief.md`. It lists every
+   public abstraction refex intends to offer: `Fx`, `Layer`, resources, fibres,
+   schedules, deterministic time, React ownership, and schema-backed codecs. It
+   lists every deferred capability. Its capability map shows, for each need of
+   each validator (Minesweeper, the nine-room roguelike, and the css-view
+   reimplementation), the named contract or delegated library that meets it.
+   Every row carries a status, so a specification is never mistaken for
+   delivered behaviour.
 2. Read four new architectural decision records (ADRs) that freeze the
-   initial hypotheses. ADR 004 sets the runtime boundary and authorizes a
-   bounded backend trial. ADR 005 sets structural dependency environments, ADR
-   006 sets complete failure outcomes, and ADR 007 is the behavioural contract
-   for shared work, closure, and recovery. Each ADR states what would falsify
-   it and which roadmap task gathers that evidence.
-3. Reproduce the evidence behind those decisions from evidence records under
-   `docs/evidence/`. These hold audit probes of the candidate Effect backends,
-   scratch compiler probes for requirement rows and the uninhabited error
-   channel, and a bounded feasibility experiment for machine-checked proof of
-   the lifecycle transition function. Each record shows its commands, pins,
-   observations, and negative controls.
-4. See, in a verification matrix, which later milestone discharges each
-   contract and by which method: compiler fixtures, behavioural tests, property
-   tests, bounded exhaustive enumeration, or deductive proof. Proved, tested,
-   and merely specified claims stay separate.
+   initial hypotheses:
+   - ADR 004, the runtime boundary, which authorizes a bounded backend
+     trial;
+   - ADR 005, structural dependency environments;
+   - ADR 006, complete failure outcomes;
+   - ADR 007, the behavioural contract for shared work, closure, and
+     recovery.
 
-Success is observable. `make all` passes on the branch. The new
-documentation-contract suite rejects an ADR that is missing from
-`docs/contents.md` or carries an unknown status. Every probe transcript in
-`docs/evidence/` can be reproduced from its recorded commands. Roadmap tasks
-1.1.1 to 1.1.5 are ticked only after the repository owner has accepted the ADRs
-in review.
+   Each ADR states what would falsify it and which roadmap task gathers that
+   evidence.
+3. Reproduce the evidence behind those decisions from three evidence records
+   under `docs/evidence/`:
+   - audit probes of the candidate Effect backends and bindings;
+   - scratch compiler probes for requirement rows, recovery signatures, and
+     the uninhabited error channel;
+   - a bounded tool-feasibility experiment for machine-checked proof of the
+     lifecycle transition function.
+
+   Each record gives the commands, pins, observations, and negative controls.
+4. See, in a verification matrix, which later milestone discharges each
+   contract and by which method. The methods are compiler fixtures, behavioural
+   tests, property tests, bounded exhaustive enumeration, and deductive proof.
+   Proved, tested, and merely specified claims stay separate.
+
+Success is observable in four ways:
+
+- `make all` passes on the branch.
+- The new documentation-contract suite rejects any ADR that is missing from
+  `docs/contents.md` or has an unknown status.
+- The extended Makefile contract rejects any test file that `make test` does
+  not run.
+- Every probe transcript in `docs/evidence/` can be reproduced from its
+  recorded commands.
+
+Roadmap tasks 1.1.1 to 1.1.5 are ticked only after the repository owner has
+accepted the ADRs in review.
 
 This step changes no runtime behaviour, installs no runtime dependency, and
 exposes no new public module. It is a documentation and evidence step that also
-adds one small repository-contract test.
+adds two small repository-contract checks.
 
 ## Constraints
 
 These are hard invariants. Violating one requires escalation, not a workaround.
 
-- C-1. Preserve the single root package, the portable core (`src/` imports no
-  Bun, React, Node, browser, or other platform API), explicit `.resi`
-  interfaces, the pinned ReScript 12.3.1 and Bun 1.4.2 toolchain, the
-  generated-output policy, and accepted ADRs 001 to 003. A new ADR may propose
-  a conditional, explicitly named change to ADR 002's dependency rule. It must
-  not silently supersede it, and ADR 002's text changes only after the owner
-  accepts that change.
+- C-1. Preserve the following, unless a reviewed decision explicitly changes
+  them:
+  - the single root package;
+  - the portable core, meaning `src/` imports no Bun, React, Node, browser,
+    or other platform API;
+  - explicit `.resi` interfaces;
+  - the pinned ReScript 12.3.1 and Bun 1.4.2 toolchain;
+  - the generated-output policy;
+  - accepted ADRs 001 to 003.
+
+  A new ADR may propose a conditional, explicitly named change to ADR 002. It
+  must not silently supersede it. ADR 002's text changes only after the owner
+  accepts that change, and then only by adding an `## Amendments` section.
 - C-2. Install no package into `package.json` or `bun.lock` in this step.
-  This includes `effect`, `@reventlessdev/rescript-effect`, `fast-check`,
-  `lemmascript`, `typescript`, and `bignumber.js`. Audit and feasibility probes
-  run in scratch directories outside the repository, with their own throwaway
-  `package.json`. Installation of an authorized backend is roadmap task 1.3.1's
-  work, under ADR 004.
+  That includes `effect`, `@reventlessdev/rescript-effect`, `fast-check`,
+  `lemmascript`, `typescript`, and `bignumber.js`.
+  - Audit, probe, and feasibility work runs in scratch directories under
+    `$HOME/scratch/refex-1-1/`. Each has its own throwaway manifest.
+  - `/tmp` is used for logs only, never as a build target.
+  - Installing an authorized backend is roadmap task 1.3.1's work, done
+    under ADR 004.
 - C-3. Add no production ReScript module, no `.resi`, no public-module
   allowlist entry, and no change to `package.json` `files` or `exports`.
   `src/Bootstrap.*` stays as it is.
 - C-4. Add no proof, model-checking, or property-testing infrastructure to
-  the repository (no `tools/verification/`, no `make prove`, no bridge scripts).
-  `docs/developers-guide.md` states that no formal proof infrastructure
-  belongs in the bootstrap. This step may select proof obligations and run a
-  scratch feasibility experiment. Committed proof infrastructure waits for the
-  implementation milestone that has real code to prove, and needs its own plan
-  approval.
-- C-5. Do not import a Rust package structure, a reserved Lean boundary,
-  another project's assurance profile, Lody's service classes or migration
-  ledger, or a general supervisor framework.
-- C-6. Keep the distinction between specified, implemented,
-  consumer-exercised, and interpreter/platform-verified behaviour. Lody's
-  probes, upstream documentation, and the planning-time probes recorded below
-  are source evidence. They are not refex conformance results.
+  the repository: no `tools/verification/`, no `make prove`, and no bridge
+  scripts. `docs/developers-guide.md` states that formal proof infrastructure
+  does not belong in the bootstrap.
+  - This step may select proof obligations and run a scratch feasibility
+    experiment.
+  - Committed proof infrastructure waits for the milestone that has real
+    code to prove, and needs its own approved plan.
+- C-5. Do not import any of the following:
+  - a Rust package structure;
+  - a reserved Lean boundary;
+  - another project's assurance profile;
+  - Lody's service classes or migration ledger;
+  - a general supervisor framework.
+- C-6. Keep specified, implemented, consumer-exercised, and
+  interpreter/platform-verified behaviour distinct. Lody's probes, upstream
+  documentation, source reading, and the probes in this plan are *source
+  evidence*, not refex conformance results. Tool-feasibility results concern
+  the tool, not refex.
 - C-7. Do not renumber sections of `docs/design.md`, `docs/context.md`,
-  `docs/terms-of-reference.md`, or `docs/roadmap.md`. Many documents cite them
-  by section number. Add new material as new subsections, appendices, or
-  separate documents.
-- C-8. Follow `AGENTS.md`: en-GB Oxford spelling, 80-column prose, 120-column
-  code blocks, sentence-case headings, dash bullets, language-labelled fences,
-  `make all` before each commit, atomic commits with imperative subjects and
-  reasons in the body, and no hand edits to `typos.toml` or compiler output.
-- C-9. Never publish, release, or merge. Opening and updating the draft pull
-  request is permitted.
-- C-10. Do not change roadmap checkboxes, ADR status lines, or the
-  `docs/contents.md` sentence about unchecked tasks until the repository owner
-  has accepted the corresponding ADRs in review. Record that acceptance, with a
-  link to the review comment, in `Decision log`.
+  `docs/terms-of-reference.md`, or `docs/roadmap.md`. Other documents cite
+  these by section number. Add new material as new subsections or separate
+  documents.
+- C-8. Follow `AGENTS.md`:
+  - en-GB Oxford spelling;
+  - prose wrapped at 80 columns and code blocks at 120;
+  - sentence-case headings, dash bullets, and language-labelled fences;
+  - no emoji in committed documentation;
+  - no hand edits to `typos.toml` or to compiler output.
+- C-9. Run `make all` through the `scrutineer` sub-agent before *every*
+  commit. Make each commit atomic, with an imperative subject, a body that
+  gives the reason, and the trailer
+  `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- C-10. Never publish, release, or merge. Opening and updating the draft
+  pull request is permitted.
+- C-11. Leave three things unchanged until the repository owner accepts the
+  corresponding ADRs in review:
+  - roadmap checkboxes;
+  - ADR status lines;
+  - the sentences about checkbox completion in `docs/contents.md`,
+    `docs/roadmap.md`, and `docs/context.md` §1.
+
+  Record the acceptance, with a link to the review comment, in `Decision log`.
 
 ## Tolerances (exception triggers)
 
-- Scope: if delivery needs more than 22 changed files or more than 2,600
-  net changed lines (documentation included), stop and escalate. The expected
-  footprint is 15 to 18 files and roughly 1,800 lines.
-- Code: if the documentation-contract test and its helper exceed 120 lines,
-  or any non-documentation file other than `Makefile` and the new test file
-  must change, stop and escalate.
-- Interface: if any step appears to need a public module, export, `.resi`, or
-  runtime dependency, stop. That belongs to roadmap step 1.2 or 1.3.
+- Scope: stop and escalate if delivery needs more than 26 changed files or
+  more than 3,000 net changed lines, documentation included. The expected
+  footprint is about 22 files and 2,200 lines. The expected files are:
+  - four ADRs, three evidence records, and the brief;
+  - two test files, `Makefile`, and possibly `typos.local.toml`;
+  - this plan;
+  - integration edits to about eight documents.
+- Code: stop and escalate if either of the following is breached:
+  - the new documentation suite and the Makefile-contract addition together
+    exceed 160 lines;
+  - a non-documentation file outside `Makefile`, `typos.local.toml`,
+    `tests/documentation-contracts.test.mjs`, and
+    `tests/makefile-contracts.test.mjs` must change.
+- Interface: if any step appears to need a public module, export, `.resi`,
+  or runtime dependency, stop. That work belongs to roadmap step 1.2 or 1.3.
 - Dependencies: if a probe cannot run without adding a package to the
-  repository manifest, stop and escalate. Do not add it.
-- Evidence contradiction: if an audit probe or compiler probe contradicts a
-  claim in `docs/design.md`, `docs/terms-of-reference.md`, or
-  `docs/context.md`, record a deviation in `Decision log`. Set this plan to
-  `BLOCKED` when the contradiction changes a goal, an assumption (A1 to A6), or
-  an accepted ADR. Otherwise record the correction in the ADR and carry on.
-- Feasibility experiment: if FX-1 (see `Verification plan`) has not reached
-  a verdict after one working day of effort or 25 prover runs, stop. Record the
-  verdict as inconclusive, keep the proof gate open, and continue the
-  documentation milestones.
+  repository manifest, stop and escalate.
+- Evidence contradiction: if a probe or audit contradicts a claim in
+  `docs/design.md`, `docs/terms-of-reference.md`, or `docs/context.md`, record
+  a deviation in `Decision log`.
+  - Set this plan to `BLOCKED` if the contradiction changes a goal, an
+    assumption (A1 to A6), or an accepted ADR.
+  - Otherwise record the correction in the relevant ADR and continue.
+  - The anticipated case is Effect 4's flat cause (see `Surprises &
+    discoveries`). It narrows a mechanism in design §4.1, not a goal, so it
+    is handled in ADR 006 unless the owner decides otherwise.
+- Feasibility experiment: stop FX-1 if it has no verdict after one working
+  day or 25 prover runs, whichever comes first. A mutation sweep counts as one
+  run. Record the verdict as inconclusive, keep the proof selection open, and
+  continue the documentation milestones.
 - Gate iterations: if `make all` still fails after three fix attempts on the
-  same gate, stop and escalate with the failing log path.
+  same gate, stop and escalate with the log path.
 - Ambiguity: if the owner's review comments conflict with a roadmap success
   criterion, present the options and wait.
 
 ## Risks
 
-- R-1. The ADRs may restate `docs/design.md` instead of deciding anything.
-  Severity: high. Likelihood: medium. Mitigation: each ADR must contain a
-  one-sentence Y-statement decision (context, concern, decision, rejected
-  alternatives, quality goal, accepted downside) and at least one named
-  falsifier tied to a roadmap task. Reviewers reject ADRs that lack either.
-- R-2. The backend landscape is moving quickly. Effect 4.0.0 shipped on
-  1 October 2026 and 4.0.5 on 15 October 2026. The audited
-  `@reventlessdev/rescript-effect` 0.1.0-alpha.35 binds Effect 3.22.2, while
-  Lody's evidence concerns Effect 4.0.2. Severity: high. Likelihood: high.
-  Mitigation: ADR 004 pins one exact version with its registry integrity hash.
-  It records that the probes apply only to that version, and it requires the
-  probes and E1 to E3 and E9 to be rerun on any upgrade.
-- R-3. ReScript object rows or variance annotations may behave differently
-  in real modules than in scratch probes. Severity: medium. Likelihood: medium.
-  Mitigation: ADR 005 states its falsifier precisely. Committed fixtures are
-  roadmap 1.2.2's acceptance, so the probes here only make the falsifier
-  non-vacuous.
-- R-4. The deductive-verification toolchain (LemmaScript 0.6.4 with Dafny
-  4.11.0 and Z3 4.12.1) is a technology preview with known gaps. It does not
-  support constant constructors without payload, `result` in contracted
-  signatures, loops, `ref`, division, `list`, or promises. Severity: medium.
-  Likelihood: high. Mitigation: FX-1 tests the exact representation that ADR
-  007 proposes before any gate depends on it, with an explicit
-  accept/revise/reject rule.
-- R-5. The local Bun (1.3.14) cannot read the repository's Bun 1.4.2
-  lockfile. Severity: medium. Likelihood: certain on this host. Mitigation: a
-  checksum-verified Bun 1.4.2 was unpacked during planning into
-  `$HOME/.local/share/bun-versions/1.4.2/bin`. Prepend it to `PATH` for every
-  command and never replace the global Bun.
-- R-6. ADR status vocabulary may confuse readers about what is decided.
-  Severity: medium. Likelihood: medium. Mitigation: define the vocabulary in
-  `docs/developers-guide.md` and enforce it with the documentation-contract
-  test.
-- R-7. Documentation volume may exceed what reviewers will read. Severity:
-  medium. Likelihood: medium. Mitigation: ADRs stay under about 200 lines each.
-  Probe transcripts live in evidence records, and the design brief stays under
-  about 220 lines.
-- R-8. Effect 4.0.5 declares a schema JIT compiler entry as having side
-  effects (`./dist/schema/SchemaJITCompiler/enable.js`), which suggests dynamic
-  code generation. Severity: medium for browser content-security-policy
-  deployments. Likelihood: unknown. Mitigation: the ADR 004 audit records
-  whether the adapter's import graph reaches it, and records `unsafe-eval`
-  exposure as an open browser-policy question beside D4.
+- R-1. The ADRs restate `docs/design.md` instead of deciding anything.
+  - Severity high; likelihood medium.
+  - Mitigation: every ADR opens with a Y-statement. That is one sentence
+    covering context, concern, decision, rejected alternatives, quality
+    goal, and accepted downside. Every ADR also names at least one
+    falsifier tied to a roadmap task. The review panel rejects any ADR that
+    lacks either.
+- R-2. The backend landscape is moving fast. Effect 4.0.0 shipped on
+  1 October 2026, and 4.0.5 on 15 October. `@reventlessdev/rescript-effect`
+  0.1.0-alpha.35 binds Effect 3.22.2, while Lody's evidence concerns Effect
+  4.0.2.
+  - Severity high; likelihood high.
+  - Mitigation: ADR 004 pins one exact version, with its registry integrity
+    hash. It requires a fresh audit and a rerun of E1 to E3 and E9 on *any*
+    minor or patch upgrade.
+  - ReScript `external` declarations are not checked against Effect's
+    TypeScript declarations. ADR 004 therefore obliges task 1.3.1 to add a
+    binding-surface smoke test that imports every bound name and asserts
+    its runtime kind.
+- R-3. ReScript object rows and variance may behave differently in real
+  modules than in scratch probes.
+  - Severity medium; likelihood medium.
+  - Mitigation: ADR 005 states its falsifier precisely, with the expected
+    diagnostic site for each case. Committed fixtures are roadmap 1.2.2's
+    acceptance, so the probes here only make the falsifier non-vacuous.
+- R-4. The deductive-verification toolchain is a technology preview with
+  known gaps. The toolchain is LemmaScript 0.6.4 with Dafny 4.11.0 and Z3
+  4.12.1. It does not support:
+  - constant constructors;
+  - `result` in contracted signatures;
+  - loops or `ref`;
+  - division;
+  - `list` or `Map`;
+  - promises.
+
+  Recursion through array-valued children and closures stored in records are
+  not listed as supported.
+  - Severity medium; likelihood high.
+  - Mitigation: FX-1 runs a feature checklist with a verdict for each
+    feature. Formal-proof selection for the lifecycle reducer depends on
+    that verdict. Bounded exhaustive enumeration is the gate in every
+    outcome.
+- R-5. The local global Bun is 1.3.14, which cannot read the repository's
+  Bun 1.4.2 lockfile.
+  - Severity medium; certain on this host.
+  - Mitigation: a checksum-verified Bun 1.4.2 has been unpacked into
+    `$HOME/.local/share/bun-versions/1.4.2/bin`. Prepend it to `PATH` for
+    every command. Never replace the global Bun.
+- R-6. Readers confuse the ADR status, the context evidence labels, and the
+  brief's capability statuses.
+  - Severity medium; likelihood medium.
+  - Mitigation: `docs/developers-guide.md` maps the three vocabularies to
+    one another in one table. The documentation contract enforces ADR
+    statuses.
+- R-7. The volume of documentation exceeds what reviewers will read.
+  - Severity medium; likelihood medium.
+  - Mitigation: each ADR stays under about 220 lines; ADR 007 may run to
+    about 300. The brief stays under about 220 lines. Probe transcripts live
+    in evidence records.
+- R-8. Bundle and content-security-policy exposure in browsers.
+  - Severity medium; likelihood low to medium.
+  - Facts: Effect 4.0.5's schema JIT entry is an opt-in side-effect import
+    that falls back when `new Function` is blocked. `new Function` and
+    `eval` appear only in its persistence, HTTP API, and schema JIT
+    modules.
+  - Mitigation: the ADR 004 audit records whether the adapter would import
+    only deep subpaths (`effect/Effect`, `effect/Cause`, `effect/Exit`,
+    `effect/Scope`, `effect/Fiber`, `effect/Deferred`). It obliges task
+    1.3.1 to bundle the packed consumer with `Bun.build`, assert that the
+    output contains no `new Function` and no `eval(`, and record the
+    minified and gzipped size as the E8 baseline.
+  - rescript-schema and Sury code generation is a separate exposure for
+    D4. It is unverified, and the brief records it as open.
+- R-9. Effect 4's `Cause` is a flat list of reasons, with no sequential or
+  parallel nodes. Design §4.1 promises sequential and parallel structure.
+  - Severity high; likelihood certain if Effect 4 is selected.
+  - Mitigation: probe P7 measures what each Effect line exposes. ADR 006
+    decides whether refex builds the structure itself at its own composition
+    points or narrows §4.1, and records the choice as a deviation if it
+    narrows.
+- R-10. The uninhabited channel can be forged through unsafe escapes:
+  `%identity`, `%raw`, and an `external` with a free result type variable.
+  - Severity medium; likelihood low in reviewed code.
+  - Mitigation: ADR 006 words the guarantee as "no closed, terminating,
+    cast-free term outside `Never.res`". It implements `absurd` to fail
+    loudly, and AXIOM-6 names every escape.
 
 ## Progress
 
 - [x] (2026-10-15 19:40Z) Renamed branch `session/4c10984f` to
-  `1-1-freeze-validator-hypotheses`. The remote branch did not exist; upstream
-  is set on first push.
-- [x] (2026-10-15 19:45Z) Reconnaissance with a Wyvern team: gates and test
-  selection; ADR and guide conventions; terms of reference and context;
-  verification and ReScript skill guidance.
-- [x] (2026-10-15 20:05Z) Registry and source research: Effect,
+  `1-1-freeze-validator-hypotheses`. The remote branch did not exist, so
+  upstream is set on first push.
+- [x] (2026-10-15 19:45Z) Wyvern reconnaissance team reported on four
+  areas:
+  - gates and test selection;
+  - ADR and guide conventions;
+  - terms of reference and context;
+  - guidance from the verification and ReScript skills.
+- [x] (2026-10-15 20:05Z) Registry and source research covered Effect,
   `@reventlessdev/rescript-effect`, Primavera, fast-check, rescript-schema,
-  Sury, and LemmaScript metadata. Archive inspection of the Reventless bindings.
-- [x] (2026-10-15 20:25Z) Planning-time scratch compiler probes for open
-  object rows and the uninhabited channel (see `Artefacts and notes`).
-- [x] (2026-10-15 20:40Z) First complete ExecPlan draft.
-- [ ] Community-of-experts design review of the draft, and revision.
+  Sury, LemmaScript, TypeScript, bignumber.js, and Z3. The Reventless archive
+  was inspected.
+- [x] (2026-10-15 20:25Z) Ran planning-time scratch compiler probes for open
+  object rows and the uninhabited channel.
+- [x] (2026-10-15 20:40Z) First complete draft, committed as `83f9a28` after
+  `make all` passed.
+- [x] (2026-10-15 21:30Z) Community-of-experts review using the
+  `logisphere-design-review` panel:
+  - Telefono, contracts and types;
+  - Doggylump, failure modes and pre-mortem;
+  - Pandalump and Dinolump, coherence and process;
+  - Wafflecat and Buzzy Bee, alternatives and cost.
+
+  All four returned "revise". Their findings are recorded in `Decision log`.
+- [x] (2026-10-15 22:30Z) Revised the plan to address every blocker and
+  concern.
 - [ ] Draft pull request opened for plan review.
-- [ ] Owner approval of this plan (implementation must not start before it).
+- [ ] Owner approval of this plan. Implementation must not start before it.
 - [ ] EP-M0: baseline gates green on the branch with Bun 1.4.2.
-- [ ] EP-M1: documentation-contract test for the ADR index and status
-  vocabulary.
+- [ ] EP-M1: documentation contract and test-registration contract.
 - [ ] EP-M2: design brief, glossary additions, and capability map (1.1.1).
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
-- [ ] EP-M4: structural-environment probes and ADR 005 (1.1.3).
-- [ ] EP-M5: complete-outcome probes and ADR 006 (1.1.4).
-- [ ] EP-M6: ADR 007 behavioural contract with proof sketch (1.1.5).
-- [ ] EP-M7: FX-1 verification feasibility experiment and ADR 007
-  representation update.
-- [ ] EP-M8: cross-document integration and owner acceptance.
-- [ ] EP-M9: roadmap ticks, ADR status lines, and final gates.
+- [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
+- [ ] EP-M5: ADR 005, structural dependency environments (1.1.3).
+- [ ] EP-M6: ADR 006, complete outcomes (1.1.4).
+- [ ] EP-M7: ADR 007, behavioural contract with proof sketch (1.1.5).
+- [ ] EP-M8: FX-1 feasibility experiment and the ADR updates that follow
+  from it.
+- [ ] EP-M9: cross-document integration and the expert panel on the ADRs.
+- [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
+  gates.
 
 ## Surprises & discoveries
 
 - Observation: `@reventlessdev/rescript-effect` 0.1.0-alpha.35, the latest
-  version, binds Effect 3.22.2 exactly, not Effect 4. It also declares
-  `@reventlessdev/rescript-jest` 1.0.0-alpha.12, a test-binding package with a
-  `jest` peer, as a production dependency. Evidence: registry metadata fetched
-  on 15 October 2026, integrity
-  `sha512-uQwy1nAzYG/i9N0YQicIr+2JiijsO9ACfAqMyRHlI1vtj6HXd/SlULo+vPnMHA6YmjRggbyhvamjtHH0PZWsdQ==`.
-  Impact: adopting it would put a test framework into refex's production
-  dependency graph. Its semantics would also differ from the Effect 4.0.2
-  behaviour that Lody documents. ADR 004 must weigh both.
-- Observation: the alpha.35 bindings contain signatures that erase or invent
-  types. `either: t<'a,'e,'r> => t<result<'a,'e>,'e2,'r>` invents an unrelated
-  error type. `scoped: t<'a,'e,'r> => t<'a,'e,'r2>` invents an unrelated
-  requirement. `provide: (t<'a,'e,'r>, 'layer) => t<'a,'e,unit>` leaves the
-  layer untyped. `runPromise` accepts any `'r`, and `Fiber.interrupt` returns
-  an unconstrained `'e2`. The package has no `Scope`, `FiberMap`, or
-  managed-runtime module and does not bind `mapError`. `tagAsEffect` uses
-  `%identity`. Evidence: `grep` over the unpacked archive's `src/Effect.res`,
-  `src/Fiber.res`, and `src/Layer.res`. Impact: task 1.1.4 forbids "casts an
-  unrelated error type", which these signatures do, so the comparison in ADR
-  004 has concrete counterexamples to cite.
+  version, binds Effect 3.22.2 exactly, not Effect 4.
+  - It declares `@reventlessdev/rescript-jest` 1.0.0-alpha.12 as a
+    production dependency, in both `package.json` and `rescript.json`.
+    That package's peer dependency is `jest ^29 || ^30`.
+  - Effect 3.22.2 itself depends at runtime on `fast-check ^3.23.1` and
+    `@standard-schema/spec ^1.0.0`, both with caret ranges.
+  - Evidence: registry metadata fetched on 15 October 2026. The integrity
+    hash is
+    `sha512-uQwy1nAzYG/i9N0YQicIr+2JiijsO9ACfAqMyRHlI1vtj6HXd/SlULo+vPnMHA6YmjRggbyhvamjtHH0PZWsdQ==`.
+  - Impact: the Reventless route brings a test framework, plus a
+    property-testing library at a different major version from refex's
+    planned development pin, into the production dependency graph. Even
+    direct bindings over Effect 3 would need three extra production
+    dependencies rather than one.
+- Observation: the alpha.35 bindings contain signatures that invent types:
+  - `either: t<'a,'e,'r> => t<result<'a,'e>,'e2,'r>`;
+  - `scoped: t<'a,'e,'r> => t<'a,'e,'r2>`;
+  - `provide: (t<'a,'e,'r>, 'layer) => t<'a,'e,unit>`;
+  - `runPromise`, which accepts any `'r`;
+  - `Fiber.interrupt`, whose `'e2` is unconstrained.
+
+  The package has no `Scope`, `FiberMap`, or managed-runtime module, and does
+  not bind `mapError`. `tagAsEffect` uses `%identity`.
+  - Evidence: `grep` over the unpacked archive.
+  - Impact: these are the concrete "cast to an unrelated type" cases that
+    task 1.1.4 forbids.
+- Observation: Effect 4.0.5's `Cause` is
+  `reasons: ReadonlyArray<Reason<E>>`, where a reason is `Fail`, `Die`, or
+  `Interrupt`. It has no sequential or parallel nodes. Effect 3.22.2 keeps a
+  tree.
+  - Evidence: the Wafflecat reviewer's reading of the unpacked
+    `src/Cause.ts` (lines 79 to 81 and 151). This is source reading, not an
+    executed probe.
+  - Impact: see R-9 and probe P7.
+- Observation: neither Effect line provides the semantics that refex
+  intends to own:
+  - In 4.0.5, `mapError` is built on `catch_`, which selects the first
+    `Fail`. In 3.22.2 it replaces the whole cause.
+  - A repeated `Scope.close` returns immediately in both lines, without
+    joining in-flight finalizers.
+  - `runPromise` rejects with `Cause.squash` in Effect 4, and with a
+    `FiberFailure` carrying the full cause in Effect 3.
+  - `Effect.tryPromise` aborts its signal on interruption and does not wait
+    for work that ignores the signal.
+  - `FiberMap.run` interrupts the fibre it replaces. Its documentation does
+    not say that it joins that fibre's cleanup.
+  - Evidence: source reading by the reviewer, still to be confirmed by
+    executed probes P2 to P6.
+  - Impact: these become "must not delegate" facts, not criteria for
+    choosing a backend.
 - Observation: ReScript 12.3.1 does not parse an empty variant
-  (`type never = |`). An abstract `.resi` type implemented as
-  `type t = {absurd: 'a. 'a}`, with `let absurd: t => 'a`, compiles under `+A`
-  warnings-as-errors. It rejects `Error(())` for `result<int, Never.t>`, and it
-  rejects construction outside its module. Evidence: scratch probe transcript in
-  `Artefacts and notes`. Impact: ADR 006 has a compiler-checked candidate for
-  the "genuinely uninhabited" channel that needs no unsafe cast.
+  (`type never = |`).
+  - An abstract `Never.t` implemented as `{absurd: 'a. 'a}` compiles under
+    `+A` and rejects construction outside its module.
+  - It can still be forged without `Obj.magic`, through
+    `external … = "%identity"`, `@val external parse: string => 'a`, or
+    `%raw`.
+  - Inside `Never.res`, `{absurd: panic("never")}` compiles.
+  - `{self: t}` and `Never(t)` are inhabited through `let rec`. A field of
+    type `'a. 'a` rejects `let rec`.
+  - Evidence: the planning probe and the Telefono probes n1 to n5.
+  - Impact: R-10. The claim must be worded as "no closed, terminating,
+    cast-free term outside `Never.res`".
 - Observation: open object rows accumulate across separately compiled
-  `.resi` boundaries when accessors are exported as functions
-  (`unit => Fx.t<_, _, {.."clock": Clock.service}>`). A missing capability is
-  rejected at the `provide` call with the message
-  `The first object is expected to have a field "log"`. An accessor exported as
-  a non-function value fails interface inclusion with a weak row
-  (`{_.."clock": service}`), because the requirement parameter is contravariant
-  and the relaxed value restriction cannot generalize it. Evidence: scratch
-  probe transcript in `Artefacts and notes`. Impact: ADR 005 can name the
-  "separate-module failure" precisely. Accessors must be functions, and the
-  falsifier is about composition rather than export shape.
-- Observation: `tests/support/repository-contracts.mjs` is already 428
-  lines, above the 400-line limit for authored files. Impact: the new
-  documentation contract keeps its helper private to a new suite instead of
-  growing the shared support file.
+  `.resi` boundaries, but only when every open-row export is a function.
+  - A missing capability is rejected at the `provide` argument with
+    `The first object is expected to have a field "log"`.
+  - A non-function export fails interface inclusion with a weak row,
+    `{_.."clock": service}`. Exported workflows behave the same way, and
+    even a plain `'r` becomes weak in a value export. The requirement
+    parameter is contravariant, and the relaxed value restriction cannot
+    generalize it.
+  - A closed-row export rejects an environment with extra fields unless the
+    consumer writes a `:>` coercion.
+  - Conflicting field types are reported at the composition expression.
+  - Evidence: the planning probe and the Telefono probes c1 to c3 and g1.
+  - Impact: these set ADR 005's convention and diagnostic sites.
+- Observation: an inline annotation such as
+  `t<'a,'e> => t<result<'a,'e>,'e2>` compiles, because `'e2` silently unifies
+  with `'e`. The same signature in a `.resi` forces the implementation either
+  to erase the expected leaves or to cast.
+  - Evidence: Telefono probes f1, f3, and f4.
+  - Impact: the counterexample for the unsound recovery signature must be
+    probed at a `.resi` boundary, never through inline annotations.
+- Observation: declaring `type t<+'a,+'e,+'r>` on an abstract type is
+  accepted, and it then admits the cast-free unsound coercion
+  `(needsClock :> Fx.t<int,string,{.}>)`.
+  - Evidence: Telefono probes a1 to a5.
+  - Impact: declared variance on abstract or FFI-backed types is part of
+    the trusted base (AXIOM-8). The Reader-over-backend representation lets
+    the compiler derive `-'r` itself.
+- Observation: `tests/support/repository-contracts.mjs` already has 428
+  lines, above the 400-line limit for authored files.
+  - Impact: new helpers stay private to their suites.
 - Observation: Effect 4.0.5 has no runtime dependencies but unpacks to
-  51 MB. Its `sideEffects` list names a schema JIT compiler entry. Impact: see
-  R-8. Bundle measurement belongs to 1.3.1 and E8.
+  51 MB, against 27 MB for 3.22.2.
+  - Impact: this costs install time and CI cache space, not bundle size.
 
 ## Decision log
 
 - Decision: deliver task 1.1.1's design brief as a new document,
-  `docs/design-brief.md`, linked from `docs/design.md` §1, rather than as a new
-  section inside `docs/design.md`. Rationale: the roadmap asks for a *concise*
-  brief, and `docs/design.md` is already 842 lines. Inserting a section would
-  renumber sections that other documents cite (C-7). The brief defines and
-  maps; it does not restate mechanisms, and it links to the owning design
-  sections and ADRs. Date/Author: 2026-10-15, planning agent.
+  `docs/design-brief.md`, linked from `docs/design.md` §1.
+  - Rationale: the roadmap asks for a *concise* brief, and
+    `docs/design.md` already has 842 lines. A new section would renumber
+    sections that other documents cite (C-7).
+  - The brief defines and maps. It links to mechanisms rather than
+    restating them.
+  - Date/Author: 2026-10-15, planning agent; endorsed by the coherence
+    reviewer.
 - Decision: number the new ADRs 004 (runtime boundary), 005 (structural
   dependency environments), 006 (complete outcomes), and 007 (shared work,
-  closure, and recovery contract). They follow the existing
-  `docs/adr-NNN-kebab-title.md` pattern and Context, Decision, Consequences
-  spine. Each adds a Y-statement and a "Falsifiers and evidence" section.
-  Rationale: this matches existing conventions and adds the two parts the
-  roadmap success criteria need. Date/Author: 2026-10-15, planning agent.
-- Decision: introduce the ADR status vocabulary `accepted for bootstrap`
-  (existing), `proposed`, `provisional`, `candidate`, `accepted`, and
-  `superseded by ADR NNN`. New ADRs are written as `proposed`. On owner
-  acceptance, ADR 004 becomes `provisional: authorizes a bounded trial`, ADR
-  005 and ADR 006 become `accepted`, and ADR 007 becomes `candidate` (the
-  roadmap's term) until E9 evidence exists. Rationale: the status line is the
-  cheapest place to keep "decided" and "evidenced" apart. Date/Author:
-  2026-10-15, planning agent.
-- Decision: keep audit and probe sources inside Markdown evidence records
-  under `docs/evidence/`, reproducible from an empty scratch directory, rather
-  than committing executable probe scripts. Rationale: committed scripts would
-  need dependencies (C-2), linting, and a runner. They would also look like
-  conformance tests, which they are not (C-6). Date/Author: 2026-10-15,
-  planning agent.
-- Decision: select two contract families as candidates for machine-checked
-  proof. The first is the per-generation lifecycle transition function (ADR
-  007). The second is the leaf-wise error mapping and conservative result
-  conversion over a refex-owned cause tree (ADR 006). Everything else gets
-  compiler fixtures, behavioural tests, property tests, or bounded enumeration.
-  Rationale: these are pure, contractual, and costly when wrong (ownership,
-  terminal states, lost failures), which is where the `rescript-router`
-  hierarchy says proof earns its cost. Scheduling, cancellation, timers, and
-  promise settlement stay in conformance tests. Date/Author: 2026-10-15,
-  planning agent.
-- Decision: run the verification feasibility experiment FX-1 in this step,
-  in a scratch directory, with no repository infrastructure. Rationale: ADR
-  007's representation guidance (pure reducer, payload records on every
-  constructor, bounded counters, no `result` in contracted signatures) is
-  architecture. It must be tested before 1.3.3 builds on it. Committing the
-  toolchain now would violate C-4. Date/Author: 2026-10-15, planning agent.
+  closure, and recovery contract).
+  - They follow the existing `docs/adr-NNN-kebab-title.md` pattern and the
+    Context, Decision, and Consequences spine.
+  - Each adds a Y-statement, "Alternatives considered", and "Falsifiers and
+    evidence".
+  - Date/Author: 2026-10-15, planning agent.
+- Decision: define the ADR status vocabulary as follows.
+  - The allowed values are the existing `accepted for bootstrap`, plus
+    `proposed`, `provisional`, `candidate`, `accepted`, and
+    `superseded by ADR NNN`.
+  - The contract matches the status token as the text after `Status:` up to
+    the first `.` or `:`. A qualifier may follow the colon, as in
+    `provisional: authorizes a bounded trial`.
+  - New ADRs start as `proposed`. On acceptance:
+    - ADR 004 becomes `provisional: authorizes a bounded trial`;
+    - ADRs 005 and 006 become `accepted`;
+    - ADR 007 becomes `candidate`, the roadmap's term, until E9 evidence
+      exists.
+  - Amendments to an accepted ADR go in an `## Amendments` section, never
+    in the status line.
+  - Date/Author: 2026-10-15, planning agent, revised after the coherence
+    review.
+- Decision: hold all evidence in three Markdown records under
+  `docs/evidence/`, reproducible from empty scratch directories:
+  - `runtime-boundary-audit.md` (task 1.1.2);
+  - `type-level-probes.md`, which merges the 1.1.3 and 1.1.4 probes;
+  - `verification-feasibility.md`.
+
+  Commit no executable probe scripts.
+  - Rationale: committed scripts would need dependencies (C-2), linting,
+    and a runner, and they would look like conformance tests (C-6).
+  - Merging the type-level probes follows the cost reviewer's advice.
+  - Date/Author: 2026-10-15.
+- Decision: reframe the backend question as *primitive sufficiency* and
+  assess all four combinations of bindings and Effect line:
+  - refex's own narrow bindings, or the Reventless bindings;
+  - Effect 3.22.x or Effect 4.0.x.
+
+  Criteria, in priority order:
+
+  1. cause-reason fidelity, and whether body and finalizer outcomes can be
+     observed separately (P7);
+  2. sufficiency of the primitives refex will build on: `Exit`,
+     `catchCause` and `failCause`, `Scope.make`, `addFinalizer`,
+     `close(exit)`, `uninterruptibleMask`, `tryPromise` with signal, and
+     `Deferred`;
+  3. production dependency footprint;
+  4. maintenance horizon and API churn;
+  5. soundness of the binding signatures.
+
+  - Rationale: `mapError`, joined close, and promise projection are refex's
+    own contracts. Neither Effect line provides them, so they cannot
+    discriminate between candidates (Wafflecat review).
+  - Date/Author: 2026-10-15.
+- Decision: make ADR 004's selection explicitly provisional, and bound the
+  trial.
+  - Scope: tasks 1.3.1 to 1.3.5.
+  - It may touch `package.json` `dependencies` (exact pins), `bun.lock`, and
+    private `src` modules that are absent from the public allowlist. It may
+    not change `exports` or `files`.
+  - Rollback triggers:
+    - failure of E1 to E3 or E9;
+    - an advisory with no fix;
+    - `eval` or `new Function` in the consumer bundle;
+    - a failed binding-surface smoke test.
+  - The final D1 selection happens at the close of 1.3.5. It is recorded by
+    updating ADR 004's status or by a superseding ADR.
+  - Rationale: this removes the circularity that roadmap 1.1.2 warns
+    against, and satisfies "pin the selected package" without installing
+    anything.
+  - Date/Author: 2026-10-15.
+- Decision: ADR 004 conditions three named clauses and nothing else.
+  1. ADR 002: "Only the matching `@rescript/runtime` package is a runtime
+     dependency".
+  2. ADR 002: "Future runtime adapters must own platform calls and their
+     independent dependencies; the core must not import the adapters".
+  3. `docs/developers-guide.md`: "Platform adapters … own their runtime
+     dependencies, and depend inward on core".
+
+  ADR 004 distinguishes the portable *execution adapter* from *platform
+  adapters*. The execution adapter backs `Fx.t` and lives in private core
+  modules. Platform adapters cover Bun, browsers, and processes, and remain
+  governed by ADR 002 unchanged. Task 1.3.1 deliberately changes the
+  enforcement point, `packageContract` in
+  `tests/support/repository-contracts.mjs`, to allowlist the exact production
+  dependency names.
+  - Date/Author: 2026-10-15, after the coherence review.
+- Decision: select candidate obligations for machine-checked proof, but
+  make the selection conditional on FX-1.
+  - Candidates: the per-generation lifecycle reducer (ADR 007), and
+    leaf-wise mapping over refex's cause tree (ADR 006).
+  - Bounded exhaustive enumeration of the *real* compiled reducer is the
+    mandatory gate in every outcome.
+  - If FX-1 accepts, the lifecycle proof becomes a required obligation for
+    1.3.3. If it rejects, ADR 007 proposes an explicit, reviewable change
+    to the assurance claim, which the owner must accept.
+  - Rationale: this reconciles Wafflecat's "enumeration first" with
+    Doggylump's "strengthen the proof plan". It honours the requirement
+    that a selected proof is a substantive machine-checked proof, not an
+    optional extra.
+  - Date/Author: 2026-10-15.
+- Decision: keep FX-1 in this step, but restate it as a *tool-capability*
+  experiment.
+  - It runs a feature checklist with a verdict for each feature, and fails
+    closed.
+  - Its toy modules are never cited as evidence about refex, and ADR text
+    must not say "proved" or "verified" about refex.
+  - Rationale: ADR 007's representation guidance is an architecture
+    decision. FX-1 tests whether the tool can follow that guidance before
+    1.3.3 depends on it. Running it on the real reducer is impossible
+    because no reducer exists yet. Postponing it entirely would leave the
+    representation untested.
+  - Date/Author: 2026-10-15.
+- Decision: the lifecycle model gains the following, all from the failure
+  modes review:
+  - an acquisition phase;
+  - joiner sets with per-caller bounds;
+  - lease revocation on owner close;
+  - an isolation path for successors;
+  - an authorization invariant;
+  - an axiom that a reported failure is truthful;
+  - a re-entrancy axiom for the shell;
+  - progress clauses that a "refuse everything" reducer cannot satisfy.
+
+  The model now admits leases only in `Open`. An owner-initiated close revokes
+  all live leases; the rejected alternative was to wait for the last lease.
+  - Rationale: design §5.4 defines retirement on last release for
+    consumers, but an owner close needs a defined effect on live leases.
+    Revocation keeps INV-3 intact.
+  - Date/Author: 2026-10-15.
+- Decision: the recovery-family constraint covers every recovery
+  combinator, not only `result`: `catchError`, `match`, `result`, and
+  `Direct.result`.
+  - Each must either keep `E` in its output channel or demote propagated
+    leaves to opaque provenance.
+  - The model-level argument is parametricity. It is backed by `.resi`
+    probes f2 to f4.
+  - Date/Author: 2026-10-15, after the Telefono review.
+- Decision: register test files through a contract in
+  `tests/makefile-contracts.test.mjs`, which `make test` already lists. It
+  asserts that every `tests/*.test.mjs` file, and every `tests/*.test.res` as
+  compiled `.test.res.mjs`, is named in the `test` target.
+  - Rationale: a self-listing check inside a new suite could never fail
+    where it matters.
+  - Date/Author: 2026-10-15.
 - Decision: add one documentation-contract suite,
-  `tests/documentation-contracts.test.mjs`. It asserts that every
-  `docs/adr-*.md` file is linked from `docs/contents.md` and declares a status
-  from the vocabulary above, with negative controls. Rationale: the 1.1.1
-  success criterion is that proposed and implemented status stay distinct, and
-  an ADR status line is where that distinction most easily erodes. The check is
-  small, deterministic, and owned by one suite. Reviewers may ask to drop it;
-  that is a scope reduction, not a deviation. Date/Author: 2026-10-15, planning
-  agent.
+  `tests/documentation-contracts.test.mjs`, with a private helper. It checks
+  the ADR index and status vocabulary, with negative controls.
+  - Rationale: the 1.1.1 success criterion requires that proposed and
+    implemented status stay distinct, and an ADR status line is where that
+    distinction most easily erodes.
+  - The shared support file is already over the size limit, so the helper
+    stays private.
+  - Date/Author: 2026-10-15.
+- Decision: leave `CHANGELOG.md`, `README.md`, and `docs/users-guide.md`
+  unchanged, and say so in the PR.
+  - Rationale: nothing installable changes. Unreleased changelog entries
+    are for consumers. The user guide describes only installable
+    behaviour.
+  - Date/Author: 2026-10-15.
 - Decision: interpret "mark the relevant roadmap entry as done" as ticking
-  1.1.1 to 1.1.5 and their sub-boxes, after owner acceptance. Amend the
-  roadmap's sentence "All boxes remain unchecked" so that a ticked
-  specification task does not read as an implemented or verified contract.
-  Rationale: the 1.1 tasks are "record an ADR" and "add a brief", so the
-  recorded document is the deliverable. Date/Author: 2026-10-15, planning agent.
-- Decision: no Verus milestone. Rationale: Verus verifies Rust; refex is
-  ReScript. The equivalent proof gate is the LemmaScript and Dafny route
-  evaluated by FX-1. Date/Author: 2026-10-15, planning agent.
+  1.1.1 to 1.1.5 and their sub-boxes after owner acceptance.
+  - The sentences in `docs/roadmap.md`, `docs/contents.md`, and
+    `docs/context.md` §1 that say boxes stay unchecked are amended at the
+    same time. Ticking a specification task does not imply implementation
+    or verification.
+  - Date/Author: 2026-10-15.
+- Decision: no Verus milestone. Verus verifies Rust, and refex is ReScript.
+  The corresponding proof route is LemmaScript with Dafny, which FX-1 evaluates.
+  - Date/Author: 2026-10-15.
 
 ## Outcomes & retrospective
 
@@ -335,789 +613,1251 @@ status to `COMPLETE`.
 ### Repository state
 
 The repository root contains one private package, `refex` version 0.0.0
-(`package.json`). Its only production dependency is `@rescript/runtime` 12.3.1,
-and its development dependencies are ReScript 12.3.1, rescript-bun 2.1.0, Biome
-2.5.15, markdownlint-cli 0.49.1, and yaml 2.9.1, all pinned exactly.
-`rescript.json` declares `src` (public module allowlist `["Bootstrap"]`) and
-`tests` (a development source), in-source ES modules with suffix `.res.mjs`,
-and warnings `+A` as errors. The only production code is `src/Bootstrap.res`,
-`src/Bootstrap.resi`, and the committed compiler output
-`src/Bootstrap.res.mjs`, a disposable identity function.
+(`package.json`). Its only production dependency is `@rescript/runtime` 12.3.1.
+Its development dependencies, all pinned exactly, are:
 
-The `Makefile` owns all gates. `make all` runs, in order, `check-fmt`,
-`check-generated`, `lint`, `test`, `docs-check`, `spelling`, and
-`package-check`. `make test` builds and then runs an explicit list of test files
-(`Makefile`, target `test`). A new test file is not discovered automatically
-and must be added to that list. `make coverage` and `make audit` run
-separately. Markdown is checked by `mdtablefix` 0.6.1 and markdownlint with
-`.markdownlint.jsonc`. New Markdown files are picked up automatically. Spelling
-is checked by the pinned `typos-config-builder` gate (`make spelling`) over
-tracked Markdown, so stage new files before running it.
-`scripts/check-generated.mjs` compares compiler output under `src` against the
-Git *index*, so stage generated output before checking. This step produces no
-compiler output.
+- ReScript 12.3.1;
+- rescript-bun 2.1.0;
+- Biome 2.5.15;
+- markdownlint-cli 0.49.1;
+- yaml 2.9.1.
+
+`rescript.json` declares two sources: `src`, with public-module allowlist
+`["Bootstrap"]`, and `tests`, a development source. It emits in-source ES
+modules with the suffix `.res.mjs` and treats all warnings (`+A`) as errors.
+
+The only production code is `src/Bootstrap.res`, `src/Bootstrap.resi`, and the
+committed compiler output `src/Bootstrap.res.mjs`. Together they form a
+disposable identity function.
+
+The `Makefile` owns all gates.
+
+- `make all` runs, in order: `check-fmt`, `check-generated`, `lint`,
+  `test`, `docs-check`, `spelling`, and `package-check`.
+- `make test` builds, then runs an explicit list of test files. A new test
+  file is not discovered automatically.
+- `make coverage` and `make audit` run separately.
+- `mdtablefix` 0.6.1 and markdownlint (configured by `.markdownlint.jsonc`)
+  check Markdown. `make fmt` rewraps Markdown.
+- `make spelling` runs the pinned `typos-config-builder` gate over tracked
+  Markdown, so stage new files before running it. Narrow identifier exceptions
+  go in `typos.local.toml`. Never edit `typos.toml` by hand.
+- `scripts/check-generated.mjs` compares compiler output under `src`
+  against the Git *index*. This step produces no compiler output.
+- CI (`.github/workflows/ci.yml`) runs `make all`, `make coverage`, and
+  `make audit`. A contract forbids other `run` commands in that job.
 
 ### Documents and their authority
 
-- `docs/terms-of-reference.md` (draft v0.2, 12 October 2026) owns problem,
-  goals G1 to G6, assumptions A1 to A6, non-goals, success criteria, and open
-  questions Q1 to Q7.
-- `docs/design.md` (draft v0.2) owns mechanisms (§§2 to 9), experiments E1 to
-  E9 (§10), and open decisions D1 to D10 (§12). Relevant sections: §1 (intent),
-  §2.2 to §2.4 (bootstrap compatibility, backend selection, behaviour before
-  primitives), §3.2 (requirements and observation timing), §4 (complete
-  outcomes), §5 (resources, joined closure, generations, layers), §6 (execution
-  and cancellation), §10.4 (E9 scenario table), and §12.
-- `docs/context.md` owns vocabulary (§2), evidence labels (§1: Established,
-  Proposed, Unvalidated, Deferred, Open), the source register (§7, entries `C1`
-  to `C12`), and the Lody learning crosswalk (§8).
+- `docs/terms-of-reference.md` (draft v0.2, 12 October 2026) owns the
+  problem statement, goals G1 to G6, assumptions A1 to A6, non-goals, success
+  criteria, and open questions Q1 to Q7.
+- `docs/design.md` (draft v0.2) owns mechanisms (§§2 to 9), experiments E1
+  to E9 (§10), and open decisions D1 to D10 (§12). The relevant sections are:
+  - §1, design intent and authority;
+  - §2.2 to §2.4, bootstrap compatibility, backend selection, and
+    behaviour before primitives;
+  - §3.2, requirements and observation timing;
+  - §4, complete outcomes;
+  - §5, resources, joined closure, generations, and layers;
+  - §6, execution and cancellation;
+  - §7, native await;
+  - §10.4, the E9 scenario table;
+  - §12, open decisions.
+- `docs/context.md` owns:
+  - vocabulary (§2);
+  - evidence labels (§1: Established, Proposed, Unvalidated, Deferred,
+    Open);
+  - the source register (§7, entries `C1` to `C12`, written as
+    `- **Cn:** …`);
+  - the Lody learning crosswalk (§8).
 - `docs/roadmap.md` owns tasks. Step 1.1 is this plan. Steps 1.2 to 1.4
-  consume its outputs: 1.2.1 implements the opaque `Fx` surface, 1.2.2 and
-  1.2.3 add compiler fixtures, 1.3.1 implements the audited runtime adapter,
-  1.3.3 and 1.3.4 implement scoped closure and the two-consumer producer, and
-  1.3.5 runs the E9 conformance matrix.
-- ADR 001 (`docs/adr-001-repository-bootstrap.md`) fixes reproducible
-  baselines and generated-output policy. ADR 002
-  (`docs/adr-002-portable-core-and-bun-boundary.md`) says "Only the matching
-  `@rescript/runtime` package is a runtime dependency" and that adapters own
-  platform calls. ADR 003 fixes formatting and analysis policy. All three have
-  the status line `Status: accepted for bootstrap. Date: 7 October 2026.`
+  consume its outputs:
+  - 1.2.1 implements the opaque `Fx` surface;
+  - 1.2.2 and 1.2.3 add compiler fixtures;
+  - 1.3.1 implements the audited runtime adapter;
+  - 1.3.2 to 1.3.4 implement cancellation, scoped closure, and the
+    two-consumer producer;
+  - 1.3.5 runs the E9 conformance matrix;
+  - 1.4 tries native await.
+- ADR 001 fixes reproducible baselines and the generated-output policy.
+  ADR 002 fixes the portable core and dependency boundary. ADR 003 fixes
+  formatting and analysis. All three carry the status line
+  `Status: accepted for bootstrap. Date: 7 October 2026.`
 - `docs/users-guide.md` describes only what is installable today.
-  `docs/developers-guide.md` documents gates and conventions, and says "No
-  effect model, compatibility promise, release workflow, benchmarks, mutation
-  testing, or formal proof infrastructure belongs in the bootstrap."
-  `docs/repository-layout.md` maps paths to owners, and `docs/contents.md`
-  indexes all documents.
+- `docs/developers-guide.md` documents gates, conventions, and the contract
+  suites. It says that "No effect model … or formal proof infrastructure
+  belongs in the bootstrap".
+- `docs/repository-layout.md` maps paths to owners.
+- `docs/contents.md` indexes all documents.
 
 ### Terms used in this plan
 
-- ADR: architectural decision record, a short document recording one
-  decision, its context, alternatives, and consequences.
-- Y-statement: a one-sentence ADR summary of the form "In the context of X,
-  facing Y, we decided for Z and against W, to achieve Q, accepting D."
-- Falsifier: an observable outcome that, if seen, rejects a hypothesis.
+- ADR: architectural decision record.
+- Y-statement: a one-sentence ADR summary of the form "In the context of
+  X, facing Y, we decided for Z and against W, to achieve Q, accepting D."
+- Falsifier: an observable outcome that rejects a hypothesis.
 - Probe: a small scratch program run outside the repository to observe a
-  tool's or library's actual behaviour. Probe results are source evidence, not
-  refex conformance evidence.
+  tool's or library's actual behaviour. Its results are source evidence.
 - Evidence record: a Markdown file under `docs/evidence/` with the fields
-  required by `docs/design.md` §10 (claim, pins, readiness event, seeds,
-  command, observations, resulting state, negative control, limits, decision).
+  that `docs/design.md` §10 requires:
+  - claim;
+  - pins;
+  - readiness event;
+  - seeds;
+  - command;
+  - observations;
+  - resulting state;
+  - negative control;
+  - limits;
+  - decision.
 - Capability object: a ReScript structural object type such as
   `{.."clock": Clock.service}`. The `..` makes the row *open*, so a value with
-  additional fields is accepted. This is the ReScript analogue of Primavera's
-  OCaml object-based dependency injection.
+  extra fields is accepted. It is the ReScript analogue of Primavera's OCaml
+  object-based dependency injection.
 - Explicit projection: a function from a larger environment to a smaller
-  one (`contramapEnvironment` in `docs/design.md` §3.2), used instead of
-  relying on row inference.
-- Uninhabited type: a type with no values. Using it as the expected-error
-  type states that a computation cannot fail with an expected error.
-- Cause: refex's proposed complete failure value, holding expected failures,
-  defects, interruptions, and release issues with their sequential and parallel
-  structure.
-- Generation, attempt, receipt, owner, lease, quiescence: as defined in
-  `docs/context.md` §2. A generation is one resource incarnation. An attempt is
-  one execution of cleanup. A receipt confirms a named release predicate for
-  one generation. An owner is the live party accountable for unresolved work. A
-  lease is one consumer's recorded interest.
-- Reducer (or step function): a pure function
-  `step(state, event) => outcome`, where the outcome holds a next state and a
-  list of commands for an effectful shell to perform.
-- Shell: the effectful code that performs a reducer's commands (starting
-  cleanup, scheduling timers, answering waiters) and feeds results back as
-  events.
-- LemmaScript route: the `rescript-deductive-verification` skill's pipeline.
-  It runs ReScript, then compiled JavaScript plus genType types, a bridge into
-  a TypeScript unit, LemmaScript, Dafny, and Z3, and adds a correspondence
-  audit against the production `.res.mjs`, a mutation catalogue, and a
-  differential translation check.
+  one. `contramapEnvironment` in design §3.2 is an example.
+- Weak type variable: a type variable that the compiler cannot generalize,
+  usually because a value is not syntactically a function. It cannot satisfy a
+  polymorphic `.resi` signature.
+- Uninhabited type: a type with no values. Used as the expected-error type,
+  it states that a computation has no expected failure.
+- Parametricity: the principle that a function polymorphic in a type cannot
+  inspect or invent values of that type. A cast-free function of type
+  `t<'e> => t<'e2>` cannot produce an `'e2` it was never given.
+- Cause: refex's proposed complete-failure value. It holds expected
+  failures, defects, interruptions, and release issues, together with their
+  sequential and parallel structure.
+- Generation, attempt, receipt, owner, lease, and quiescence: as defined in
+  `docs/context.md` §2.
+  - A generation is one resource incarnation.
+  - An attempt is one execution of cleanup.
+  - A receipt confirms a named release predicate for one generation.
+  - An owner is the live party accountable for unresolved work.
+  - A lease is one consumer's recorded interest.
+- Reducer, or step function: a pure function `step(config, state, event)`
+  that returns a next state and a list of commands for an effectful *shell* to
+  perform. The shell starts cleanup, schedules timers, and answers waiters,
+  then feeds the results back as events.
+- LemmaScript route: the pipeline in the `rescript-deductive-verification`
+  skill:
+  1. ReScript compiles to JavaScript, with genType types.
+  2. A bridge combines them with the contracts into a TypeScript unit.
+  3. LemmaScript (`lsc`) translates the unit to Dafny.
+  4. Dafny, using Z3, checks it.
+
+  The route adds a correspondence audit against the production `.res.mjs`, a
+  mutation catalogue, and a differential translation check.
 
 ### Skills and guidance to load
 
-The implementer must load `execplans` (to maintain this plan),
-`rescript-router`, and the follow-on skills it names:
-`rescript-types-and-modules` (rows, abstract types, variance),
-`rescript-errors-and-results` (outcome design), `rescript-interop` (FFI
-boundary rules for ADR 004), `rescript-async` (promise boundaries),
-`rescript-bun-testing` (test registration), `rescript-property-testing` and
-`fast-check` (forward test planning), and `rescript-deductive-verification` with
-`lemmascript` (FX-1). Also load `arch-decision-records` (Y-statement format),
-`en-gb-oxendict-style` (prose), `firecrawl-mcp` (all web research), and
-`codegraph-mcp` (structural code queries, mostly unnecessary in a documentation
-step). Use `logisphere-design-review` for the ADR review panel in EP-M8.
+The implementer loads:
+
+- `execplans`, to maintain this plan;
+- `rescript-router`, and the follow-on skills it names:
+  - `rescript-types-and-modules`, for rows, abstract types, and variance;
+  - `rescript-errors-and-results`, for outcome design;
+  - `rescript-interop`, for FFI boundary rules in ADR 004;
+  - `rescript-async`, for promise and native-await boundaries;
+  - `rescript-bun-testing`, for test registration;
+  - `rescript-property-testing` and `fast-check`, for forward test
+    planning;
+  - `rescript-deductive-verification` and `lemmascript`, for FX-1;
+- `arch-decision-records`, for the Y-statement format;
+- `en-gb-oxendict-style`, for prose;
+- `firecrawl-mcp`, for all web research;
+- `logisphere-design-review`, for the EP-M9 panel;
+- `codegraph-mcp`, for structural code queries, though these are rarely
+  needed in a documentation step.
 
 ## Conformance basis
 
-Upstream artefacts at commit `acee07067e92656672f571feec08a33331279cab`: terms
-of reference draft v0.2, technical design draft v0.2, context draft v0.2, and
-the GIST roadmap, all last revised 12 October 2026. ADRs 001 to 003 are
-accepted for bootstrap. No separate requirement-identifier scheme exists beyond
-goals `G1` to `G6`, assumptions `A1` to `A6`, questions `Q1` to `Q7`, decisions
-`D1` to `D10`, experiments `E1` to `E9`, sources `C1` to `C12`, and roadmap
-task numbers. This plan uses those identifiers and invents no new upstream
-identifiers.
+Upstream artefacts at commit `acee07067e92656672f571feec08a33331279cab`:
 
-Trace chains (upstream, then design element, then milestone, then acceptance
-evidence):
+- terms of reference draft v0.2;
+- technical design draft v0.2;
+- context draft v0.2;
+- the GIST roadmap.
+
+All were last revised on 12 October 2026. ADRs 001 to 003 are accepted for
+bootstrap.
+
+The only upstream identifiers are goals `G1` to `G6`, assumptions `A1` to `A6`,
+questions `Q1` to `Q7`, decisions `D1` to `D10`, experiments `E1` to `E9`,
+sources `C1` to `C12`, and roadmap task numbers. This plan invents no new
+upstream identifiers.
+
+Trace chains:
 
 ```plaintext
-G1, G4, A2 -> design §§1-3, roadmap 1.1.1 -> EP-M2 -> docs/design-brief.md capability map review (EV-BRIEF)
-G2, G3, G6, A3, D1 -> design §§2.2-2.3 -> roadmap 1.1.2 -> EP-M3 -> ADR 004 + docs/evidence/runtime-boundary-audit.md
-G1, G4, A2, D2 -> design §3.2 -> roadmap 1.1.3 -> EP-M4 -> ADR 005 + docs/evidence/structural-environment-probes.md
-G2, D8 -> design §4 -> roadmap 1.1.4 -> EP-M5 -> ADR 006 + docs/evidence/complete-outcome-probes.md
-G3, A6, Q6, Q7, D9, D10 -> design §§2.4, 5-6 -> roadmap 1.1.5 -> EP-M6, EP-M7
-  -> ADR 007 + docs/evidence/verification-feasibility.md
-G6 (status separation) -> design §§10-11 -> EP-M1 -> tests/documentation-contracts.test.mjs
+G1, G4, A2 -> design §§1-3 -> roadmap 1.1.1 -> EP-M2
+  -> docs/design-brief.md, EV-BRIEF review
+G2, G3, G6, A3, D1 -> design §§2.2-2.3 -> roadmap 1.1.2 -> EP-M3
+  -> ADR 004, docs/evidence/runtime-boundary-audit.md
+G1, G4, A2, D2 -> design §3.2 -> roadmap 1.1.3 -> EP-M4, EP-M5
+  -> ADR 005, docs/evidence/type-level-probes.md
+G2, D3 (Direct boundary), D8 -> design §§4, 7 -> roadmap 1.1.4 -> EP-M4, EP-M6
+  -> ADR 006, docs/evidence/type-level-probes.md
+G3, A6, Q6, Q7, D9, D10 -> design §§2.4, 5-6 -> roadmap 1.1.5 -> EP-M7, EP-M8
+  -> ADR 007, docs/evidence/verification-feasibility.md
+G6 (status separation) -> design §§10-11 -> EP-M1
+  -> tests/documentation-contracts.test.mjs, tests/makefile-contracts.test.mjs
 ```
 
-Downstream consumers that each ADR must name explicitly: ADR 004 governs 1.3.1
-and its installation; ADR 005 governs 1.2.1 and 1.2.2; ADR 006 governs 1.2.3
-and 1.3.1; ADR 007 governs 1.3.2 to 1.3.5, and its representation guidance
-governs whichever task first implements the lifecycle reducer (1.3.3).
+Each ADR names its downstream consumers:
+
+- ADR 004 governs 1.3.1, its installation, and the final D1 selection at
+  the close of 1.3.5.
+- ADR 005 governs 1.2.1 and 1.2.2.
+- ADR 006 governs 1.2.3, 1.3.1, and the Direct experiments in 1.4.1 and
+  1.4.2.
+- ADR 007 governs 1.3.2 to 1.3.5. Its representation guidance governs the
+  first task that implements the lifecycle reducer, which is 1.3.3.
 
 ## Verification plan
 
 ### What this step verifies, and what it only plans
 
-This step ships documents, evidence records, and one repository-contract suite.
-It ships no refex semantics, so no refex implementation claim can be verified
-here. The plan therefore does three different things, and they must not be
-confused:
+This step ships documents, evidence records, and two small contract checks. It
+ships no refex semantics, so no refex implementation claim can be verified
+here. The plan does three distinct things, and they must not be confused:
 
-1. Verify the artefacts this step does ship. These are the documentation
-   contract (VP-1), the completeness of the capability map (VP-2), and the
-   reproducibility and non-vacuity of every probe (VP-3 to VP-5).
-2. Run one bounded tool-feasibility experiment (FX-1). It establishes
-   whether the representation ADR 007 proposes can be machine-checked by the
-   LemmaScript route. FX-1 proves nothing about refex. It is evidence about a
-   tool on a disposable example.
-3. State, for each substantive contract the ADRs introduce, the abstract
-   model, invariants, lemma statements, method, and milestone that must
-   discharge it. These are unproved theorem statements and test obligations.
-   They must appear in ADR 007 and ADR 006 marked as *specified, unverified*,
-   never as completed proofs.
+1. It verifies the artefacts that this step ships:
+   - the documentation and test-registration contracts (VP-1, VP-2);
+   - the completeness of the capability map (VP-3);
+   - the reproducibility and non-vacuity of every probe (VP-4, VP-5).
+2. It runs one bounded tool-capability experiment, FX-1. FX-1 establishes
+   which constructs in ADR 007's proposed representation the LemmaScript route
+   can verify against compiled JavaScript. FX-1 proves nothing about refex.
+3. It states, for each substantive contract the ADRs introduce, the
+   abstract model, the invariants, the lemma statements, the method, and the
+   milestone that must discharge it. These are unproved theorem statements and
+   test obligations. ADRs 006 and 007 must label them *specified, unverified*
+   and never present them as completed proofs.
 
 ### Obligations discharged in this step
 
-VP-1, ADR index and status contract.
+VP-1: ADR index and status contract.
 
-- Obligation: every file matching `docs/adr-[0-9][0-9][0-9]-*.md` is linked
-  from `docs/contents.md`. Its first non-heading line begins with the `Status:`
-  label, followed by one of: `accepted for bootstrap`, `proposed`,
-  `provisional`, `candidate`, `accepted`, or `superseded by ADR NNN`.
-- Method: deterministic contract test with table-driven negative controls,
-  following the existing pattern in `tests/markdown-contracts.test.mjs`.
-- Artefact: `tests/documentation-contracts.test.mjs`, with a helper
-  `adrIndexContract(contentsMarkdown, adrFiles)` private to the suite.
+- Obligation: every file matching `docs/adr-[0-9][0-9][0-9]-*.md` meets
+  two conditions:
+  - `docs/contents.md` links to it;
+  - its first line after the title begins with the `Status:` label, and
+    the token up to the first `.` or `:` is one of `accepted for
+    bootstrap`, `proposed`, `provisional`, `candidate`, `accepted`, or
+    `superseded by ADR NNN`.
+
+  Every `adr-*.md` link in `docs/contents.md` must also resolve to a file.
+- Method: a deterministic contract test with table-driven negative
+  controls, in the style of `tests/markdown-contracts.test.mjs`.
+- Artefact: `tests/documentation-contracts.test.mjs`. Its helper
+  `adrIndexContract(contentsMarkdown, adrFiles)` is private to the suite.
   `adrFiles` is an array of `{path, text}`.
-- Evidence: `make test` lists the suite and passes. Red step: before
-  `docs/contents.md` lists ADR 004, a temporary ADR 004 stub without a contents
-  link makes the suite fail with a message naming `docs/adr-004-...md`. Remove
-  the stub after observing the failure.
-- Non-vacuity: the positive control runs against the real repository, which
-  has at least three ADRs (the test asserts that `adrFiles.length >= 3`, so an
-  empty glob fails). Negative controls must each throw: an ADR missing from
-  contents, a status of `accepted-ish`, a missing status line, and a contents
-  link to a non-existent ADR.
+- Evidence:
+  - Red: a temporary `docs/adr-004-stub.md` that `docs/contents.md` does
+    not link makes the suite fail, with a message naming
+    `docs/adr-004-stub.md`.
+  - Green: the stub is removed and the suite passes.
+- Non-vacuity:
+  - Positive control: the test asserts `adrFiles.length >= 3`, so an empty
+    glob fails.
+  - Each of these negative controls must throw:
+    - an ADR missing from contents;
+    - the status `accepted-ish`;
+    - a missing status line;
+    - a contents link to a non-existent ADR.
 
-VP-2, capability map completeness (task 1.1.1 success criterion).
+VP-2: test-registration contract.
+
+- Obligation: every `tests/*.test.mjs` file, and every `tests/*.test.res`
+  mapped to `./tests/<name>.test.res.mjs`, appears in the `Makefile` `test`
+  recipe.
+- Method: a new test in `tests/makefile-contracts.test.mjs`, which
+  `make test` already lists, with an inline private helper.
+- Evidence:
+  - Red: before the `Makefile` lists
+    `tests/documentation-contracts.test.mjs`, the new test fails and names
+    that file.
+  - Green: it passes once the file is listed.
+- Non-vacuity:
+  - A mutated Makefile text with `./tests/consumer.test.mjs` removed must
+    throw.
+  - The test asserts that it found at least eight test files.
+
+VP-3: capability map completeness, the task 1.1.1 success criterion.
 
 - Obligation: every validator capability named in `docs/design.md` §§9.1 to
-  9.3, and in roadmap phases 2 to 4, appears in the brief's capability map.
-  Each row names a contract (a design section or ADR) or a delegated library
-  (React, rescript-schema, Playwright, the platform), and carries exactly one
-  status from Proposed, Delegated, Deferred, Open, or Implemented. Only
-  `Bootstrap.identity`-level facts may be Implemented, so no row may claim it
-  today.
-- Method: structured review. One reviewer sub-agent extracts the capability
-  list independently from design §9 and roadmap phases 2 to 4, without seeing
-  the brief. The implementer then diffs that list against the map.
-- Artefact: `docs/design-brief.md` §"Validator capability map", and an
-  evidence note `EV-BRIEF` recorded in this plan's `Artefacts and notes`.
-- Evidence: zero unmatched capabilities, or each unmatched one recorded as a
-  deliberate exclusion with a reason.
-- Non-vacuity: the independent extraction must find at least the 30
-  capabilities enumerated in the brief skeleton (see
-  `Interfaces and dependencies`), so it cannot pass by extracting nothing. Seed
-  one deliberately omitted row (for example "CDP request correlation") in a
-  scratch copy and confirm the diff reports it.
+  9.3, or in roadmap phases 2 to 4, appears in the brief's capability map.
+  - Each row names a contract (a design section or an ADR) or a delegated
+    library (React, rescript-schema, Playwright, or the platform).
+  - Each row carries exactly one status: Proposed, Delegated, Deferred,
+    Open, or Implemented.
+  - No row is Implemented today.
+- Method: structured review.
+  1. A `wyvern` sub-agent extracts the capability list from design §9 and
+     roadmap phases 2 to 4 without seeing the brief.
+  2. The implementer diffs that list against the map.
+- Artefact: the brief's "Validator capability map" section, and the
+  evidence note EV-BRIEF in this plan's `Artefacts and notes`.
+- Evidence: no unmatched capabilities, or each unmatched capability
+  recorded as a deliberate exclusion with a reason.
+- Non-vacuity:
+  - The extraction must find at least the 33 capabilities listed under
+    `Interfaces and dependencies`.
+  - Remove one row from a scratch copy of the map and confirm that the
+    diff reports it.
 
-VP-3, runtime-boundary audit probes (task 1.1.2).
+VP-4: runtime-boundary audit probes (task 1.1.2).
 
 - Obligation: for each audited behaviour, the evidence record states what
-  the pinned backend version actually does, with a probe whose negative control
-  shows that it can observe the opposite outcome. The behaviours are P1 lazy
-  provision, P2 mixed-cause `mapError`, P3 repeated scope close, P4 keyed
-  replacement and finalizer joining, P5 `runPromise` rejection projection versus
-  `runPromiseExit`, and P6 interruption of a promise that ignores its abort
-  signal.
-- Method: executable scratch probes in an empty directory, under Bun 1.4.2,
-  against exactly pinned `effect`. Probes P2 to P5 also run against the version
-  the Reventless bindings pin (3.22.2), to show whether the two candidates
-  differ semantically.
-- Artefact: `docs/evidence/runtime-boundary-audit.md`, containing each probe
-  source, the exact install and run commands, and the transcript.
-- Evidence: each probe prints a single JSON line of observations, with
-  decision labels `preserved`, `lost`, `joined`, `re-ran`, `awaited`,
-  `not-awaited`, `squashed`, or `full`.
-- Non-vacuity: each probe has a control variant. P2's control runs the same
-  acquisition-failure and release-defect program without `mapError` and must
-  observe both reasons, so a "lost" verdict cannot come from a probe that never
-  created the defect. P3's control counts finalizer entries on the first close
-  and must see exactly one. P6's control uses a promise that honours abort and
-  must observe raw-work settlement, which the ignoring variant must not.
+  each pinned Effect line actually does. Each probe has a control showing that
+  it can observe the opposite outcome. The probes are:
+  - P1, lazy provision: does environment access run during provision?
+  - P2, mixed-cause `mapError`: an acquisition failure plus a release
+    defect.
+  - P3, repeated scope close: are in-flight finalizers joined?
+  - P4, keyed replacement: is the replaced fibre's finalizer awaited?
+  - P5, `runPromise` rejection shape compared with `runPromiseExit`.
+  - P6, interrupting a `tryPromise` whose work ignores its abort signal.
+  - P7, cause-structure fidelity, in two cases. First, a body failure plus
+    a finalizer defect through `acquireRelease`. Second, two parallel
+    failures. For each case, record whether the line exposes ordering and
+    branches, and whether `Scope.close(scope, exit)` or a finalizer can
+    observe body and finalizer exits separately.
+- Method: executable scratch probes under Bun 1.4.2. Each probe runs twice,
+  once against the newest Effect 4.0.x patch at the start of the audit and once
+  against Effect 3.22.2, both pinned exactly.
+- Artefact: `docs/evidence/runtime-boundary-audit.md`, with each probe's
+  source, its install and run commands, and its transcript.
+- Evidence: each probe prints one JSON line with a verdict label:
+  `preserved`, `lost`, `joined`, `returned-immediately`, `awaited`,
+  `not-awaited`, `squashed`, `full`, `tree`, or `flat`.
+- Non-vacuity:
+  - P2's control runs the same program without `mapError`. It must observe
+    both reasons, so a `lost` verdict cannot come from a probe that never
+    created the defect.
+  - P3's control counts finalizer entries on the first close and must see
+    exactly one.
+  - P6's control uses a promise that honours abort. It must observe the
+    raw work settling, which the ignoring variant must not.
+  - P7's control sequences two failures explicitly and checks that the
+    probe distinguishes their order.
+- Static audit, in the same record. For both Effect lines and the
+  Reventless archive, record:
+  - registry integrity and licence;
+  - dependency graph;
+  - module coverage against the primitive list in `Decision log`;
+  - every signature with a free type variable in a result position;
+  - every `%identity` and `Obj.magic`;
+  - whether deep subpath imports suffice.
 
-VP-4, structural-environment probes (task 1.1.3).
+VP-5: type-level probes (tasks 1.1.3 and 1.1.4).
 
-- Obligation: the ADR 005 falsifier is well-formed and observable with the
-  pinned compiler. Positive: accessors from two separately compiled modules
-  compose through `.resi` interfaces into one open row, and an environment with
-  an extra field is accepted. Negative: a missing field, a conflicting field
-  type, and a non-function accessor export each fail for the intended reason.
-- Method: scratch ReScript 12.3.1 project outside the repository, built with
-  the repository's own `node_modules/.bin/rescript`.
-- Artefact: `docs/evidence/structural-environment-probes.md`, with every
-  source file and each diagnostic's key line.
-- Evidence and non-vacuity: each negative case's diagnostic must name the
-  intended field or the weak row. An unrelated syntax error or missing-module
-  error counts as a failed probe, not as enforcement. Each negative case is
-  paired with the positive control from which it differs by one edit.
+- Method: a scratch ReScript 12.3.1 project with the repository's warning
+  policy (`+A` as errors), built with the repository's own
+  `node_modules/.bin/rescript`. Every probe crosses at least one `.res`/`.resi`
+  boundary. Inline-annotation probes are forbidden.
+- Requirement probes, for ADR 005. All exports are functions unless the
+  probe says otherwise.
+  - R1 positive: two accessor modules compose into one open row.
+  - R2 positive: an environment with an extra field is accepted by an open
+    row.
+  - R3 negative: a missing field is rejected at the `provide` argument.
+  - R4 negative: conflicting field types, from two independently authored
+    modules using the same key, are rejected at the composition
+    expression.
+  - R5 negative: a value export of an accessor or workflow produces a weak
+    row at the exporting binding.
+  - R6: a closed-row export rejects an extra field unless the consumer
+    writes `:>`.
+  - R7 positive: an explicit projection composes.
+  - R8 negative: projection onto a wrong field is rejected.
+  - R9: polymorphic-variant error injection composes through `.resi` when
+    open, and fails with "share no common constructors" when closed.
+- Outcome probes, for ADR 006:
+  - n1: `{self: t}` and `Never(t)` are inhabited through `let rec`. This
+    is the rejected-encoding control.
+  - n2: a field of type `'a. 'a` rejects `let rec`.
+  - n3: construction with `panic` inside `Never.res` compiles, so the
+    module is trusted.
+  - n4: forgeries through `%identity`, a polymorphic `@val external`, and
+    `%raw` compile. These are the AXIOM-6 escapes.
+  - n5: `absurd` implemented as `(_: t) => panic(...)` compiles and fails
+    loudly.
+  - f2: the conservative `result` signature accepts lossless propagation.
+  - f3: the free-`'e2` signature in a `.resi` rejects lossless propagation.
+  - f4: a cast-free implementation of the free-`'e2` signature has to erase
+    leaves.
+  - v1: abstract `+'r` admits the unsound requirement-forgetting coercion.
+    This is the AXIOM-8 control.
+  - v2: the Reader-over-IO representation derives `-'r` and rejects that
+    coercion.
+- Artefact: `docs/evidence/type-level-probes.md`, containing every source
+  file and the key line of each diagnostic.
+- Non-vacuity rule: a negative probe passes only if it fails with the
+  *named* type diagnostic at the *named* site. A warning-as-error failure, a
+  syntax error, or a missing-module error invalidates the probe, unless that
+  warning number is itself the intended diagnostic. Each negative probe is
+  paired with a positive control that differs from it by one edit.
 
-VP-5, complete-outcome probes (task 1.1.4).
+FX-1: tool-capability feasibility experiment (a prototyping milestone).
 
-- Obligation: the chosen uninhabited channel compiles under `+A`. It rejects
-  `unit` and any constructed value outside its module, and it supports a total
-  `absurd` elimination. The conservative result signature
-  `Fx<A,E,R> => Fx<result<A,E>,E,R>` type-checks against the toy `Fx`, and the
-  unsound variant (`'e2` free in the result's error channel) is shown to admit
-  an unrelated error type. The second point is the counterexample ADR 006 cites.
-- Method, artefact, evidence, and non-vacuity: as for VP-4, recorded in
-  `docs/evidence/complete-outcome-probes.md`.
+- Question: which constructs that ADR 007's representation guidance relies
+  on can the LemmaScript route verify against compiled JavaScript, and can it
+  state lemmas of the shape the 1.3.3 proof would need?
+- Location: `$HOME/scratch/refex-1-1/fx1/`. Nothing from it is committed
+  except the Markdown evidence record.
+- Pins:
+  - Bun 1.4.2;
+  - ReScript 12.3.1, with genType configured as
+    `{"language": "typescript", "generatedFileExtension": ".gen.ts"}`;
+  - `lemmascript` 0.6.4, integrity
+    `sha512-rnAnCt36hmAhu7RjlbrY6ky5kDcTfk9Tv1q+0rxaVJJqiQ7uH5fgYgNuyA0MXmeujuegCsm2OWrc99fwJunhAg==`,
+    with binary `tools/dist/lsc.js`;
+  - `typescript` 5.9.3. The bridge uses the TypeScript 5 compiler API, and
+    TypeScript 7 is the native port, so do not use it;
+  - `bignumber.js` 11.1.5;
+  - Dafny 4.11.0, already at `/home/leynos/.local/bin/dafny` as version
+    `4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2`;
+  - Z3 4.12.1 from
+    `https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip`,
+    SHA-256
+    `c5360fd157b0f861ec8780ba3e51e2197e9486798dc93cd878df69a4b0c2b7c5`.
+    It was downloaded to `$HOME/scratch/refex-1-1/z3/` during planning.
+  - The bridge scripts are copied from
+    `$HOME/.claude/skills/rescript-deductive-verification/references/examples/`
+    with the following SHA-256 values:
+    - `res2ls-bridge.mjs`
+      `8b2e62b3be90b2ac327e406ade544e71c7c0940cc2bcd58f0593b5e3bc851b76`;
+    - `res2ls-correspond.mjs`
+      `96cfee1eddb78ae25a7b9cfbd2e1bcd3a232894fac64900258d4e74d8f274036`;
+    - `res2ls-mutate.mjs`
+      `d2060149ea7c98d0499a20b2d39aeabb4286e97febd697dd2e680d3d9c89c274`.
 
-FX-1, verification feasibility experiment (prototyping, for ADR 007 and ADR
-006).
-
-- Question: can the LemmaScript route verify, against the compiler's own
-  JavaScript, three things? (a) A step function shaped as ADR 007 proposes must
-  preserve the well-formedness invariant and meet exact-effect clauses. (b) A
-  trace-level join property must hold over a recursive fold of events. (c)
-  Leaf-wise mapping over a recursive cause tree must preserve shape.
-- Toolchain pins: ReScript 12.3.1 with genType; LemmaScript 0.6.4,
-  installed exactly in the scratch directory's own lockfile; Dafny 4.11.0
-  (present at `/home/leynos/.local/bin/dafny`, version
-  `4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2`); Z3 4.12.1 (not currently
-  on `PATH`, so install a release binary into a scratch prefix and record its
-  SHA-256); TypeScript and `bignumber.js` pinned exactly as the skill's
-  `tools/verification/package.json` example prescribes; Bun 1.4.2.
-- Toy subject (scratch only, never committed): `Lifecycle.res`, a step
-  function over one generation, and `CauseTree.res`, a recursive tree with
-  `mapExpected`. Use the representation rules in ADR 007's draft. Every variant
-  constructor carries a record payload. Counters are `int` with an explicit
-  `maxAttempt` bound. Contracted signatures use a custom outcome variant
-  instead of `result`. There are no loops, `ref`, division, `list`, or `Map`.
-- Commands (from the scratch directory, after copying the skill's
-  `res2ls-bridge.mjs`, `res2ls-correspond.mjs`, and `res2ls-mutate.mjs` from
-  `$HOME/.claude/skills/rescript-deductive-verification/references/examples/`):
+    Record any change to these values.
+- Feature checklist, with each feature judged `supported`,
+  `supported with workaround`, or `unsupported`:
+  - F1: an `@tag` variant with a record payload on every constructor, for
+    phases.
+  - F2: event and command variants of the same shape.
+  - F3: an array of records with removal through `Array.filter`, for
+    leases and joiners.
+  - F4: an output array of commands built with `Array.concat`.
+  - F5: an append-only history array.
+  - F6: string equality on identities.
+  - F7: a bounded `int` counter, with the bound passed in a `config`
+    record parameter.
+  - F8: two generations held in one state record, for the cross-generation
+    frame.
+  - F9: recursion on a decreasing `remaining` count, folding `step` over
+    an event array, for trace lemmas.
+  - F10: recursion over a tree whose children are an array, for cause
+    mapping.
+  - F11: a record field holding a function, for opaque provenance.
+- Toy subjects, scratch only:
+  - `Lifecycle.res`, a reduced version of ADR 007's reducer: phases
+    `Acquiring`, `Open`, `Closing`, `UnresolvedSettledFailed`,
+    `Recovering`, and `Released`, two generations, leases, joiners,
+    history, and `maxAttempt` in `config`;
+  - `CauseTree.res`, with `mapExpected`.
+- Obligations, each reported separately, never as an aggregate count:
+  - FX-L1: `step` preserves `wellFormed`.
+  - FX-L2: PR-1 and PR-7 hold as exact-effect postconditions.
+  - FX-L3: a stale settlement, or one for the other generation, leaves the
+    state unchanged.
+  - FX-L4: attempt numbering is consecutive, via per-step history fields.
+  - FX-L5: recovery at `maxAttempt` is refused, with no wrap-around.
+  - FX-L6: the fold over close requests while an attempt is in flight
+    emits no `StartAttempt` (needs F9).
+  - FX-C1: `mapExpected` preserves shape (needs F10).
+  - FX-C2: it leaves non-expected leaves unchanged (needs F10).
+- Commands, run from `$HOME/scratch/refex-1-1/fx1/`:
 
   ```sh
-  export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PWD/z3/bin:$PATH"
-  bun install --frozen-lockfile
+  export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$HOME/scratch/refex-1-1/z3/z3-4.12.1-x64-glibc-2.35/bin:$PATH"
+  z3 --version                                  # expect: Z3 version 4.12.1 - 64 bit
+  dafny --version                               # expect: 4.11.0+fcb2042d...
+  bun add --exact rescript@12.3.1 @rescript/runtime@12.3.1 lemmascript@0.6.4 \
+    typescript@5.9.3 bignumber.js@11.1.5        # first run only; commits a scratch bun.lock
+  bun install --frozen-lockfile                 # every later run
   bun run rescript build
-  rm -rf .verify
-  bun res2ls-bridge.mjs src/Lifecycle.res .verify
-  bun res2ls-correspond.mjs src/Lifecycle.res .verify
-  bun node_modules/lemmascript/dist/lsc.js check --backend=dafny .verify/Lifecycle.ts
-  bun res2ls-mutate.mjs src/Lifecycle.res src/Lifecycle.mutants.mjs .verify/mutants node_modules/lemmascript/dist/lsc.js
-  dafny translate js --no-verify --include-runtime --output .verify/Lifecycle .verify/Lifecycle.dfy
+  for m in Lifecycle CauseTree; do
+    rm -rf .verify/$m && mkdir -p .verify/$m
+    bun res2ls-bridge.mjs src/$m.res .verify/$m
+    bun res2ls-correspond.mjs src/$m.res .verify/$m
+    bun node_modules/lemmascript/tools/dist/lsc.js check --backend=dafny .verify/$m/$m.ts \
+      | tee .verify/$m/check.out
+    bun res2ls-mutate.mjs src/$m.res src/$m.mutants.mjs .verify/$m/mutants \
+      node_modules/lemmascript/tools/dist/lsc.js | tee .verify/$m/mutants.out
+  done
+  bun fail-closed.mjs                           # see below; exits non-zero on any hole
   ```
 
-  Repeat for `CauseTree.res`. Confirm the exact path of `lsc.js` inside the
-  pinned package before running, and record it.
-- Obligations checked, each reported per contract rather than as an
-  aggregate count. FX-L1: `step` preserves `wellFormed`. FX-L2: exact effect, so
-  `CloseRequested` on `Open` emits exactly one `StartAttempt`. FX-L3: frame,
-  so a settlement for a non-current attempt leaves the state unchanged. FX-L4:
-  join, so a fold over any event array containing only close requests while an
-  attempt is in flight emits zero `StartAttempt`. FX-L5: no wrap, so a recovery
-  request at `maxAttempt` is refused. FX-C1: `mapExpected` preserves tree
-  shape. FX-C2: it leaves non-expected leaves unchanged.
-- Expected result: `lsc check` exits 0 with each `@ensures` verified. The
-  correspondence audit exits 0. Every mutant in the catalogue, including
-  `refuses-everything` and one mutant per contract, is killed on exactly its
-  listed contracts. The differential translation check agrees on all generated
-  inputs.
-- Verdict rule. *Accept*: FX-L1, FX-L2, FX-L3, FX-L5, and FX-C1 verify with
-  a clean audit and full mutant kill. *Revise*: some obligations verify only
-  after a representation change, such as splitting the trace-level join into
-  per-step lemmas or making the cause tree monomorphic. Record the change as
-  binding guidance in ADR 007 or ADR 006. *Reject*: the step-shaped reducer
-  itself cannot be verified. Then keep the proof gate open in ADR 007, name the
-  missing tool capability, and assign the obligations to bounded exhaustive
-  enumeration and property tests as an explicit, reviewable downgrade of the
-  assurance claim. That downgrade requires owner acceptance.
-- Non-vacuity: the mutation catalogue is the primary guard. A contract that
-  no mutant breaks is a finding, not a pass. A crashed or timed-out run is not
-  a killed mutant. The audit must compare every compiled function. A
-  correspondence check that compares nothing fails closed.
-- Recorded in `docs/evidence/verification-feasibility.md`: the supported
-  syntax actually used, gaps hit, trusted base, wall time per stage,
-  reproducibility (rerun from an empty `.verify`), and maintenance cost.
+- Fail-closed checks, in `fail-closed.mjs` (scratch). Any of the following
+  is a failure:
+  - a non-zero exit from any stage;
+  - a Dafny summary whose verified count differs from the expected
+    obligation count for that module;
+  - any of the strings `assume`, `{:axiom}`, `{:verify false}`, or
+    `decreases *` in a generated `.dfy` file;
+  - a correspondence audit that compared fewer functions than the module
+    compiles;
+  - a mutant that is not killed on exactly its listed contracts.
+
+  A crash or timeout is not a kill. The catalogue must include
+  `refuses-everything`, at least one mutant per contract, and `refuse-join`,
+  `duplicate-start`, `stale-accept`, and `wrap-attempt`.
+- Verdict rule:
+  - *Accept*: F1 to F8 are supported, and FX-L1 to FX-L5 verify with a
+    clean audit and every mutant killed. The lifecycle reducer is then
+    *selected* for formal verification. The plan for 1.3.3 must ship a
+    committed proof gate covering L-1 to L-6, with exact pins, a `make`
+    target proposal, and the rule for running it outside CI.
+  - *Revise*: the obligations verify only after a representation change.
+    ADR 007 records the change as binding guidance.
+  - *Reject*: any of F1 to F5 is unsupported. The reducer is not selected.
+    ADR 007 names the missing capability, keeps enumeration and mutants as
+    the gate, and proposes an explicit change to the assurance claim for
+    the owner to accept.
+  - Independently of the above:
+    - If F9 or FX-L6 fails, the trace lemmas L-4 and L-6 stay as induction
+      arguments over the verified per-step lemmas. They are recorded as
+      unverified meta-arguments.
+    - If F10, F11, or FX-C1 and FX-C2 fail, cause mapping is not selected
+      for proof. ADR 006 assigns LC-1 to LC-4 to bounded enumeration over
+      small trees and to property tests.
+- Rule for running the proof gate outside CI, for the 1.3.3 plan: a
+  contributor must attach a fresh proof transcript to the PR whenever any of
+  these change:
+  - the reducer source;
+  - its contracts;
+  - the mutant catalogue;
+  - the bridge scripts;
+  - any tool pin.
+
+  CI integration is decided in that plan.
+- Recorded in `docs/evidence/verification-feasibility.md`:
+  - the verdict for each feature and each obligation;
+  - the mutant table;
+  - the gaps hit;
+  - the trusted base;
+  - the wall time of each stage;
+  - reproducibility, from an empty `.verify` directory;
+  - the expected maintenance cost.
+
+  It ends with the sentence "These results concern the tool on a toy module and
+  are not evidence about refex."
 
 ### Abstract models and proof sketches (specified, not yet verified)
 
-These sketches go into ADR 007 and ADR 006, labelled "specified, unverified".
-They are hypotheses about the eventual proof structure. Implementation may show
-that some lemmas are unnecessary or need to be split.
+These sketches go into ADRs 007 and 006, labelled "specified, unverified". They
+are hypotheses about the eventual proof structure.
 
 Lifecycle model, owned by ADR 007, for one producer identity:
 
-- State per generation `g`: an owner identifier, an optional pending
-  transfer destination, a lease set (while open), a phase, the current attempt
-  number, and an append-only history of reports. The phases are `Open`,
-  `Closing{attempt}`, `UnresolvedPending{attempt, report}`,
-  `UnresolvedSettledFailed{attempt, report}`, `Recovering{attempt}`, and
-  `Released{receipt}`, taken from `docs/design.md` §5.2.
-- Events: `LeaseAcquired{lease}`, `LeaseCancelled{lease}`,
-  `LeaseReleased{lease}`, `CloseRequested{caller}`, `BoundElapsed{attempt}`,
-  `AttemptSucceeded{attempt, predicate}`, `AttemptFailed{attempt, issue}`,
-  `RecoverRequested{caller}`, `TransferOffered{destination}`,
-  `TransferAcknowledged{destination}`, and `SuccessorRequested{identity}`.
-- Commands emitted to the shell: `StartAttempt{generation, attempt}`,
-  `JoinAttempt{caller, attempt}`, `Report{caller, report}`,
-  `AdmitSuccessor{identity}`, `DeferSuccessor{identity}`, and `Refuse{reason}`.
+- Configuration: `maxAttempt` (an `int`, at least 1).
+- Per-generation state:
+  - `owner`;
+  - `pendingTransfer`, an optional destination;
+  - `phase`;
+  - `lastStarted` and `lastSettledFailed`, the attempt history fields;
+  - `history`, an append-only list of reports;
+  - `isolationVerified`, a boolean.
+- A producer-level `deferredSuccessors` list.
+- Phases:
+  - `Acquiring{cancelRequested}`;
+  - `Open{leases}`;
+  - `Closing{attempt, joiners}`;
+  - `UnresolvedPending{attempt, joiners, report}`;
+  - `UnresolvedSettledFailed{attempt, report}`;
+  - `Recovering{attempt, joiners}`;
+  - `Released{receipt}`;
+  - `AcquisitionFailed{report}`, which is terminal and carries no
+    obligation.
 
-Invariants (each must hold in every reachable state):
+  `UnresolvedPending` follows design §5.2. It is the owner-visible phase
+  reached when the *owner's* observation bound elapses while an attempt is
+  still in flight. Per-caller bounds deliver reports but never change the phase.
+- Events:
+  - acquisition: `AcquireSucceeded{generation}`,
+    `AcquireFailed{generation, partial}`, and
+    `AcquireCancelRequested{caller}`;
+  - leases: `LeaseAcquired{lease}`, `LeaseCancelled{lease}`, and
+    `LeaseReleased{lease}`;
+  - close, bounds, and settlement: `CloseRequested{caller}`,
+    `WaitBoundElapsed{caller, attempt}`, `OwnerBoundElapsed{attempt}`,
+    `AttemptSucceeded{attempt, predicate}`, and
+    `AttemptFailed{attempt, issue}`;
+  - recovery and transfer: `RecoverRequested{caller}`,
+    `TransferOffered{destination}`, and
+    `TransferAcknowledged{destination}`;
+  - succession: `SuccessorRequested{identity}` and
+    `IsolationVerified{generation, evidence}`.
+- Commands emitted to the shell:
+  - `Publish{generation}`;
+  - `StartAttempt{generation, attempt}`;
+  - `JoinAttempt{caller, attempt}`;
+  - `Report{caller, report}`;
+  - `RevokeLease{lease}`;
+  - `AdmitSuccessor{identity}`;
+  - `DeferSuccessor{identity}`;
+  - `Refuse{reason}`.
 
-- INV-1 single owner: a generation that is not `Released` has exactly one
-  owner. The owner changes only on `TransferAcknowledged` from the offered
-  destination.
-- INV-2 one attempt in flight: in `Closing`, `UnresolvedPending`, and
-  `Recovering`, the recorded attempt is the latest started attempt, and no
-  other attempt of that generation is in flight.
-- INV-3 no duplicate destructive call: `StartAttempt` is emitted only on
-  `Open` to `Closing` (first close or last lease) and on
-  `UnresolvedSettledFailed` to `Recovering` (explicit recovery). A close or
-  recovery request while an attempt is in flight emits `JoinAttempt` with that
-  attempt.
-- INV-4 receipt soundness: `Released{receipt}` is reached only from
-  `AttemptSucceeded` for the current attempt. The receipt carries that
-  generation, attempt, and predicate.
-- INV-5 stale isolation: settlement events for a non-current attempt or a
-  different generation do not change the phase, owner, or attempt. Late success
-  retires only its own generation.
-- INV-6 bounded monotone attempts: attempt numbers strictly increase and
-  never exceed `maxAttempt`. Recovery at the bound is refused, never wrapped.
-  ReScript `int` is 32-bit and wraps, so this bound is a production-code rule,
-  not a proof convenience.
-- INV-7 successor gate: `AdmitSuccessor` for an exclusive identity is
-  emitted only when the predecessor generation is `Released`.
-- INV-8 retention: no event removes an unresolved generation except a
-  success settlement or an acknowledged transfer. The reducer has no "forget"
-  event, so discarding a diagnostic is not a state transition.
-- INV-9 history: the report history is append-only and retains the
-  original obligation.
-- INV-10 lease independence: cancelling or releasing one lease removes only
-  that lease. The phase stays `Open` while other leases remain. The event that
-  removes the last lease emits exactly one `StartAttempt`.
+Invariants. Each must hold in every reachable state, and within the enumeration
+bounds in every well-formed state:
 
-Exact-effect and progress clauses guard against a specification that a "refuse
-everything" reducer would satisfy:
+- INV-1, single owner and conservation: every generation that is neither
+  `Released` nor `AcquisitionFailed` has exactly one owner. The owner changes
+  only on `TransferAcknowledged` from the offered destination, which moves the
+  obligation intact.
+- INV-2, one attempt in flight: in `Closing`, `UnresolvedPending`, and
+  `Recovering`, the recorded attempt equals `lastStarted`, and no other attempt
+  of that generation is in flight.
+- INV-3, no duplicate destructive call: `StartAttempt` is emitted only in
+  four cases:
+  - `Open` to `Closing`, by owner close or last lease;
+  - `Acquiring` to `Closing`, on a late success after cancellation;
+  - `Acquiring` to `Closing`, on a partial failure;
+  - `UnresolvedSettledFailed` to `Recovering`.
+- INV-4, receipt soundness: `Released{receipt}` is reached only from
+  `AttemptSucceeded` for the current attempt, in an in-flight phase. The
+  receipt carries the generation, attempt, and predicate.
+- INV-5, stale and duplicate refusal: the following are each refused. They
+  are recorded in `history`, and owner, phase, and attempt stay unchanged:
+  - a settlement for a non-current attempt;
+  - a settlement for another generation;
+  - any settlement outside an in-flight phase, including after `Released`.
+- INV-6, bounded monotone attempts: `lastStarted` strictly increases and
+  never exceeds `maxAttempt`. Recovery at the bound is refused, never wrapped.
+  ReScript `int` is 32-bit and wraps, so this is a production-code rule.
+- INV-7, successor gate: `AdmitSuccessor` for an exclusive identity is
+  emitted only when the predecessor is `Released` or `isolationVerified` holds.
+  A deferred successor is admitted at the step that establishes either
+  condition. A generation that never settles blocks exclusive replacement
+  indefinitely. This is an accepted downside, stated in the ADR 007 Y-statement.
+- INV-8, retention: no event removes an unresolved generation's obligation
+  except three:
+  - a success for the current attempt;
+  - an acknowledged transfer;
+  - `AcquireFailed` with no partial resources.
 
-- PR-1: `CloseRequested` on `Open` moves to `Closing{attempt+1}` and emits
-  exactly one `StartAttempt`.
-- PR-2: `AttemptSucceeded` for the current attempt from any in-flight phase
-  moves to `Released`.
-- PR-3: `AttemptFailed` for the current attempt moves to
-  `UnresolvedSettledFailed`.
-- PR-4: `RecoverRequested` on `UnresolvedSettledFailed` below the bound
-  moves to `Recovering{attempt+1}` and emits exactly one `StartAttempt`.
-- PR-5: `BoundElapsed` for the current attempt on `Closing` moves to
-  `UnresolvedPending` with the same attempt and reports to joined callers.
+  Discarding a diagnostic is not an event.
+- INV-9, history: `history` is append-only and keeps the original
+  obligation.
+- INV-10, lease independence: in `Open`, cancelling or releasing a lease
+  removes only that lease.
+- INV-11, leases only while open: the lease set exists only in `Open`.
+  `LeaseAcquired` in any other phase is refused, and the state is unchanged.
+- INV-12, ownership before publication: `Publish` is emitted only on
+  `Acquiring` to `Open`. It is never emitted for an acquisition that was
+  cancelled.
+- INV-13, one report per joiner: each caller that joins an attempt
+  receives exactly one `Report` for that attempt. The report is sent either
+  when that caller's bound elapses or when the attempt settles, whichever comes
+  first.
+- INV-14, authorization: only the owner, or the host acting for it, may
+  close, recover, or offer a transfer. A lease holder may release or cancel
+  only its own lease. Any other request is refused, and the state is unchanged.
+
+Exact-effect and progress clauses. These are the guard against a specification
+that a "refuse everything" reducer would satisfy.
+
+- PR-1: an owner `CloseRequested` on `Open` moves to
+  `Closing{lastStarted+1}`. It emits one `RevokeLease` for each live lease,
+  exactly one `StartAttempt`, and nothing that publishes.
+- PR-2: `AttemptSucceeded` for the current attempt in an in-flight phase
+  moves to `Released`. It reports to every joiner and admits every deferred
+  successor.
+- PR-3: `AttemptFailed` for the current attempt in an in-flight phase moves
+  to `UnresolvedSettledFailed` and reports to every joiner.
+- PR-4: an owner `RecoverRequested` on `UnresolvedSettledFailed` below the
+  bound moves to `Recovering{lastStarted+1}` and emits exactly one
+  `StartAttempt`.
+- PR-5: `OwnerBoundElapsed` for the current attempt in `Closing` or
+  `Recovering` moves to `UnresolvedPending`, keeping the same attempt.
 - PR-6: `LeaseAcquired` on `Open` adds the lease.
+- PR-7: a close or recovery request while an attempt is in flight emits
+  exactly one `JoinAttempt` for the current attempt, and nothing else.
+- PR-8: in `Open`, removing the last lease emits exactly one
+  `StartAttempt`.
+- PR-9: `TransferAcknowledged` from the offered destination changes the
+  owner.
+- PR-10: `SuccessorRequested` after `Released`, or with
+  `isolationVerified`, emits `AdmitSuccessor`. Otherwise it emits
+  `DeferSuccessor`, never `Refuse`.
+- PR-11: `IsolationVerified` admits every deferred successor.
+- PR-12: `AcquireSucceeded` without a cancellation request moves to `Open`
+  and emits exactly one `Publish`. With a cancellation request, it moves to
+  `Closing` and emits exactly one `StartAttempt` and no `Publish`.
+- PR-13: `WaitBoundElapsed` for a joined caller and the current attempt
+  emits exactly one `Report` to that caller and removes it from the joiners.
 
 Lemma statements:
 
-- L-1: `step` preserves the conjunction INV-1, INV-2, and INV-6
-  (`wellFormed`).
+- L-1: `step` preserves `wellFormed`, the conjunction of INV-1, INV-2,
+  INV-6, INV-11, and the structural shape constraints.
 - L-2: each PR clause holds as a postcondition of `step`.
-- L-3: INV-5 holds as a frame lemma over `step`.
-- L-4 (trace level): for any event sequence that contains only close and
-  recovery requests while an attempt is in flight, the fold of `step` emits no
-  `StartAttempt`.
-- L-5: INV-4 and INV-7 hold as postconditions of `step`.
-- L-6 (trace level): for any sequence without a current-attempt success or
-  an acknowledged transfer, an unresolved generation remains in the registry.
+- L-3: INV-5 and INV-14 hold as frame postconditions of `step`.
+- L-4, attempt numbering: per generation, the attempts in emitted
+  `StartAttempt` commands are 1, 2, 3, and so on, consecutively. Each `k+1`
+  follows an accepted failure of `k`. The proof is per step, carried by the
+  `lastStarted` and `lastSettledFailed` fields. The trace-level statement
+  follows by induction over the fold.
+- L-5: INV-4, INV-7, and INV-12 hold as postconditions of `step`.
+- L-6, conservation: per step, owner and obligation are unchanged except
+  under the three INV-8 events. The trace-level statement follows by induction.
 
-Cause model, owned by ADR 006: a finite tree whose leaves are `Expected{error}`,
-`Defect{diagnostic}`, `Interrupted{execution}`, and `Release{issue}`, and
-whose nodes are `Sequential{children}` and `Parallel{children}`.
+Bounded enumeration, the mandatory gate in 1.3.3, runs against the production
+compiled reducer under `bun test`:
 
-- LC-1: `mapExpected(f, c)` has the same node kinds, child counts, and child
-  order as `c`.
-- LC-2: non-expected leaves are unchanged.
-- LC-3: every expected leaf is mapped by `f`.
-- LC-4: `result` produces `Error(e)` only when the cause is a single
-  `Expected{e}` leaf. Otherwise it propagates the original cause unchanged.
-- LC-5 (conformance only, because exceptions are outside the proof route):
-  if `f` throws, the outcome records a mapping defect *and* retains the
-  original cause as opaque provenance.
+- Search: breadth-first over deduplicated states, to a depth of at least
+  10 events.
+- Alphabet:
+  - callers `c1` and `c2`, plus an unknown caller;
+  - owners `o1` and `o2`, plus an unknown owner;
+  - two leases, plus an unknown lease;
+  - two generations;
+  - attempts up to `maxAttempt = 3`, plus out-of-range attempt values.
+- Oracle: the INV and PR predicates, written from the E9 acceptance column
+  independently of `wellFormed`.
+- Inductiveness: every INV is also checked over *all* well-formed states
+  within the bounds, not only reachable ones.
+- Reachability: every reachable state can reach either `Released`, or an
+  unresolved phase in which every joiner has been reported.
+- Mutants: the 1.3.3 plan adds a seeded mutation for each invariant, and
+  the enumeration must reject each one.
 
-Axioms and trusted base that later proofs and tests will rely on, recorded in
-ADR 007 and ADR 006:
+Interesting traces need six to ten events, so a depth of 10 reaches them. They
+are:
 
-- AXIOM-1: JavaScript run-to-completion. A synchronous `step` call is atomic
-  with respect to other JavaScript code in the same agent. The shell must call
-  `step` synchronously and must not interleave awaits inside it.
-- AXIOM-2: ReScript 12.3.1 compilation and genType's description of runtime
-  representation (trusted; the correspondence audit narrows but does not remove
-  this).
-- AXIOM-3: LemmaScript's TypeScript-to-Dafny translation, the bridge's
-  contract attachment, Dafny 4.11.0, and Z3 4.12.1 (trusted; mutants and the
-  differential check narrow this).
-- AXIOM-4: the backend's observed semantics for the exact pinned version, as
-  recorded by the probes (trusted only within the probe evidence, and
-  re-established on upgrade).
-- AXIOM-5: an adapter's release predicate is reported truthfully. This is
-  external; refex can only test real adapters at real boundaries.
-- AXIOM-6: callers do not use `Obj.magic`, `%identity`, or untyped JavaScript
-  to forge values of opaque types.
-- AXIOM-7: in-memory retention ends at host exit, so no durable crash recovery
-  is claimed.
+- a stale failure during recovery;
+- exhausting recovery attempts;
+- a transfer while an attempt is in flight;
+- two closers with different deadlines.
 
-Liveness is not claimed. Eventual release depends on the adapter eventually
-settling an attempt (AXIOM-5) and the shell delivering that event. ADR 007
-states this as a conditional progress property, checked per step by PR-2 and
-PR-3 and within bounds by enumeration. It is never stated as "cleanup always
-completes".
+Cause model, owned by ADR 006:
+
+- Shape: a finite tree.
+  - Leaves: `Expected{error}`, `Defect{diagnostic}`,
+    `Interrupted{execution}`, `Release{issue}`, and
+    `Provenance{opaque}`.
+  - Nodes: `Sequential{children}` and `Parallel{children}`.
+- `opaque` is a record of functions, so it hides the old error type. It is
+  the cast-free alternative to a GADT.
+- Well-formedness: no node has an empty child list, and single-child
+  nodes are flattened.
+- LC-1: `mapExpected(f, c)` has the same node kinds, child counts, and
+  child order as `c`.
+- LC-2: non-expected leaves, including `Provenance`, are unchanged.
+- LC-3: `f` maps every `Expected` leaf.
+- LC-4: `result` yields `Error(e)` only when the flattened cause is the
+  single leaf `Expected{e}`. Otherwise it propagates the original cause
+  unchanged.
+- LC-5, conformance only: if `f` throws, the outcome records a mapping
+  defect and keeps the original cause as `Provenance`.
+- LC-6, a model-level parametricity argument: a cast-free total
+  implementation of a recovery signature whose output error type is free and
+  not supplied by any input must erase every old `Expected` leaf from mixed
+  causes. Therefore every recovery combinator keeps `E` in its output channel,
+  or demotes the old leaves to `Provenance`.
+- Effect 4's flat cause cannot supply the structure, so refex builds
+  `Sequential` and `Parallel` nodes at its own composition points. These are
+  resource use with finalization, zipping, and parallel traversal, where refex
+  knows the order. This works only if P7 shows that the adapter can observe
+  body and finalizer exits separately. If it cannot, ADR 006 records a
+  narrowing of design §4.1 as a deviation for owner acceptance.
+
+Axioms and trusted base, recorded in ADRs 007 and 006:
+
+- AXIOM-1, run-to-completion and re-entrancy: a synchronous `step` call is
+  atomic with respect to other JavaScript in the same agent. The shell stores
+  the new state *before* executing commands. It queues any event a command
+  produces synchronously. A synchronous throw from starting an attempt becomes
+  `AttemptFailed`, or a defect, for that attempt.
+- AXIOM-2: ReScript 12.3.1 compilation, and genType's description of the
+  runtime representation. The correspondence audit narrows this trust; it does
+  not remove it.
+- AXIOM-3: LemmaScript's translation, the bridge's contract attachment,
+  Dafny 4.11.0, and Z3 4.12.1. Mutants and the differential check narrow this
+  trust.
+- AXIOM-4: the backend semantics observed by the probes, for the exact
+  pinned version only. They are re-established on any upgrade.
+- AXIOM-5: an adapter reports a release predicate truthfully.
+- AXIOM-5b: an adapter reports `AttemptFailed` only once the attempt can no
+  longer act on the resource. An adapter that cannot know this reports pending.
+  Each adapter's classification is a conformance obligation in 1.3.2.
+- AXIOM-6: no caller forges values of opaque types. The covered escapes
+  are `Obj.magic`, `%identity`, `%raw`, any `external` with a free result type
+  variable, and untyped JavaScript. `Never.res` is in the trusted base.
+- AXIOM-7: in-memory retention ends at host exit. No durable crash
+  recovery is claimed.
+- AXIOM-8: declared variances of abstract and FFI-backed types are not
+  checked. The Reader-over-IO representation reduces this to `IO.t`'s declared
+  `+'a` and `+'e`.
+
+Liveness is not claimed. Eventual release depends on two things:
+
+- the adapter eventually settles an attempt (AXIOM-5 and AXIOM-5b);
+- the shell delivers that settlement.
+
+ADR 007 states this as a conditional progress property. PR-2 and PR-3 check it
+per step, and enumeration reachability checks it within bounds. The ADR never
+states that cleanup always completes.
 
 ### Verification matrix for the contracts frozen in this step
 
-| Contract                                                  | Claim and premises                                                                                                                 | Boundary                                | Evidence method                                                                                                              | This step             | Later milestone                                                | Acceptance and limits                                                         |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| K-1 runtime boundary (ADR 004)                            | No backend type, tag, scope, or unchecked conversion appears in any public `.resi`; one exact backend pin                          | Public `.resi` files and `package.json` | Review now; package-contract test of production dependency names and `.resi` review checklist later                          | VP-3 probes, ADR text | 1.3.1 adds the dependency contract and private adapter modules | Production adoption only after E1-E3 and E9 pass; probes are version-specific |
-| K-2 visible requirements (ADR 005)                        | Accessors exported as functions accumulate open rows across modules; missing or conflicting fields fail at the documented boundary | Separate `.res`/`.resi` modules         | Scratch compiler probes now; committed positive and negative fixtures later                                                  | VP-4                  | 1.2.2 (E1)                                                     | Type evidence only; no runtime ownership claim                                |
-| K-3 explicit projection fallback (ADR 005)                | Projection composes without casts when rows are not wanted                                                                         | `contramapEnvironment` signature        | Compiler fixtures                                                                                                            | Signature only        | 1.2.1, 1.2.2                                                   | As K-2                                                                        |
-| K-4 uninhabited channel (ADR 006)                         | `Never.t` has no constructible value without unsafe escapes; `absurd` is total                                                     | `Never.resi`                            | Compiler probes now; fixtures later                                                                                          | VP-5                  | 1.2.3                                                          | Modulo AXIOM-6 and divergence                                                 |
-| K-5 leaf-wise mapping and conservative `result` (ADR 006) | LC-1 to LC-4 over a refex-owned cause tree                                                                                         | Pure cause module                       | Deductive proof (if FX-1 accepts), property tests of backend-to-refex conversion, and conformance tests for LC-5             | FX-1 (C1, C2)         | 1.2.3, 1.3.1                                                   | Proof covers pure mapping only; backend conversion is tested, not proved      |
-| K-6 promise boundary (ADR 006)                            | Full outcome is available through `runExit`; any lossy projection is explicit and retains the full cause                           | Runtime boundary                        | Behavioural tests with real promises                                                                                         | Probe P5              | 1.3.1 (E9 mixed failure)                                       | Scheduling outside proof                                                      |
-| K-7 lifecycle safety (ADR 007)                            | INV-1 to INV-10 and PR-1 to PR-6                                                                                                   | Pure lifecycle reducer                  | Deductive proof of `step` against compiled JavaScript, plus bounded exhaustive enumeration of the real reducer, plus mutants | FX-1 (L1-L5)          | 1.3.3                                                          | Safety plus per-step progress; no liveness                                    |
-| K-8 joined close and retained recovery (ADR 007)          | Concurrent closes join one attempt; discarded diagnostics leave a live owner                                                       | Shell plus registry                     | Behavioural tests with explicit readiness; fast-check scheduler interleavings; ablations                                     | None                  | 1.3.3-1.3.5 (E3, E9)                                           | Interleavings limited to those the scheduler controls                         |
-| K-9 two-consumer lease independence (ADR 007)             | INV-10 at runtime; one reader cancels without affecting the other                                                                  | Producer adapter                        | Behavioural Given/When/Then tests, model-based property tests                                                                | None                  | 1.3.4, 1.3.5                                                   | Real-boundary claims wait for adapters                                        |
-| K-10 host-exit limits (ADR 007)                           | After a bounded close report, the host retains and reports unresolved owners; no claim survives exit                               | Runtime owner                           | Review now; behavioural test of the report later                                                                             | ADR text              | 1.3.5                                                          | Documentation limit, not a proof                                              |
+The columns are:
+
+- *Premises*: the axioms and assumptions the claim relies on.
+- *Now*: the evidence gathered in this step.
+- *Later*: the milestone that discharges the claim.
+- *Gate*: any unresolved feasibility gate.
+
+| Contract                                          | Claim                                                                                                                                                                                                       | Premises                   | Boundary                       | Evidence type                                                                              | Now              | Later                       | Acceptance                                                      | Limitations                                    | Gate |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------ | ---------------- | --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- | ---- |
+| K-1 runtime boundary (ADR 004)                    | No backend type, tag, scope, or unchecked conversion in any public `.resi`; exact pins                                                                                                                      | AXIOM-4, AXIOM-6           | Public `.resi`, `package.json` | Review; dependency-name contract; binding-surface smoke test                               | VP-4 audit       | 1.3.1                       | Contract and smoke test pass; bundle has no `eval`              | Probes are version-specific                    | None |
+| K-2 trial bounds (ADR 004)                        | Trial touches only the named files and tasks; rollback triggers named                                                                                                                                       | none                       | Repository policy              | Review; package contract                                                                   | ADR text         | 1.3.1-1.3.5                 | Final D1 at close of 1.3.5                                      | Policy, not semantics                          | None |
+| K-3 visible requirements (ADR 005)                | Function exports accumulate open rows across modules; missing or conflicting fields fail at named sites                                                                                                     | AXIOM-8                    | Separate `.res`/`.resi`        | Compiler fixtures, positive and negative                                                   | VP-5 R1-R6       | 1.2.2 (E1)                  | Each negative fails with the named diagnostic                   | Type evidence only                             | None |
+| K-4 projection fallback (ADR 005)                 | Projection composes without casts; wrong-field projection fails                                                                                                                                             | AXIOM-8                    | `contramapEnvironment`         | Compiler fixtures                                                                          | VP-5 R7-R8       | 1.2.1, 1.2.2                | As K-3                                                          | As K-3                                         | None |
+| K-5 service contract split (ADR 005)              | Construction inputs, invocation requirements, lifetime owner, and snapshot-versus-live are declared per service                                                                                             | none                       | Service interfaces             | Review now; E6 behaviour later                                                             | ADR template     | 3.2.1 (E6)                  | Live provider change observed next operation                    | Observation timing tested, not proved          | None |
+| K-6 uninhabited channel (ADR 006)                 | No closed, terminating, cast-free term of `Never.t` outside `Never.res`; `absurd` total and loud                                                                                                            | AXIOM-6                    | `Never.resi`                   | Compiler fixtures; parametricity                                                           | VP-5 n1-n5       | 1.2.3                       | Forged values fail loudly                                       | Escapes listed in AXIOM-6                      | None |
+| K-7 recovery family (ADR 006)                     | `catchError`, `match`, `result`, and `Direct.result` never erase mixed causes or invent an error type                                                                                                       | LC-6                       | Recovery `.resi`               | Parametricity sketch; one fixture per combinator                                           | VP-5 f2-f4       | 1.2.3                       | Free-`'e2` variants rejected                                    | Model-level argument plus fixtures             | None |
+| K-8 cause mapping (ADR 006)                       | LC-1 to LC-4 over the refex cause tree                                                                                                                                                                      | AXIOM-2, AXIOM-3           | Pure cause module              | Proof if FX-1 F10 and F11 pass; otherwise enumeration over small trees plus property tests | FX-1 C1-C2       | 1.2.3, 1.3.1                | Per-obligation outcomes                                         | Pure mapping only                              | FX-1 |
+| K-9 cause structure (ADR 006)                     | Sequential and parallel order kept at refex composition points                                                                                                                                              | AXIOM-4, P7                | Adapter conversion             | Property tests of conversion; E9 mixed failure                                             | VP-4 P7          | 1.3.1                       | No reason or order lost                                         | Backend-specific                               | P7   |
+| K-10 promise and native-await boundary (ADR 006)  | `runExit` returns the complete outcome; lossy projection keeps the cause only as untyped provenance or a runner-held handle; foreign rejections become defects; `Direct.result` passes mixed causes through | AXIOM-1, AXIOM-4           | Runtime and Direct scope       | Behavioural tests with real promises                                                       | VP-4 P5, P6      | 1.3.1, 1.4.1-1.4.2 (E5, E9) | Mixed-failure scenarios keep all reasons                        | Scheduling outside proof                       | None |
+| K-11 release issue versus defect (ADR 006)        | Anticipated release inability is a release issue; unexpected cleanup exception is a defect with release context; neither drops simultaneous reasons                                                         | AXIOM-5                    | Adapter classification         | Behavioural tests                                                                          | ADR text         | 1.3.1, 1.3.3                | E9 failed-retry and mixed-failure rows                          | Adapter-specific                               | None |
+| K-12 lifecycle safety (ADR 007)                   | INV-1 to INV-14 and PR-1 to PR-13                                                                                                                                                                           | AXIOM-1, AXIOM-2, AXIOM-3  | Pure lifecycle reducer         | Gate: bounded enumeration plus mutants; proof of L-1 to L-6 if selected                    | FX-1 (tool only) | 1.3.3                       | All invariants and progress clauses hold; every mutant rejected | Safety and per-step progress; no liveness      | FX-1 |
+| K-13 joined close and retained recovery (ADR 007) | Concurrent closes join one attempt; a discarded diagnostic leaves a live owner                                                                                                                              | AXIOM-1, AXIOM-5, AXIOM-5b | Shell and registry             | Behavioural tests with readiness; fast-check scheduler; ablations                          | None             | 1.3.3-1.3.5 (E3, E9)        | Ablations fail as intended                                      | Only interleavings that the scheduler controls | None |
+| K-14 lease independence (ADR 007)                 | One reader cancels without affecting the other; the last lease triggers one close                                                                                                                           | AXIOM-1                    | Producer shell                 | Given/When/Then tests; model-based property tests                                          | None             | 1.3.4, 1.3.5                | E9 two-reader and last-lease rows                               | Real-boundary claims wait for adapters         | None |
+| K-15 host-exit limits (ADR 007)                   | After a bounded close report, the host retains and reports unresolved owners; nothing survives exit                                                                                                         | AXIOM-7                    | Runtime owner                  | Review; behavioural test of the report                                                     | ADR text         | 1.3.5                       | Report lists every unresolved generation                        | Documentation limit                            | None |
 
 ### Test strategy applicability for this step
 
-Unit and behavioural tests in ReScript: not applicable, because this step adds
-no ReScript module. The forward plan in ADR 007 names Given/When/Then scenarios
-for 1.3.x using the existing Bun runner's `describe` and `test`. No Gherkin
-runner is needed; the roadmap does not require feature files.
-
-Snapshot tests: not applicable. No stable diagnostic or trace format exists
-yet. ADR 006 records that diagnostic formatting is not the recovery store.
-
-Compiler and public-interface tests: positive and negative probes run in
-scratch projects (VP-4, VP-5) because this step has no `Fx` module to attach
-committed fixtures to. Committed fixtures are 1.2.2 and 1.2.3 acceptance. The
-packed-consumer checks are unchanged, because no export changes.
-
-Property and state-machine tests: not applicable now. `fast-check` is not
-installed (C-2). ADR 007 records the forward plan: narrow typed bindings
-following the `rescript-property-testing` skill, recorded seeds and paths,
-`numRuns` in the hundreds per commit, a scheduler binding for interleavings,
-and minimal counterexamples kept as regression tests.
-
-Asynchronous and lifecycle tests: not applicable now. ADR 007 lists the E9
-scenarios each later task must cover, with readiness signals, joined managed
-work, raw-work inspection, and named ablations.
-
-End-to-end tests: not applicable. No externally observable workflow changes.
-
-Ensuring tests run: the one new suite,
-`tests/documentation-contracts.test.mjs`, is added to the explicit file list in
-the `Makefile` `test` target. The test checks that its own name appears in that
-list. Coverage is unaffected, because the suite tests documentation, not
-generated JavaScript, and `make coverage` keeps its current file list. CI runs
-`make all`, so the suite runs in CI with no workflow change.
+- Unit and behavioural tests in ReScript: not applicable, because this step
+  adds no ReScript module. ADR 007 lists the Given/When/Then scenarios for
+  tasks 1.3.x, using the existing Bun runner's `describe` and `test`. No
+  Gherkin runner is needed, because the roadmap does not require feature files.
+- Snapshot tests: not applicable, because no stable diagnostic or trace
+  format exists yet. ADR 006 records that diagnostic formatting is not the
+  recovery store.
+- Compiler and public-interface tests: positive and negative probes run in
+  scratch projects (VP-5). This step has no `Fx` module to attach committed
+  fixtures to; committed fixtures are the acceptance criteria of tasks 1.2.2
+  and 1.2.3. The packed-consumer checks are unchanged, because no export
+  changes.
+- Property and state-machine tests: not applicable now, because
+  `fast-check` is not installed (C-2). ADR 007 records the forward plan:
+  - narrow typed bindings, following the `rescript-property-testing`
+    skill;
+  - recorded seeds and paths;
+  - `numRuns` in the hundreds for each commit;
+  - a scheduler binding for interleavings;
+  - minimal counterexamples kept as regression tests.
+- Asynchronous and lifecycle tests: not applicable now. ADR 007 lists the
+  E9 scenarios that each later task must cover. Each scenario needs readiness
+  signals, joined managed work, inspection of raw work, and named ablations.
+- End-to-end tests: not applicable, because no externally observable
+  workflow changes.
+- Ensuring the tests run:
+  - `tests/documentation-contracts.test.mjs` is added to the explicit
+    `Makefile` `test` list.
+  - VP-2 enforces that every test file appears in that list.
+  - Coverage is unaffected. The suites test repository files, not
+    generated JavaScript, and `make coverage` keeps its current list.
+  - CI runs `make all`, so the suites run in CI without any workflow
+    change.
 
 ### How the methods complement one another
 
-Compiler fixtures prove type-level claims (requirements, uninhabited errors,
-unsound signatures rejected) and nothing about runtime. Deductive proof of the
-pure lifecycle reducer and cause mapping establishes safety for all inputs
-within the stated premises. It only reaches the production code through the
-correspondence audit and the trusted base above. Bounded exhaustive enumeration
-of the *real* reducer under all event orders, up to two leases, two
-generations, and three attempts, gives independent confirmation and catches
-specification gaps that a proof of the wrong statement would miss. Property
-tests and the fast-check scheduler exercise the effectful shell, where
-promises, timers, and cancellation live and proof cannot reach. Behavioural E9
-tests with ablations show that the suite detects the failures it claims to
-guard against. Real-boundary tests remain mandatory once platform adapters
-exist.
+- Compiler fixtures establish type-level claims and nothing at runtime.
+  Examples are requirement visibility, uninhabited errors, and rejected unsound
+  signatures.
+- Parametricity is the model-level argument that explains why the
+  conservative recovery types are necessary. The `.resi` probes supply the
+  implementation-level evidence.
+- Bounded exhaustive enumeration of the *real* compiled reducer is the gate
+  for lifecycle safety. It checks the production artefact directly, within
+  stated bounds.
+- Deductive proof, if FX-1 permits, extends those safety claims to all
+  inputs. It reaches the production code only through the correspondence audit
+  and the trusted base.
+- Property tests and the fast-check scheduler exercise the effectful
+  shell, where proof cannot reach: promises, timers, and cancellation.
+- Behavioural E9 tests with ablations show that the suite detects the
+  failures it claims to guard against.
+- Real-boundary tests remain mandatory once platform adapters exist.
 
 ## Plan of work
 
-Stage A, understand and propose (complete when this plan is approved). No
-repository changes beyond this plan and a `docs/contents.md` pointer to
-`docs/execplans/`.
+- Stage A, understand and propose. Complete when this plan is approved. The
+  only repository changes are this plan and its pointer in `docs/contents.md`.
+- Stage B, guard and brief (EP-M0 to EP-M2):
+  1. Confirm the gates pass on the unchanged branch.
+  2. Add the contracts, red then green.
+  3. Write the brief and glossary entries.
+- Stage C, evidence-backed ADRs (EP-M3 to EP-M8):
+  1. For each ADR, run the probes and write the evidence record first.
+  2. Then write the ADR, so that every claim cites evidence or names the
+     task that will supply it.
+  3. Run FX-1 after the ADR 007 draft and before its representation section
+     is finalized.
+- Stage D, integration and closure (EP-M9 to EP-M10):
+  1. Cross-link the documents.
+  2. Run the expert panel over the ADR set.
+  3. Obtain owner acceptance.
+  4. Update status lines and roadmap ticks.
 
-Stage B, guard and brief (EP-M0 to EP-M2). Establish green baseline gates, add
-the documentation contract in red-then-green order, then write the design brief
-and glossary entries. Validation: `make all` passes after each milestone.
-
-Stage C, evidence-backed ADRs (EP-M3 to EP-M7). For each ADR, first run the
-probes and write the evidence record, then write the ADR so that every claim
-cites evidence or names the task that will supply it. FX-1 runs after the ADR
-007 draft and before its representation section is finalized. Validation:
-`make all` passes after each milestone, and probe transcripts reproduce.
-
-Stage D, integration and closure (EP-M8 to EP-M9). Cross-link design, context,
-terms of reference, guides, layout, and contents. Run the expert review panel
-over the ADR set. Obtain owner acceptance, then update status lines and roadmap
-ticks. Validation: `make all` passes, and the documentation contract passes
-with the final statuses.
+`make all` must pass through scrutineer before every commit and after every
+milestone. `make check-fmt`, `make lint`, and `make test` all run within it.
 
 ## Milestones and plateaus
 
-EP-M0, baseline.
+EP-M0: baseline.
 
-- Outcome: the branch builds and `make all` passes with Bun 1.4.2 before any
-  change, so later failures are attributable.
-- Requirements and gaps: none; precondition only.
-- Acceptance evidence: scrutineer report with `make all` exit 0, log at
+- Outcome: `make all` passes with Bun 1.4.2 before any change, so later
+  failures can be attributed.
+- Requirements and gaps: none; this is a precondition only.
+- Acceptance evidence: scrutineer reports exit 0, with the log at
   `/tmp/all-refex-1-1-freeze-validator-hypotheses.out`.
-- Conformance check: no file changed.
+- Conformance check:
+  - no file changed;
+  - toolchain pins match `package.json`.
 - Recovery: if the baseline fails, record the failure under
-  `Surprises & discoveries` and escalate. Do not fix unrelated gates in this
+  `Surprises & discoveries` and escalate. Do not fix unrelated gates on this
   branch.
 - Remaining gaps: none. Compatibility decision: none.
 
-EP-M1, documentation contract (VP-1).
+EP-M1: documentation and test-registration contracts (VP-1, VP-2).
 
-- Outcome: `tests/documentation-contracts.test.mjs` exists, is listed in the
-  `Makefile` `test` target, and passes against the three existing ADRs. Its
-  negative controls fail as designed.
-- Requirements and gaps: G6 status separation; enables C-10.
-- Acceptance evidence: red transcript (temporary ADR stub not linked from
-  contents fails with its path named), then green transcript. `make all` exit 0.
-- Conformance check, one line per item:
-  - status vocabulary matches `Decision log`;
-  - no change to `tests/support/repository-contracts.mjs`;
+- Outcome: both contracts exist and pass. Their negative controls fail as
+  designed.
+- Requirements and gaps: separation of status under G6; supports C-11.
+- Acceptance evidence: red and green transcripts for both; `make all`
+  exits 0.
+- Conformance check:
+  - the status vocabulary matches `Decision log`;
+  - `tests/support/repository-contracts.mjs` is unchanged;
   - no new dependency;
   - no public interface or trust-boundary change;
-  - trace chain for G6 is current.
+  - the G6 trace chain is current.
 - Recovery: revert the single commit.
 - Remaining gaps: none. Compatibility decision: none.
 
-EP-M2, design brief (task 1.1.1).
+EP-M2: design brief (task 1.1.1).
 
-- Outcome: `docs/design-brief.md` defines the initial public abstractions
-  (`Fx` and `IO`, `Layer`, resources, fibres, schedules, deterministic time
-  through injected `Clock` and `Random` services, and React ownership) in one
-  short paragraph each. Each paragraph says what the abstraction promises, what
-  it does not promise, and where the full contract lives. The brief keeps
-  rescript-schema as the codec starting point. It names the deferred
-  capabilities (streams, STM, request caches, graph memoization, a native
-  scheduler, transparent await, and a syntax transform), each with the roadmap
-  phase 6 task that would revisit it. It contains the validator capability map.
-  `docs/context.md` §2 gains glossary entries for *schedule*, *readiness*,
-  *deterministic time*, *capability object*, *explicit projection*, and
-  *uninhabited channel*, added as new terms without renumbering.
-  `docs/design.md` §1 gains one sentence linking the brief.
-- Requirements and gaps: roadmap 1.1.1; G1, G4, G5.
-- Acceptance evidence: VP-2 review result recorded as EV-BRIEF, and
-  `make all` exit 0.
-- Conformance check: no proposed abstraction is described as implemented;
-  rescript-schema is retained as delegated (D4 still open); no design-section
-  renumbering.
-- Recovery: revert the commit; no other milestone depends on prose details
-  except link targets.
-- Remaining gaps: D4 (schema package and browser policy) stays open.
-  Compatibility decision: none.
+- Outcome: `docs/design-brief.md` gives one short paragraph to each initial
+  public abstraction:
+  - `Fx` and `IO`;
+  - `Layer`;
+  - resources;
+  - fibres;
+  - schedules;
+  - deterministic time, through injected `Clock` and `Random` services;
+  - React ownership;
+  - codecs through rescript-schema.
 
-EP-M3, runtime boundary (task 1.1.2).
+  Each paragraph says what the abstraction promises, what it does not, and
+  where the full contract lives.
+  - The brief names the deferred capabilities, each with the phase 6 task
+    that would revisit it: streams, STM, request caches, graph
+    memoization, a native scheduler, transparent await, and syntax
+    transformation.
+  - It contains the validator capability map.
+  - It records the CSP exposure of rescript-schema and Sury as open under
+    D4.
+- Glossary: `docs/context.md` §2 gains entries for *schedule*,
+  *readiness*, *deterministic time*, *capability object*, *explicit
+  projection*, and *uninhabited channel*. They are added without renumbering.
+- Design: `docs/design.md` §1 gains one sentence linking the brief.
+- Requirements and gaps: roadmap 1.1.1; G1, G4, and G5.
+- Acceptance evidence: VP-3 recorded as EV-BRIEF; `make all` exits 0.
+- Conformance check:
+  - no abstraction is described as implemented;
+  - rescript-schema is listed as delegated, and D4 stays open;
+  - no design section is renumbered;
+  - no public interface change.
+- Recovery: revert the commit.
+- Remaining gaps: D4. Compatibility decision: none.
 
-- Outcome: `docs/evidence/runtime-boundary-audit.md` holds a static audit
-  and executable probes P1 to P6. The static audit covers registry metadata,
-  integrity, licence, dependency graph, module coverage, unsafe signatures, and
-  `%identity` uses for `@reventlessdev/rescript-effect` 0.1.0-alpha.35 and for
-  direct Effect FFI over the newest Effect 4.0.x patch available when the audit
-  starts. `docs/adr-004-runtime-boundary.md` compares direct FFI with the
-  audited bindings and selects one. It pins the selection exactly, with
-  registry integrity. It also states three things: the conditional amendment to
-  ADR 002 (exactly one additional production dependency, permitted only from
-  task 1.3.1 onwards and only behind private adapter modules absent from the
-  public allowlist); dependency discovery (one root package, no workspace); and
-  the browser bundle questions. It authorizes a bounded trial and makes
-  production adoption conditional on E1 to E3 and E9. It records the rollback:
-  remove the dependency and the adapter modules.
-- Hypothesis H-RT, to be tested rather than assumed: direct FFI over pinned
-  Effect 4.0.x, with refex-owned narrow bindings, is preferable. The
-  preliminary evidence is the Effect 3.22.2 pin, the production dependency on a
-  test-binding package, and the type-inventing signatures recorded under
-  `Surprises & discoveries`. H-RT is falsified if probes show that the Effect
-  4.0.x line lacks or breaks a semantic that 1.3.1 needs and that 3.22.2
-  provides. The candidates are P2 mixed-cause mapping, P3 repeated close, P4
-  keyed replacement, and P5 full-exit availability. It is also falsified if the
-  Reventless maintainers have published an Effect 4 binding with sound
-  signatures by audit time. Re-check the registry when the audit starts.
-- Requirements and gaps: roadmap 1.1.2; D1 (provisionally answered); A3;
-  G2, G3, G6.
-- Acceptance evidence: VP-3 transcripts with negative controls; ADR 004
-  Y-statement and "Falsifiers and evidence" section; `make all` exit 0.
-- Conformance check: no package installed in the repository; ADR 002 text
-  untouched until acceptance; probes labelled as source evidence; Effect
-  version differences from Lody's 4.0.2 recorded.
-- Recovery: the evidence record and the ADR are separate commits; revert
-  either.
-- Remaining gaps: actual installation, adapter modules, dependency contract
-  test, and bundle measurement (1.3.1, E8). Compatibility decision: none.
+EP-M3: runtime boundary (task 1.1.2).
 
-EP-M4, structural dependency environments (task 1.1.3).
+- Outcome: `docs/evidence/runtime-boundary-audit.md` holds the static audit
+  and probes P1 to P7, for both Effect lines and for the Reventless archive.
+- `docs/adr-004-runtime-boundary.md` contains:
+  - the comparison of the four bindings-and-line combinations against the
+    `Decision log` criteria;
+  - the provisional selection, pinned exactly with registry integrity;
+  - the three conditioned clauses, and the distinction between the
+    execution adapter and platform adapters;
+  - the trial bounds and rollback triggers;
+  - dependency discovery: one root package and no workspace;
+  - the bundle and CSP audit obligations for 1.3.1;
+  - the binding-surface smoke-test obligation;
+  - the re-audit-on-upgrade rule;
+  - the "must not delegate" facts.
+- Hypothesis H-RT, to be tested rather than assumed: the selected line
+  supplies every primitive in the `Decision log` list, and exposes enough for
+  refex to build its own complete outcomes.
+  - H-RT is falsified for a line if P7 shows that body and finalizer exits
+    cannot be observed separately.
+  - It is also falsified for a line if a listed primitive is missing or
+    behaves differently from its documentation.
+  - On the preliminary evidence, Effect 3.22.x is stronger on cause
+    structure, and Effect 4.0.x is stronger on dependency footprint. The
+    ADR must decide on the probe evidence, not on this preliminary view.
+  - Re-check the registry for a newer Reventless binding when the audit
+    starts.
+- Requirements and gaps: roadmap 1.1.2; D1, provisionally; A3; G2, G3, and
+  G6.
+- Acceptance evidence: VP-4 transcripts with controls; the ADR 004
+  Y-statement and its "Falsifiers and evidence" section; `make all` exits 0
+  before each of the two commits.
+- Conformance check:
+  - nothing installed in the repository;
+  - ADR 002's text untouched;
+  - probes labelled as source evidence;
+  - differences from Lody's Effect 4.0.2 recorded;
+  - no `exports` or `files` change authorized.
+- Recovery: the evidence record and the ADR are separate commits, so
+  either can be reverted.
+- Remaining gaps: installation, adapter modules, the dependency contract,
+  the smoke test, and bundle measurement are left to 1.3.1 and E8. The final D1
+  selection happens at the close of 1.3.5.
+- Compatibility decision: none.
 
-- Outcome: `docs/evidence/structural-environment-probes.md` and
-  `docs/adr-005-structural-dependency-environments.md`. The ADR prefers
-  Primavera-style capability objects (open object rows of service records) with
-  explicit projection as the sound fallback and the default for named
-  environments. It fixes the accessor convention (exported accessors are
-  functions) and the variance assumption on `Fx.t` (requirement parameter
-  contravariant, declared in the `.resi` and justified by the representation).
-  Its template separates construction inputs, invocation requirements, lifetime
-  owner, and snapshot-versus-live observation for every service. It states the
-  separate-module failure that rejects automatic requirement accumulation. That
-  happens if, with the pinned compiler and accessors exported as functions from
-  separate `.res` and `.resi` modules, any one of three things occurs. (1) A
-  workflow composing two such accessors cannot be given the union row without
-  annotation-level casts. (2) A missing or conflicting capability is accepted.
-  (3) The rejection is reported somewhere other than the composition or
-  provision site that the user guide documents. If any of these occurs in
-  1.2.2, refex adopts explicit projection everywhere and removes open-row
-  accessors.
-- Requirements and gaps: roadmap 1.1.3; D2; G1, G4; A2.
-- Acceptance evidence: VP-4 transcripts; `make all` exit 0.
-- Conformance check: no committed fixtures (they belong to 1.2.2); the
-  snapshot-versus-live rule from design §3.2 is preserved.
-- Recovery: revert; ADR 005 depends on no other new ADR.
-- Remaining gaps: committed fixtures (1.2.2), and the effect of a real
-  backend-backed abstract `Fx.t` on variance, because variance on an FFI-backed
-  abstract type is a trusted assertion. Compatibility decision: none.
+EP-M4: type-level probe evidence (tasks 1.1.3 and 1.1.4).
 
-EP-M5, complete outcomes (task 1.1.4).
-
-- Outcome: `docs/evidence/complete-outcome-probes.md` and
-  `docs/adr-006-complete-outcomes.md`. The ADR decides the following.
-  - Expected errors use ordinary closed variants by default, with
-    polymorphic variants optional.
-  - The infallible channel is an abstract `Never.t` with a total
-    `absurd`, never `unit`.
-  - refex owns an inspectable cause tree (the Cause model above). The
-    backend cause is converted at the adapter boundary by a total,
-    reason-preserving conversion.
-  - `mapError` maps expected leaves only. A throwing mapper yields a
-    mapping defect and keeps the original cause as opaque provenance.
-  - `result` has the conservative signature from design §4.2.
-  - `runExit` returns the complete outcome. A lossy promise projection is
-    explicit and retains the full cause.
-  - An anticipated inability to release is a release issue, not a defect.
-    An unexpected exception in cleanup is a defect with release context.
-    Neither drops simultaneous reasons.
-  - The release-issue fields are owner, generation, attempt, phase,
-    observed condition, and remaining obligation. The payload's final shape
-    stays D8 until E3 and E9.
-  - LC-1 to LC-5 are recorded as specified, unverified obligations.
-- Requirements and gaps: roadmap 1.1.4; D8 (partially); G2.
-- Acceptance evidence: VP-5 transcripts, including the counterexample that
-  an `'e2`-free signature admits an unrelated error type; `make all` exit 0.
-- Conformance check: no conversion in the ADR erases simultaneous reasons
-  or casts an unrelated error type; release failures are not all classified as
-  defects.
+- Outcome: `docs/evidence/type-level-probes.md` holds VP-5 probes R1 to
+  R9, n1 to n5, f2 to f4, and v1 to v2, under the non-vacuity rule.
+- Requirements and gaps: the evidence base for D2 and D8.
+- Acceptance evidence: every probe's key diagnostic is recorded at its
+  named site; `make all` exits 0.
+- Conformance check:
+  - scratch-only sources;
+  - no committed fixtures.
 - Recovery: revert.
-- Remaining gaps: fixtures (1.2.3), adapter conversion tests (1.3.1), and
-  proofs of LC-1 to LC-4 (1.2.3 or 1.3.1, subject to FX-1). Compatibility
+- Remaining gaps: committed fixtures, in 1.2.2 and 1.2.3. Compatibility
   decision: none.
 
-EP-M6, shared work, closure, and recovery contract (task 1.1.5).
+EP-M5: structural dependency environments (task 1.1.3).
 
-- Outcome: `docs/adr-007-shared-work-lifecycle-contract.md`, status
-  `proposed`, becoming `candidate` on acceptance. Its content:
-  - Answers to trigger, owner, cancellation, handoff, and recovery for
-    the two-consumer slice, in the design §2.4 table form.
-  - The three cancellation contracts of design §6.2.
-  - The lifecycle model, invariants, exact-effect clauses, lemma
-    statements, axioms, and trusted base from this plan. All of it is
-    labelled specified and unverified.
-  - The named observable transitions T-1 onwards, one per event and
-    phase pair, each with the observation that establishes it (readiness
-    event, command emitted, report delivered).
-  - Joined close attempts and release receipts. Unresolved generations
-    with retained original pending cleanup. A live owner registry,
-    independent of diagnostics, with acknowledged transfer.
-  - Host-exit limits: in-memory retention ends with the host, the host
-    must report unresolved owners at exit, and no durable recovery is
-    claimed.
-  - Representation guidance for verifiability: a pure reducer in core, a
-    record payload on every variant constructor, bounded integer
-    counters, no `result` in contracted signatures, and arrays rather than
-    maps.
-  - The forward E9 scenario mapping and ablation list for 1.3.3 to 1.3.5.
-  - What it deliberately excludes: platform APIs, a general supervisor,
-    process management, and graph memoization.
-- Requirements and gaps: roadmap 1.1.5; D9 (seam chosen: a core owner
-  registry, with the supervisor seam deferred); D10 (strict FIFO not promised);
-  G3; A6; Q6; Q7.
-- Acceptance evidence: ADR text reviewed against design §§2.4, 5, and 6
-  with no contradiction, and `make all` exit 0.
-- Conformance check: no platform import, no supervisor framework, and no
-  liveness claim.
+- Outcome: `docs/adr-005-structural-dependency-environments.md` decides the
+  following.
+  - Primavera-style capability objects (open object rows of service
+    records) are preferred.
+  - Explicit projection is the sound fallback, and the default for named
+    environments.
+  - Every open-row export is a function, whether accessor or workflow.
+  - `Fx.t` uses a Reader-over-IO representation, so the compiler derives
+    `-'r`. Remaining declared variance is trusted (AXIOM-8).
+  - Field-key ownership: each key is owned by the module that defines its
+    service type. Conflicts are composition errors.
+  - Every service declares its construction inputs, invocation
+    requirements, lifetime owner, and snapshot-versus-live observation.
+- An "annotation-level cast" is defined as any of: `Obj.magic`,
+  `%identity`, `%raw`, a polymorphic `external`, or a consumer-side `:>`
+  applied to a requirement row.
+- Rejection criterion for automatic requirement accumulation. Assume the
+  pinned compiler, function exports, and separate `.res` and `.resi` modules.
+  Accumulation is rejected, refex adopts explicit projection everywhere, and
+  open-row accessors are removed, if fixtures in 1.2.2 show any of the
+  following:
+  1. A composed workflow cannot receive the union row without an
+     annotation-level cast.
+  2. A missing field is not rejected at the `provide` argument.
+  3. A conflicting field is not rejected at the composition expression.
+  4. An environment with an extra field is rejected by an open-row
+     requirement.
+  5. An unresolved requirement reaches a runner.
+- Requirements and gaps: roadmap 1.1.3; D2; G1 and G4; A2.
+- Acceptance evidence: every claim cites a VP-5 probe; `make all` exits
+  0.
+- Conformance check:
+  - the snapshot-versus-live rule of design §3.2 is preserved;
+  - nothing is committed to `src`.
 - Recovery: revert.
-- Remaining gaps: representation guidance is provisional until EP-M7.
+- Remaining gaps: fixtures, in 1.2.2. Compatibility decision: none.
+
+EP-M6: complete outcomes (task 1.1.4).
+
+- Outcome: `docs/adr-006-complete-outcomes.md` decides the following.
+  - Expected errors use ordinary closed variants by default. Open
+    polymorphic variants are optional and shown by R9.
+  - The infallible channel is an abstract `Never.t`. Its implementation is
+    `{absurd: 'a. 'a}`, and `absurd` is `(_: t) => panic(...)`. Its claim
+    is "no closed, terminating, cast-free term outside `Never.res`". It is
+    never `unit`. A foreign rejection inside `Fx<_, Never.t, _>` becomes a
+    `Defect` (an obligation on 1.3.1).
+  - refex owns its cause tree, per the Cause model above. It builds
+    structure at its own composition points, subject to P7, or records a
+    narrowing of design §4.1 as a deviation.
+  - Backend causes convert through a total, reason-preserving adapter
+    conversion.
+  - `mapError` maps expected leaves only. A mapper that throws yields a
+    mapping defect plus `Provenance`.
+  - The recovery-family constraint (LC-6) applies to `catchError`, `match`,
+    `result`, and `Direct.result`.
+  - `runExit` returns the complete outcome. A lossy promise projection
+    keeps the cause only as untyped provenance or a runner-held handle.
+    Typed access goes only through `runExit`.
+  - The native-await boundary: `Direct.result` passes mixed causes through
+    the scope, foreign rejection signals become defects, and there is no
+    typed rejection channel.
+  - An anticipated inability to release is a release issue. An unexpected
+    exception in cleanup is a defect with release context. Neither drops
+    simultaneous reasons.
+  - Release-issue fields are owner, generation, attempt, phase, observed
+    condition, and remaining obligation. The final payload stays open
+    under D8 until E3 and E9.
+  - LC-1 to LC-6 are recorded as specified, unverified obligations.
+- Requirements and gaps: roadmap 1.1.4, including the native-await
+  sub-box; D8, partially; the Direct boundary of D3; G2.
+- Acceptance evidence: every claim cites a VP-4 or VP-5 probe, or names the
+  task that will supply evidence; `make all` exits 0.
+- Conformance check:
+  - no conversion erases simultaneous reasons;
+  - no conversion casts to an unrelated error type;
+  - release failures are not all classified as defects;
+  - any narrowing of §4.1 is recorded as a deviation.
+- Recovery: revert.
+- Remaining gaps:
+  - fixtures, in 1.2.3;
+  - adapter conversion tests, in 1.3.1;
+  - Direct experiments, in 1.4;
+  - proofs or enumeration of LC-1 to LC-4, depending on FX-1.
+- Compatibility decision: none.
+
+EP-M7: shared work, closure, and recovery contract (task 1.1.5).
+
+- Outcome: `docs/adr-007-shared-work-lifecycle-contract.md`, with status
+  `proposed`, becoming `candidate` on acceptance. It contains:
+  - answers to the five questions (trigger, owner, cancellation, handoff,
+    and recovery) for the two-consumer slice, in the table form of design
+    §2.4;
+  - the three cancellation contracts of design §6.2;
+  - the complete lifecycle model, invariants, progress clauses, lemmas,
+    axioms, and trusted base from this plan, all labelled specified and
+    unverified;
+  - named observable transitions T-1 onwards, one for each event and phase
+    pair, each with the observation that establishes it: a readiness
+    event, an emitted command, or a delivered report;
+  - joined close attempts and release receipts;
+  - unresolved generations that keep their original pending cleanup;
+  - a live owner registry, independent of diagnostics, with acknowledged
+    transfer;
+  - lease revocation on owner close, with the rejected alternative
+    recorded;
+  - the successor isolation path, and the accepted downside of stuck
+    generations;
+  - host-exit limits:
+    - in-memory retention ends with the host;
+    - the host must report unresolved owners at exit;
+    - no durable recovery is claimed;
+  - provisional representation guidance:
+    - a pure reducer in core;
+    - a record payload on every variant constructor;
+    - bounded `int` counters with the bound in `config`;
+    - no `result` in contracted signatures;
+    - arrays rather than maps;
+  - the forward E9 scenario mapping and ablation list for 1.3.3 to 1.3.5;
+  - the bounded-enumeration gate definition;
+  - deliberate exclusions: platform APIs, a general supervisor, process
+    management, and graph memoization.
+- Requirements and gaps:
+  - roadmap 1.1.5;
+  - D9: the seam chosen is a core owner registry, with the supervisor seam
+    deferred;
+  - D10: strict FIFO is not promised, and publication is atomic per
+    INV-12;
+  - G3; A6; Q6 and Q7.
+- Acceptance evidence: the ADR reviewed against design §§2.4, 5, and 6 with
+  no unresolved contradiction; `make all` exits 0.
+- Conformance check:
+  - no platform import;
+  - no supervisor framework;
+  - no liveness claim;
+  - no use of "proved" or "verified" about refex.
+- Recovery: revert.
+- Remaining gaps: the representation guidance stays provisional until
+  EP-M8. Compatibility decision: none.
+
+EP-M8: tool-capability feasibility (FX-1, a prototyping milestone).
+
+- Outcome:
+  - `docs/evidence/verification-feasibility.md` records the verdict for
+    each feature and each obligation.
+  - ADR 007, and ADR 006 where relevant, are updated with the verdict's
+    consequences:
+    - accept: the lifecycle reducer is selected, and the proof gate is
+      specified for 1.3.3;
+    - revise: binding representation changes;
+    - reject: the selection is withdrawn, and an assurance change is
+      proposed for the owner.
+- Requirements and gaps: proof selection for K-8 and K-12.
+- Acceptance evidence: fail-closed checks pass or fail with recorded
+  reasons; per-obligation outcomes and the mutant table are recorded;
+  `make all` exits 0 after the documentation update.
+- Conformance check:
+  - nothing from scratch is committed except the evidence record;
+  - no `assume`, axiom, `//@ extern`, or hand-edited verification unit was
+    used, and a need for one forces a revise or reject verdict;
+  - the evidence record carries its closing disclaimer.
+- Recovery: scratch work is disposable, and can be recreated from the
+  recorded commands.
+- Remaining gaps: the committed proof gate belongs to the 1.3.3 plan.
   Compatibility decision: none.
 
-EP-M7, verification feasibility (FX-1, prototyping milestone).
+EP-M9: integration and expert review.
 
-- Outcome: `docs/evidence/verification-feasibility.md` records the FX-1
-  verdict. ADR 007 and ADR 006 are updated with the verdict's consequences:
-  accept (proof gate planned for 1.3.3, with its exact command shape), revise
-  (binding representation changes), or reject (gate kept open, missing
-  capability named, downgrade proposed for owner acceptance).
-- Requirements and gaps: proof-obligation selection for K-5 and K-7.
-- Acceptance evidence: the recorded per-obligation outcomes, the mutant
-  table, the audit result, and wall times. `make all` exit 0 after the
-  documentation update.
-- Conformance check: nothing from the scratch directory is committed except
-  the Markdown evidence record; no proof shortcut (`assume`, `//@ extern`,
-  axioms, or hand-edited verification units) was used. If one was needed, the
-  verdict is revise or reject, not accept.
-- Recovery: the scratch directory is disposable; delete and recreate from
-  the recorded commands.
-- Remaining gaps: the committed proof gate, with its own `make` target
-  proposal, belongs to the plan for 1.3.3. Compatibility decision: none.
-
-EP-M8, integration and review.
-
-- Outcome: cross-document updates (listed under `Concrete steps`) and the
-  expert review panel's findings over ADRs 004 to 007, either resolved or
+- Outcome: the cross-document updates listed under `Concrete steps` are
+  made. The expert panel's findings on ADRs 004 to 007 are resolved or
   recorded. A pull request comment asks the owner to accept each ADR.
-- Acceptance evidence: review synthesis recorded in `Decision log`, and
-  `make all` exit 0.
+- Requirements and gaps: the documentation requirements of the task (the
+  source register, guides, layout, and contents).
+- Acceptance evidence: the review synthesis is recorded in
+  `Decision log`; `make all` exits 0 before each integration commit.
+- Conformance check:
+  - every document change is traceable to an ADR or an evidence record;
+  - `docs/users-guide.md`, `README.md`, and `CHANGELOG.md` are unchanged;
+  - the source register follows the `- **Cn:** …` format;
+  - no section is renumbered;
+  - no dependency change.
 - Recovery: revert individual integration commits.
+- Remaining gaps: owner acceptance. Compatibility decision: none.
 
-EP-M9, closure.
+EP-M10: closure.
 
-- Outcome: after owner acceptance, ADR status lines are updated. ADR 002
-  gains one line noting the conditional amendment by ADR 004 (only if ADR 004
-  is accepted). Roadmap tasks 1.1.1 to 1.1.5 and their sub-boxes are ticked.
-  The roadmap's "All boxes remain unchecked" sentence and the matching
-  `docs/contents.md` sentence are amended to say that ticked specification
-  tasks are not implementation or verification evidence.
-  `Outcomes & retrospective` is completed and the status set to `COMPLETE`.
-- Acceptance evidence: documentation contract green with final statuses;
-  `make all` exit 0; PR updated.
+- Outcome: after the owner accepts:
+  - the ADR status lines are updated;
+  - if ADR 004 is accepted, ADR 002 gains an `## Amendments` section that
+    cites ADR 004's conditioned clauses;
+  - roadmap tasks 1.1.1 to 1.1.5 and their sub-boxes are ticked;
+  - the sentences about checkbox completion in `docs/roadmap.md`,
+    `docs/contents.md`, and `docs/context.md` §1 now state that ticking a
+    specification task is not evidence of implementation or verification;
+  - `Outcomes & retrospective` is completed, and the status set to
+    `COMPLETE`.
+- Requirements and gaps: C-11.
+- Acceptance evidence: the documentation contract passes with the final
+  statuses; `make all` exits 0; `make audit` runs once and its result is
+  recorded; the PR is updated.
+- Conformance check:
+  - every acceptance link is recorded;
+  - no upstream deviation is left unrecorded;
+  - the trace chains are current.
+- Recovery: revert the closure commit. It is purely textual.
+- Remaining gaps: none for 1.1. Compatibility decision: none.
 
 ## Concrete steps
 
-Run everything from the worktree root,
-`/home/leynos/.lody/repos/github---leynos---refex/worktrees/4c10984f-2c00-4e9b-9d17-f7a799adc218`
-(any checkout of the branch works). Every shell needs the pinned Bun first:
+Run everything from the worktree root. Any checkout of the branch works. The
+worktree used during planning is:
+
+```plaintext
+/home/leynos/.lody/repos/github---leynos---refex/worktrees/4c10984f-2c00-4e9b-9d17-f7a799adc218
+```
+
+Every shell needs the pinned Bun first:
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"
@@ -1125,127 +1865,180 @@ bun --version   # expect 1.4.2
 make install    # expect "81 packages installed" or "no changes"
 ```
 
-If `$HOME/.local/share/bun-versions/1.4.2/bin/bun` is missing, download
-`bun-linux-x64.zip` and `SHASUMS256.txt` from the `bun-v1.4.2` GitHub release
-into that directory, verify with
-`grep ' bun-linux-x64.zip$' SHASUMS256.txt | sha256sum -c -`, unzip, and move
-`bun-linux-x64/bun` to `bin/bun`. Never upgrade the global Bun.
+If `$HOME/.local/share/bun-versions/1.4.2/bin/bun` is missing:
 
-Gates run through the `scrutineer` sub-agent, sequentially, with output teed to
-`/tmp/$ACTION-refex-1-1-freeze-validator-hypotheses.out`. Do not run gates in
-parallel. Read the cited log rather than re-running a failed gate.
+1. Download `bun-linux-x64.zip` and `SHASUMS256.txt` from the `bun-v1.4.2`
+   GitHub release into that directory.
+2. Verify the archive with
+   `grep ' bun-linux-x64.zip$' SHASUMS256.txt | sha256sum -c -`.
+3. Unzip it, and move `bun-linux-x64/bun` to `bin/bun`.
+
+Never upgrade the global Bun.
+
+The `scrutineer` sub-agent runs every gate, sequentially, and tees output to
+`/tmp/<action>-refex-1-1-freeze-validator-hypotheses.out`. Do not run gates in
+parallel. When a gate fails, read the cited log rather than re-running it.
+
+Before each commit:
+
+1. Stage the intended files with `git add <paths>`.
+2. Have scrutineer run `make all`.
+3. Commit only when it exits 0.
 
 EP-M1 steps:
 
-1. Write `tests/documentation-contracts.test.mjs` with a module doc comment
-   in the style of `tests/markdown-contracts.test.mjs`, the private helper
+1. Write `tests/documentation-contracts.test.mjs`. Give it a module doc
+   comment in the style of `tests/markdown-contracts.test.mjs`, the private
    `adrIndexContract`, one positive test, and a `test.each` table of the four
-   negative controls from VP-1. Add a fifth test asserting that the `Makefile`
-   `test` target names this file.
-2. Add `./tests/documentation-contracts.test.mjs` to the `Makefile` `test`
-   file list, keeping alphabetical order with the other contract suites.
-3. Red: create a temporary `docs/adr-004-stub.md` containing
+   VP-1 negative controls.
+2. Add a test to `tests/makefile-contracts.test.mjs` with an inline helper
+   `testTargetListsEverySuite(makefileText, testFiles)`, a positive test over
+   `readdirSync("tests")`, and the VP-2 negative control.
+3. Red, part one: run
+   `bun test ./tests/makefile-contracts.test.mjs`. Expect one failure naming
+   `tests/documentation-contracts.test.mjs`.
+4. Add `./tests/documentation-contracts.test.mjs` to the `Makefile` `test`
+   list, in alphabetical order among the contract suites.
+5. Red, part two: create `docs/adr-004-stub.md` containing
    `# ADR 004: stub` and `Status: proposed.`, then run
    `bun test ./tests/documentation-contracts.test.mjs`. Expect one failure
-   whose message names `docs/adr-004-stub.md` as missing from
-   `docs/contents.md`. Delete the stub.
-4. Green: rerun; expect all tests to pass. Then have scrutineer run
-   `make all`. Commit: "Guard the ADR index and status vocabulary".
+   naming the stub. Delete the stub.
+6. Green: rerun both suites, and expect them to pass.
+7. Gate, then commit: "Guard the ADR index and test registration".
+8. Update `docs/developers-guide.md` and `docs/repository-layout.md` to
+   list the new suite, and to explain why its helper is private. Gate, then
+   commit: "Document the documentation contract suite".
 
 EP-M2 steps:
 
-1. Write `docs/design-brief.md` following the skeleton under
+1. Write `docs/design-brief.md`, following the skeleton under
    `Interfaces and dependencies`.
-2. Add the six glossary entries to `docs/context.md` §2 in the subsections
-   where the neighbouring terms live, and add one link sentence to
-   `docs/design.md` §1.
-3. Add the brief to `docs/contents.md` under "Product intent and design".
-4. Run VP-2: dispatch a `wyvern` sub-agent to extract capabilities from
-   design §9 and roadmap phases 2 to 4 without reading the brief, then diff the
-   two lists. Record the result as EV-BRIEF.
-5. Run `make fmt` (it rewrites only Markdown here; inspect `git diff`), then
-   scrutineer `make all`. Commit: "Add the refex design brief and capability
-   map (1.1.1)".
+2. Add the six glossary entries to `docs/context.md` §2, next to related
+   terms. Add one sentence linking the brief to `docs/design.md` §1.
+3. Add the brief to `docs/contents.md`, under "Product intent and design".
+4. Run VP-3, and record EV-BRIEF.
+5. Run `make fmt`, then inspect `git diff` and confirm that only Markdown
+   was rewrapped.
+6. Gate, then commit: "Add the refex design brief and capability map
+   (1.1.1)".
 
 EP-M3 steps:
 
-1. Re-query the registry for `effect` and `@reventlessdev/rescript-effect`
-   and record versions, publish times, and integrity hashes. Pick the newest
-   Effect 4.0.x patch as the candidate pin, and record the time of the check.
-2. In `/tmp/refex-audit/effect-4/` and `/tmp/refex-audit/effect-3/`, create
-   a minimal `package.json`, run `bun add effect@<exact> --exact`, and write
-   probes P1 to P6 with their controls (VP-3). Run each with
-   `bun probe-p<N>.mjs` and capture the JSON line.
-3. Unpack the bindings archive into `/tmp/refex-audit/reventless/` (an
-   empty directory, never executed) and complete the static audit table: module
-   coverage against what 1.3.1 needs, every signature with a free type variable
-   in a result position, every `%identity` and `Obj.magic`, and the dependency
-   graph.
-4. Write `docs/evidence/runtime-boundary-audit.md`. Commit: "Record the
-   runtime boundary audit evidence (1.1.2)".
-5. Write `docs/adr-004-runtime-boundary.md` and add it to
-   `docs/contents.md`. Scrutineer `make all`. Commit: "Propose the provisional
-   runtime boundary (1.1.2)".
+1. Re-query the registry for `effect` and `@reventlessdev/rescript-effect`.
+   Record the versions, publish times, integrity hashes, and the time of the
+   check.
+2. In each of `$HOME/scratch/refex-1-1/audit/effect-4/` and
+   `$HOME/scratch/refex-1-1/audit/effect-3/`:
+   1. Write a minimal `package.json`.
+   2. Run `bun add --exact effect@<version>`.
+   3. Write probes P1 to P7 with their controls.
+   4. Run each probe with `bun probe-p<N>.mjs`, and capture its JSON line.
+3. Unpack the Reventless archive into an empty directory,
+   `$HOME/scratch/refex-1-1/audit/reventless/`. Never execute it. Complete the
+   static audit table.
+4. Write `docs/evidence/runtime-boundary-audit.md`. Gate, then commit:
+   "Record the runtime boundary audit evidence (1.1.2)".
+5. Write `docs/adr-004-runtime-boundary.md`, and list it in
+   `docs/contents.md` under the heading "Proposed decisions, evidence, and
+   plans", which was added with this plan. Gate, then commit: "Propose the
+   provisional runtime boundary (1.1.2)".
 
-EP-M4 and EP-M5 steps follow the same pattern. Build a scratch project under
-`/tmp/refex-probes/<name>/` with a `rescript.json` matching the repository's
-warning policy, and run `<worktree>/node_modules/.bin/rescript build`. Capture
-each diagnostic's key line, write the evidence record, commit it, then write
-the ADR, add it to contents, run the gates, and commit. Use the commit subjects
-"Record structural environment probes (1.1.3)", "Propose structural dependency
-environments (1.1.3)", "Record complete outcome probes (1.1.4)", and "Propose
-complete outcome semantics (1.1.4)".
+EP-M4 to EP-M6 steps:
 
-EP-M6 steps: write ADR 007, add it to contents, run the gates, and commit
+1. Build a scratch project under `$HOME/scratch/refex-1-1/probes/<name>/`,
+   with a `rescript.json` that matches the repository's warning policy.
+2. Compile with `<worktree>/node_modules/.bin/rescript build`.
+3. Capture the key line of each diagnostic.
+4. Write `docs/evidence/type-level-probes.md`. Gate, then commit: "Record
+   type-level probe evidence (1.1.3, 1.1.4)".
+5. Write ADR 005, and list it in contents. Gate, then commit: "Propose
+   structural dependency environments (1.1.3)".
+6. Write ADR 006, and list it in contents. Gate, then commit: "Propose
+   complete outcome semantics (1.1.4)".
+
+EP-M7 steps: write ADR 007, and list it in contents. Gate, then commit:
 "Propose the shared work lifecycle contract (1.1.5)".
-
-EP-M7 steps: create `/tmp/refex-fx1/`, install the pins listed under FX-1,
-write the toy modules, contracts, and mutant catalogue, and run the FX-1
-commands. Write the evidence record and update ADRs 006 and 007. Run the gates,
-then commit "Record the verification feasibility verdict (1.1.5)".
 
 EP-M8 steps:
 
-1. Update `docs/design.md`. Add links from §2.2 and §2.3 to ADR 004, from
-   §3.2 to ADR 005, from §4 to ADR 006, and from §2.4 and §5.2 to ADR 007. Mark
-   D1 provisional (ADR 004), D2 decided pending E1 (ADR 005), D8 partially
-   decided (ADR 006), and D9 and D10 partially decided (ADR 007). Update the
-   status line's revision date.
-2. Update `docs/context.md`. Add source register entries after `C12`: the
-   bindings at the audited version and integrity, Effect at the probed versions
-   and integrity, Primavera at a pinned commit (latest seen at planning time:
-   `e468f2aad98384818ff861cc8ceb790bd5a766ed`), LemmaScript, Dafny, and Z3 at
-   the FX-1 versions, and fast-check 4.10.2 as a planned development dependency
-   for 1.3.x. Update the crosswalk's delivery column to cite ADRs 004 to 007.
-3. Update `docs/terms-of-reference.md` only to link Q6 and Q7 to ADR 007 and
-   to record any falsified assumption. Without a falsified assumption, make no
-   other change.
-4. Update `docs/users-guide.md` with one sentence saying the ADRs describe
-   proposed behaviour and nothing new is installable.
-5. Update `docs/developers-guide.md` with: the ADR status vocabulary and
-   amendment rule, evidence records under `docs/evidence/` and their fields,
-   `docs/execplans/`, and a note that proof tooling is evaluated by scratch
-   feasibility experiments until an approved plan adds a gate.
-6. Update `docs/repository-layout.md` with rows for product ADRs,
+1. Prepare `$HOME/scratch/refex-1-1/fx1/` with the FX-1 pins.
+2. Unzip Z3 into `$HOME/scratch/refex-1-1/z3/`, after verifying its
+   SHA-256.
+3. Copy the three bridge scripts, and verify their SHA-256 values.
+4. Write the toy modules, contracts, mutant catalogue, and
+   `fail-closed.mjs`.
+5. Run the FX-1 commands.
+6. Write the evidence record, and update ADRs 006 and 007.
+7. Gate, then commit: "Record the verification feasibility verdict
+   (1.1.5)".
+
+EP-M9 steps. Gate before each commit, and commit each step separately:
+
+1. Update `docs/design.md`:
+   - add links from §2.2 and §2.3 to ADR 004, from §3.2 to ADR 005, from
+     §4 and §7 to ADR 006, and from §2.4 and §5.2 to ADR 007;
+   - mark D1 as provisional (ADR 004), D2 as decided pending E1 (ADR 005),
+     D8 as partially decided (ADR 006), and D9 and D10 as partially
+     decided (ADR 007);
+   - record any deviation in §4.1;
+   - update the revision date in the status line.
+2. Update `docs/context.md`:
+   - Under a new lead-in, `Sources inspected on <date>:`, add `- **C13:**`
+     onwards, using reference-style link definitions:
+     - the bindings, at the audited version and integrity;
+     - Effect, at the probed versions and integrity;
+     - Primavera at commit
+       `e468f2aad98384818ff861cc8ceb790bd5a766ed`;
+     - LemmaScript, Dafny, and Z3, at the FX-1 versions;
+     - fast-check 4.10.2, as a planned development dependency for 1.3.x.
+   - Amend C5, which currently says there is "no … selected dependency".
+   - Update the crosswalk's delivery column to cite ADRs 004 to 007.
+3. Update `docs/terms-of-reference.md` only to link Q6 and Q7 to ADR 007,
+   and to record any falsified assumption.
+4. Update `docs/developers-guide.md` with:
+   - the ADR status vocabulary;
+   - the amendment rule;
+   - a table that maps ADR statuses, context evidence labels, and
+     capability statuses to one another;
+   - a description of evidence records and their fields;
+   - a description of `docs/execplans/`;
+   - a note that proof tooling is evaluated in scratch feasibility
+     experiments until an approved plan adds a gate.
+5. Update `docs/repository-layout.md` with rows for product ADRs,
    `docs/evidence/`, and `docs/execplans/`.
-7. Update `CHANGELOG.md` `Unreleased` with one bullet for the documented
-   hypotheses and runtime-trial authorization.
-8. Run the expert panel (see `Validation and acceptance`), revise, run the
-   gates, and commit each logical update separately.
+6. Index `docs/evidence/` and `docs/execplans/` in `docs/contents.md`.
+7. Run the expert panel (see `Validation and acceptance`), revise as
+   needed, gate, and commit.
+8. Push the branch, and post the acceptance request as a PR comment.
 
-EP-M9 steps: after the owner's acceptance comment, update the status lines, the
-ADR 002 amendment note, the roadmap ticks, and the two sentences. Run the
-gates, commit "Mark roadmap step 1.1 delivered", and push.
+EP-M10 steps: after the owner's acceptance comment:
 
-Push procedure (all milestones), after checking the SSH identity with
-`/usr/bin/ssh -T git@github.com`:
+1. Update the status lines.
+2. Add ADR 002's `## Amendments` section, if ADR 004 is accepted.
+3. Tick the roadmap boxes.
+4. Amend the three sentences about checkbox completion.
+5. Run `make audit` through scrutineer.
+6. Gate, then commit: "Mark roadmap step 1.1 delivered".
+7. Push.
+
+Push procedure, for every push. Use a clean environment, as the user's global
+instructions describe:
+
+- unset `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_SSH`, `GIT_SSH_COMMAND`, and all
+  `GIT_CONFIG_*` variables;
+- set `GIT_SSH_COMMAND=/usr/bin/ssh`.
+
+Then:
 
 ```sh
+/usr/bin/ssh -T git@github.com    # expect "Hi leynos!"
 GIT_SSH_COMMAND=/usr/bin/ssh /usr/bin/git push git@github.com:leynos/refex.git \
   HEAD:refs/heads/1-1-freeze-validator-hypotheses
 GIT_SSH_COMMAND=/usr/bin/ssh /usr/bin/git fetch git@github.com:leynos/refex.git \
   "+refs/heads/1-1-freeze-validator-hypotheses:refs/remotes/origin/1-1-freeze-validator-hypotheses"
 /usr/bin/git branch --set-upstream-to=origin/1-1-freeze-validator-hypotheses
+GIT_SSH_COMMAND=/usr/bin/ssh /usr/bin/git ls-remote git@github.com:leynos/refex.git \
+  refs/heads/1-1-freeze-validator-hypotheses   # must equal: git rev-parse HEAD
 ```
 
 ## Validation and acceptance
@@ -1253,49 +2046,65 @@ GIT_SSH_COMMAND=/usr/bin/ssh /usr/bin/git fetch git@github.com:leynos/refex.git 
 Quality criteria:
 
 - Tests: `make test` passes and lists
-  `tests/documentation-contracts.test.mjs`. The suite failed in the red step
-  for the stated reason.
-- Verification: VP-1 to VP-5 discharged with their non-vacuity evidence.
-  FX-1 has a recorded verdict with per-obligation outcomes. Every lemma remains
-  marked specified and unverified.
-- Lint, format, docs, spelling, and package: `make all` exits 0 after each
-  milestone. `make check-fmt`, `make lint`, and `make test` are part of it.
-- Security: `make audit` runs once at EP-M9 and its result is recorded. No
-  dependency changes, so no new advisory is expected.
+  `tests/documentation-contracts.test.mjs`. Both new contracts failed in their
+  red steps for the stated reasons.
+- Verification:
+  - VP-1 to VP-5 are discharged, with their non-vacuity evidence.
+  - FX-1 has a recorded fail-closed verdict, with per-feature and
+    per-obligation outcomes.
+  - Every lemma remains marked specified and unverified.
+- Lint, format, docs, spelling, and package: `make all` exits 0 before
+  every commit. `make check-fmt`, `make lint`, and `make test` run within it.
+- Security: `make audit` runs once at EP-M10, and its result is recorded.
+  No dependency changes, so no new advisory is expected.
 
-Expert review panel (EP-M8): run `logisphere-design-review` with one sub-agent
-per lens. Telefono (contracts and types) reviews ADRs 005 and
-006. Doggylump (failure modes and pre-mortem) reviews ADR 007 and the
-verification claims. Pandalump and Dinolump (coherence, long-term health, and
-process) review ADR 004 and the integration. Wafflecat (alternatives) reviews
-backend choice and verification-technique alternatives, such as TLA+ or Quint
-models against the LemmaScript route. Accept no 🔴 finding unresolved. Record
-each 🟡 finding as resolved or as a risk.
+Expert review panel (EP-M9): run `logisphere-design-review`, with one sub-agent
+per lens:
 
-Acceptance is behavioural. A reviewer can open `docs/contents.md` and reach the
-brief and four ADRs. Each ADR shows a Y-statement, a status from the
-vocabulary, falsifiers tied to roadmap tasks, and links to evidence records
-whose commands reproduce the recorded observations. Running
-`bun test ./tests/documentation-contracts.test.mjs` passes. Appending an
-unlisted `docs/adr-099-x.md` with `Status: proposed.` makes it fail.
+- Telefono, contracts and types, reviews ADRs 005 and 006.
+- Doggylump, failure modes and pre-mortem, reviews ADR 007 and the
+  verification claims.
+- Pandalump and Dinolump, coherence, long-term health, and process, review
+  ADR 004 and the integration.
+- Wafflecat and Buzzy Bee, alternatives and cost, review the backend
+  choice and FX-1.
+
+No blocker may remain unresolved. Record every concern as either resolved or a
+risk.
+
+Acceptance is behavioural:
+
+- A reviewer can open `docs/contents.md` and reach the brief and all four
+  ADRs.
+- Each ADR shows a Y-statement, a status from the vocabulary, falsifiers
+  tied to roadmap tasks, and links to evidence records whose commands reproduce
+  the recorded observations.
+- `bun test ./tests/documentation-contracts.test.mjs` passes. Adding an
+  unlisted `docs/adr-099-x.md` with `Status: proposed.` makes it fail.
+- Adding an empty `tests/x.test.mjs` without listing it makes
+  `tests/makefile-contracts.test.mjs` fail.
 
 ## Idempotence and recovery
 
-All probe and FX-1 work happens in `/tmp/refex-audit/`, `/tmp/refex-probes/`,
-and `/tmp/refex-fx1/`. These directories are disposable; delete and recreate
-them from the recorded commands. No repository step is destructive. Each
-milestone is one or two commits and can be reverted independently, except that
-EP-M9 depends on EP-M3 to EP-M8. `make install` with the frozen lockfile is
-idempotent. If a push fails, rerun it. If the explicit-URL push leaves the
-tracking ref stale, rerun the fetch with the `+` refspec.
+All probe and FX-1 work happens under `$HOME/scratch/refex-1-1/`. Those
+directories are disposable, and can be deleted and recreated from the recorded
+commands.
+
+No repository step is destructive. Each milestone is one or two commits, and
+can be reverted independently, except that EP-M10 depends on EP-M3 to EP-M9.
+`make install` with the frozen lockfile is idempotent.
+
+If a push fails, rerun it. If the explicit-URL push leaves the tracking ref
+stale, rerun the fetch with the `+` refspec.
 
 ## Artefacts and notes
 
-Planning-time probe transcripts. These are source evidence for drafting the
-ADRs, and the implementer reruns them in EP-M4 and EP-M5. Scratch project
-`/tmp/refex-probes/rows/` used a toy
-`Fx.t<+'a, +'e, -'r> = 'r => result<'a, 'e>` with `Clock` and `Log` accessor
-modules, each with a `.resi`.
+The following planning-time probe transcripts are source evidence for drafting
+the ADRs. The implementer reruns them, and extends them, in EP-M4.
+
+The scratch project for rows used a toy
+`Fx.t<+'a, +'e, -'r> = 'r => result<'a, 'e>`, with `Clock` and `Log` accessor
+modules, each with a `.resi`:
 
 ```plaintext
 == positive: Clock.now: unit => Fx.t<int, 'e, {.."clock": service}> and Log.write composed in Workflow
@@ -1310,14 +2119,14 @@ is not included in
 let now: Fx.t<int, 'e, {.."clock": service}>
 ```
 
-Scratch project `/tmp/refex-probes/never/`:
+Scratch project for the uninhabited channel:
 
 ```plaintext
 == type never = |
 Syntax error!
 == Never.resi: type t; let absurd: t => 'a / Never.res: type t = {absurd: 'a. 'a}
 Compiled 2 modules
-== negative: let bad: result<int, Never.t> = Error(())
+== negative (weak control; see VP-5 n1-n5 for the replacements): Error(()) at Never.t
 This has type: unit
 But it's expected to have type: Never.t
 == negative: construct Never.t outside its module
@@ -1332,23 +2141,58 @@ Registry facts checked on 15 October 2026:
 effect latest 4.0.5 (2026-10-15), MIT, no dependencies, unpacked 51,489,523 bytes,
   integrity sha512-BY4/28NlpOd99yzmV741xbVGmp+1U7tks4oB7F/Png64bTa5tm5eCA6W0RiXsnuLDDoJpjfVSo4Dnq4BZb/89Q==
 effect 3.22.2 (2026-09-09), MIT, dependencies: fast-check ^3.23.1, @standard-schema/spec ^1.0.0
-fast-check latest 4.10.2; rescript-schema latest 9.5.1; sury latest 11.1.0-rc.0; lemmascript latest 0.6.4
+fast-check latest 4.10.2; rescript-schema latest 9.5.1; sury latest 11.1.0-rc.0
+lemmascript 0.6.4 (dependencies ts-morph ^25.0.0, lemmascript-claimcheck ^0.2.0; bin tools/dist/lsc.js)
+typescript latest 7.0.2, latest 5.x 5.9.3; bignumber.js latest 11.1.5
 Primavera main e468f2aad98384818ff861cc8ceb790bd5a766ed (2026-08-28), MIT
+Z3 4.12.1 x64-glibc-2.35 zip SHA-256 c5360fd157b0f861ec8780ba3e51e2197e9486798dc93cd878df69a4b0c2b7c5
 ```
 
-EV-BRIEF: to be recorded in EP-M2.
+The expert review of the first draft found the following.
+
+- Blockers raised:
+  - the lifecycle model had no acquisition phase;
+  - its lease rules contradicted INV-3;
+  - its progress clauses were weak enough that a refusing reducer
+    satisfied them;
+  - the counterexample for the result signature was specified incorrectly;
+  - the recovery constraint covered only `result`;
+  - native await was missing from 1.1.4;
+  - commits skipped gates;
+  - P7 was missing for Effect 4's flat cause.
+- Concerns raised:
+  - forgeability of `Never.t`;
+  - trust in declared variance;
+  - imprecision in the ADR 005 falsifier;
+  - the typing of promise provenance;
+  - ADR 002 clauses that ADR 004 must condition;
+  - bounds for the trial;
+  - registration of test files;
+  - stale sentences in the context document;
+  - the contents placement of new documents;
+  - the file-count tolerance;
+  - missing milestone fields;
+  - FX-1 commands, fail-closed rules, and size;
+  - missing matrix columns and rows;
+  - emoji;
+  - the scratch location.
+
+All are addressed in this revision. The `Decision log` entries dated 2026-10-15
+record each resolution.
+
+EV-BRIEF is to be recorded in EP-M2.
 
 ## Interfaces and dependencies
 
-No code interfaces are added. The documents below are the deliverables. Each
-skeleton is binding on structure, not on wording.
+No code interfaces are added. The deliverables are the documents and tests
+below, and each skeleton is binding on structure, not on wording.
 
 `docs/design-brief.md`:
 
 ```plaintext
 # refex design brief
 Status line (draft, date, authority: subordinate to design.md and ADRs)
-## Purpose and non-goals            (≤ 15 lines, links ToR §6)
+## Purpose and non-goals            (at most 15 lines, links ToR §6)
 ## Initial public abstractions      (Fx/IO, Layer, Resource, fibres, Schedule,
                                      deterministic time, React ownership,
                                      codecs via rescript-schema; each: promises,
@@ -1357,22 +2201,53 @@ Status line (draft, date, authority: subordinate to design.md and ADRs)
                                      native scheduler, transparent await, syntax transform;
                                      each with its phase 6 task)
 ## Validator capability map         (table: capability | validator | contract or delegate | status)
-## Status vocabulary                (Proposed, Delegated, Deferred, Open, Implemented)
+## Status vocabulary                (Proposed, Delegated, Deferred, Open, Implemented;
+                                     mapping to context §1 labels)
 ```
 
-The capability map must cover at least these 30 capabilities. Minesweeper: pure
-generation and solving, seeded randomness, paced lazy workflow, virtual-time
-pacing, pause and resume, reset and new-board replacement, React provider and
-hook, component-local work, shared solver producer with two views, last-lease
-teardown, recovery inspection, and Direct comparison. Roguelike: shared
-protocol types, schema codecs, world-state service, session store, injected
-clock and randomness, logging, scoped request workflow, admission with
-cancellation removal, command identity and deduplication, live versus snapshot
-configuration, typed transport, and React client. css-view: typed CLI planning,
-nested browser resources, walker capture, CDP connection and request
-correlation, listener-before- trigger readiness, process-command capability,
-transient open retry schedule, borrowed-session protection, and the
-differential oracle harness.
+The capability map must cover at least the following 33 capabilities.
+
+Minesweeper, 12 capabilities:
+
+- pure generation and solving;
+- seeded randomness;
+- a paced lazy workflow;
+- virtual-time pacing;
+- pause and resume;
+- reset and new-board replacement;
+- a React provider and hook;
+- component-local work;
+- a shared solver producer with two views;
+- last-lease teardown;
+- recovery inspection;
+- the Direct comparison.
+
+Roguelike, 12 capabilities:
+
+- shared protocol types;
+- schema codecs;
+- a world-state service;
+- a session store;
+- an injected clock and randomness;
+- logging;
+- a scoped request workflow;
+- admission with cancellation removal;
+- command identity and deduplication;
+- live versus snapshot configuration;
+- typed transport;
+- the React client.
+
+css-view, 9 capabilities:
+
+- typed CLI planning;
+- nested browser resources;
+- walker capture;
+- CDP connection and request correlation;
+- listener-before-trigger readiness;
+- a process-command capability;
+- the transient open-retry schedule;
+- borrowed-session protection;
+- the differential oracle harness.
 
 ADRs 004 to 007:
 
@@ -1382,17 +2257,24 @@ Status: proposed. Date: <day month year>.
 ## Context
 ## Decision            (opens with the Y-statement sentence)
 ## Alternatives considered
-## Falsifiers and evidence   (each falsifier -> roadmap task / experiment; evidence record links)
+## Falsifiers and evidence   (each falsifier -> roadmap task or experiment; evidence links)
 ## Consequences
 ## References
 ```
 
-ADR 007 additionally has `## Behavioural contract` (the five-question table and
-the three cancellation contracts), `## Lifecycle model` (states, events,
-commands, transitions T-1 onwards), `## Invariants and proof obligations` (INV,
-PR, L, and AXIOM lists, marked specified and unverified),
-`## Representation guidance`, and `## Host-exit limits`. ADR 006 additionally
-has `## Cause model and obligations`.
+ADR 007 also has these sections:
+
+- `## Behavioural contract`: the five-question table and the three
+  cancellation contracts.
+- `## Lifecycle model`: states, events, commands, and transitions T-1
+  onwards.
+- `## Invariants and proof obligations`: the INV, PR, L, and AXIOM lists,
+  marked specified and unverified, plus the enumeration gate.
+- `## Representation guidance`.
+- `## Host-exit limits`.
+
+ADR 006 also has `## Cause model and obligations` and
+`## Native-await and promise boundaries`.
 
 Evidence records under `docs/evidence/`:
 
@@ -1404,16 +2286,55 @@ Status line (source evidence, not refex conformance; date; pins)
 ## Procedure                (exact commands from an empty directory)
 ## Probes                   (each: source, control, transcript, verdict)
 ## Limits
-## Decision                 (accept / revise / reject and the ADR it informs)
+## Decision                 (accept, revise, or reject, and the ADR it informs)
 ```
 
-Planned (not added in this step) development dependencies, recorded for later
-plans: `fast-check` 4.10.2 (1.3.x property and scheduler tests) and a separate
-`tools/verification/` package with `lemmascript` 0.6.4, `typescript`, and
-`bignumber.js` at exact pins (1.3.3, subject to FX-1). Each needs its own
-approved plan and lockfile change.
+The test helpers are private to their suites:
+
+```js
+// tests/documentation-contracts.test.mjs
+function adrIndexContract(contentsMarkdown, adrFiles) {} // throws Error naming the offending path
+
+// tests/makefile-contracts.test.mjs
+function testTargetListsEverySuite(makefileText, testFiles) {} // throws Error naming the missing suite
+```
+
+The following development dependencies are planned for later plans and are not
+added in this step. Each needs its own approved plan and lockfile change.
+
+- `fast-check` 4.10.2, for property and scheduler tests in 1.3.x.
+- A separate `tools/verification/` package for 1.3.3, subject to FX-1,
+  with exact pins: `lemmascript` 0.6.4, `typescript` 5.9.3, and `bignumber.js`
+  11.1.5.
 
 ## Revision note
 
-2026-10-15: initial draft, written after reconnaissance, registry research, and
-planning-time compiler probes. Pending the community-of-experts review.
+- 2026-10-15, first revision: the initial draft, written after
+  reconnaissance, registry research, and planning-time compiler probes.
+- 2026-10-15, second revision, after the community-of-experts review.
+  Changes:
+  - The lifecycle model was rebuilt, adding acquisition, joiners,
+    revocation, isolation, authorization, INV-11 to INV-14, PR-7 to PR-13,
+    and the restated lemmas.
+  - Probe P7 was added, and the backend question was reframed as primitive
+    sufficiency across four combinations.
+  - The trial bounds and the conditioned ADR 002 clauses were made
+    explicit.
+  - The recovery-family constraint and the native-await boundary were
+    added.
+  - The uninhabited-channel claim was reworded, and the AXIOM-6 and
+    AXIOM-8 trust items were added.
+  - The type-level probe set was expanded under a strict non-vacuity rule.
+  - FX-1 was restated as a fail-closed tool-capability checklist, with
+    explicit pins and verdict rules.
+  - Bounded enumeration became the mandatory lifecycle gate.
+  - Gates now run before every commit.
+  - A test-registration contract was added.
+  - Scratch work moved out of `/tmp`.
+  - Emoji were removed.
+  - The CHANGELOG and user guide changes were dropped.
+  - The matrix gained the requested columns and rows.
+
+  The milestones were renumbered (EP-M4 split into probe and ADR milestones).
+  Implementation has not started, so no remaining work is affected beyond the
+  larger scope recorded under `Tolerances`.

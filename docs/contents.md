@@ -19,6 +19,11 @@ All roadmap tasks remain unchecked. Specified, implemented, consumer-exercised,
 and interpreter/platform-verified behaviour are separate facts. Lody's probes
 and documentation are source evidence, not refex conformance results.
 
+## Proposed decisions, evidence, and plans
+
+- [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):
+  the draft plan for freezing the validator hypotheses; awaiting approval.
+
 ## Implemented bootstrap and contribution
 
 - [User guide](users-guide.md): what is installable today, and what is not.
