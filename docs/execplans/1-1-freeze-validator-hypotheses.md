@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: IN PROGRESS
+Status: BLOCKED
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -233,13 +233,11 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   read the lockfile. The owner has since upgraded the global Bun to 1.4.3,
   which reads it (`bun install --frozen-lockfile --dry-run` succeeds).
   - Severity low; likelihood low for a patch-level difference.
-  - Mitigation: run local gates with the global Bun 1.4.3 and record
-    `bun --version` in every gate log and evidence record. Hosted CI, on
-    the pinned 1.4.2, is authoritative.
-  - If a local result might depend on the Bun version, rerun it under the
-    exact pin. A checksum-verified Bun 1.4.2 is kept at
-    `$HOME/.local/share/bun-versions/1.4.2/bin` for that purpose, and its
-    result takes precedence.
+  - Mitigation: `docs/developers-guide.md` requires "the pinned interpreter
+    for every gate". Every gate therefore runs under the checksum-verified
+    Bun 1.4.2 at `$HOME/.local/share/bun-versions/1.4.2/bin`, prepended to
+    `PATH`, and records `bun --version`. The global Bun is not used for
+    gates. Hosted CI, on the same pin, is authoritative.
   - Changing the repository's Bun pin is out of scope. It is a toolchain
     upgrade, not part of roadmap 1.1.
 - R-6. Readers confuse the ADR status, the context evidence labels, and the
@@ -325,6 +323,36 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - [x] (2026-10-17 01:00+02:00) EP-M2: design brief, glossary additions, and
   capability map (1.1.1). EV-BRIEF: 77 independently extracted capabilities all
   map to the 50 map rows.
+- [x] (2026-10-17 00:49+02:00) Stage B milestone CodeRabbit CLI review
+  (0.9.0, committed changes against `acee070`, 10 files). It completed with
+  four findings, all valid and all fixed:
+  - PR-7 conflicted with INV-14 for unauthorized callers. PR-7 is now
+    restricted to authorized requests.
+  - `docs/contents.md` still said the plan was awaiting approval.
+  - The two edited suites lacked `@file` headers, which the account-wide
+    review path instructions require.
+  - The registration check also counted a suite path that appeared only in
+    a recipe comment. It now reads only the `$(BUN) test` command, and a
+    comment-only negative control was added.
+- [x] (2026-10-17 01:20+02:00) The second Stage B CLI review (`--fresh`,
+  committed and staged changes against `acee070`) completed with four findings,
+  all valid and all fixed:
+  - Gates must use the pinned Bun 1.4.2, under the developer guide's rule.
+  - The registration check ignored trailing shell comments. A new control
+    covers this, and an ablation that removes the comment stripping fails
+    it (8 pass, 1 fail), then passes again once restored.
+  - FX-L3 contradicted INV-5's history record.
+  - The Y-statement template used a first-person pronoun.
+- [x] (2026-10-17 01:35+02:00) The third Stage B CLI review completed with
+  one valid minor finding: `docs/repository-layout.md` still implied that every
+  contract suite shares the support file. The paragraph now names the six
+  suites that do. `make all` passed under Bun 1.4.2, with 71 tests.
+- [x] (2026-10-17 01:50+02:00) The fourth Stage B CLI review raised two
+  major findings:
+  - The FX-1 pipelines lost a stage's failure behind `tee`. Fixed with
+    `set -euo pipefail` plus recorded `*.status` files.
+  - The code tolerance was breached. The plan is BLOCKED pending owner
+    direction; see `Decision log`.
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
 - [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
 - [ ] EP-M5: ADR 005, structural dependency environments (1.1.3).
@@ -663,6 +691,19 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     difference does not justify a second toolchain. Changing the pin would
     be a toolchain upgrade outside roadmap 1.1.
   - Date/Author: 2026-10-15, planning agent, after the owner's upgrade.
+  - Superseded on 2026-10-17: see the decision to gate under the pinned
+    Bun 1.4.2.
+
+- Decision: run every gate under the pinned Bun 1.4.2 (the side-by-side
+  install prepended to `PATH`), not the global Bun 1.4.3. This supersedes the
+  2026-10-15 decision.
+  - Rationale: the Stage B milestone review cited the developer guide's
+    rule, "Use the pinned interpreter for every gate, not whichever `bun`
+    the shell finds". The earlier decision contradicted it.
+  - The gate runs at `80dee1d`, `74af4dd`, `4036a3c`, and `e66ebd6` used
+    Bun 1.4.3. Each later gate run uses 1.4.2, and the next one covers all
+    committed work.
+  - Date/Author: 2026-10-17, implementing agent.
 
 - Decision: treat the owner's approval on 2026-10-17 ("Happy to accept all
   remaining decisions as set out in this PR") as two things.
@@ -689,6 +730,29 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Rationale: the planned ADR files did not exist yet, and links to them
     would have dangled until then.
   - Date/Author: 2026-10-17, implementing agent.
+
+- Decision: escalate a breach of the code tolerance. The tolerance allows
+  160 lines for the new documentation suite and the Makefile-contract addition
+  together. Delivery reached 207 lines:
+  - `tests/documentation-contracts.test.mjs` has 130 lines;
+  - `tests/makefile-contracts.test.mjs` grew by 77 net lines.
+
+  The growth comes from negative controls and comment-handling that the
+  milestone reviews required, each with a message-checked control and an
+  ablation. Status is set to `BLOCKED` until the owner chooses one of the
+  following:
+  1. Accept the exception and raise the code tolerance to 220 lines. This
+     keeps every control.
+  2. Trim the suites to fit 160 lines, which weakens or removes negative
+     controls.
+  3. Drop `documentation-contracts` (about 130 lines), which a reviewer
+     called optional, and keep only the registration contract. That loses
+     the ADR status guard (VP-1).
+
+  Recommendation: option 1. The suites are small, deterministic, and owned by
+  their files, and each extra line is a negative control.
+  - Date/Author: 2026-10-17, implementing agent. Awaiting the owner's
+    decision.
 
 ## Outcomes & retrospective
 
@@ -782,7 +846,9 @@ The `Makefile` owns all gates.
 
 - ADR: architectural decision record.
 - Y-statement: a one-sentence ADR summary of the form "In the context of
-  X, facing Y, we decided for Z and against W, to achieve Q, accepting D."
+  X, facing Y, refex decides for Z and against W, to achieve Q, accepting D."
+  ADRs use "refex decides" in place of the conventional first-person wording,
+  because they avoid first- and second-person pronouns.
 - Falsifier: an observable outcome that rejects a hypothesis.
 - Probe: a small scratch program run outside the repository to observe a
   tool's or library's actual behaviour. Its results are source evidence.
@@ -1097,7 +1163,7 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 - Location: `$HOME/scratch/refex-1-1/fx1/`. Nothing from it is committed
   except the Markdown evidence record.
 - Pins:
-  - Bun 1.4.3 (global) or 1.4.2 (repository pin), recorded with the results;
+  - Bun 1.4.2, the repository pin, recorded with the results;
   - ReScript 12.3.1, with genType configured as
     `{"language": "typescript", "generatedFileExtension": ".gen.ts"}`;
   - `lemmascript` 0.6.4, integrity
@@ -1152,8 +1218,9 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 - Obligations, each reported separately, never as an aggregate count:
   - FX-L1: `step` preserves `wellFormed`.
   - FX-L2: PR-1 and PR-7 hold as exact-effect postconditions.
-  - FX-L3: a stale settlement, or one for the other generation, leaves the
-    state unchanged.
+  - FX-L3: a stale settlement, or one for the other generation, leaves owner,
+    phase, attempt, `lastStarted`, joiners, and the other generation
+    unchanged, and appends exactly one refusal record to `history` (INV-5).
   - FX-L4: attempt numbering is consecutive, via per-step history fields.
   - FX-L5: recovery at `maxAttempt` is refused, with no wrap-around.
   - FX-L6: the fold over close requests while an attempt is in flight
@@ -1163,8 +1230,10 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 - Commands, run from `$HOME/scratch/refex-1-1/fx1/`:
 
   ```sh
+  set -euo pipefail                             # a failing stage behind tee still fails the run
   export PATH="$HOME/scratch/refex-1-1/z3/z3-4.12.1-x64-glibc-2.35/bin:$PATH"
-  bun --version                                 # record it: 1.4.3 global or 1.4.2 pin
+  export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"
+  bun --version                                 # expect 1.4.2
   z3 --version                                  # expect: Z3 version 4.12.1 - 64 bit
   dafny --version                               # expect: 4.11.0+fcb2042d...
   bun add --exact rescript@12.3.1 @rescript/runtime@12.3.1 lemmascript@0.6.4 \
@@ -1177,15 +1246,20 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
     bun res2ls-correspond.mjs src/$m.res .verify/$m
     bun node_modules/lemmascript/tools/dist/lsc.js check --backend=dafny .verify/$m/$m.ts \
       | tee .verify/$m/check.out
+    echo "check=${PIPESTATUS[0]}" > .verify/$m/check.status
     bun res2ls-mutate.mjs src/$m.res src/$m.mutants.mjs .verify/$m/mutants \
       node_modules/lemmascript/tools/dist/lsc.js | tee .verify/$m/mutants.out
+    echo "mutate=${PIPESTATUS[0]}" > .verify/$m/mutate.status
   done
   bun fail-closed.mjs                           # see below; exits non-zero on any hole
   ```
 
-- Fail-closed checks, in `fail-closed.mjs` (scratch). Any of the following
-  is a failure:
-  - a non-zero exit from any stage;
+- Fail-closed checks, in `fail-closed.mjs` (scratch). `pipefail` already
+  stops the run when a stage fails behind `tee`. The recorded `*.status` files
+  let `fail-closed.mjs` confirm that every stage ran and exited 0. Any of the
+  following is a failure:
+  - a non-zero exit from any stage, or a missing or non-zero `*.status`
+    file;
   - a Dafny summary whose verified count differs from the expected
     obligation count for that module;
   - any of the strings `assume`, `{:axiom}`, `{:verify false}`, or
@@ -1366,8 +1440,10 @@ that a "refuse everything" reducer would satisfy.
 - PR-5: `OwnerBoundElapsed` for the current attempt in `Closing` or
   `Recovering` moves to `UnresolvedPending`, keeping the same attempt.
 - PR-6: `LeaseAcquired` on `Open` adds the lease.
-- PR-7: a close or recovery request while an attempt is in flight emits
-  exactly one `JoinAttempt` for the current attempt, and nothing else.
+- PR-7: an authorized close or recovery request (from the owner, or the host
+  acting for it) while an attempt is in flight emits exactly one `JoinAttempt`
+  for the current attempt, and nothing else. An unauthorized request is
+  governed by INV-14 and refused with the state unchanged.
 - PR-8: in `Open`, removing the last lease emits exactly one
   `StartAttempt`.
 - PR-9: `TransferAcknowledged` from the offered destination changes the
@@ -1949,20 +2025,12 @@ worktree used during planning is:
 /home/leynos/.lody/repos/github---leynos---refex/worktrees/4c10984f-2c00-4e9b-9d17-f7a799adc218
 ```
 
-Check the Bun version and install dependencies first:
-
-```sh
-bun --version   # expect 1.4.3 (global) or 1.4.2 (repository pin)
-make install    # expect "81 packages installed" or "no changes"
-```
-
-Use the global Bun 1.4.3 by default, and record its version in each gate log
-and evidence record (R-5). To reproduce a result under the exact repository
-pin, prepend the side-by-side install:
+Every shell, and every scrutineer assignment, needs the pinned Bun first (R-5):
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"
 bun --version   # expect 1.4.2
+make install    # expect "81 packages installed" or "no changes"
 ```
 
 If `$HOME/.local/share/bun-versions/1.4.2/bin/bun` is missing:

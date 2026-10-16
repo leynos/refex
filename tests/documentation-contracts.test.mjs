@@ -1,5 +1,5 @@
 /**
-Documentation contracts: the ADR index and status vocabulary.
+@file Documentation contracts: the ADR index and status vocabulary.
 
 An ADR's status line is where "decided" and "evidenced" most easily blur, so
 every `docs/adr-NNN-*.md` must declare one status from a fixed vocabulary and

@@ -24,7 +24,7 @@ and documentation are source evidence, not refex conformance results.
 ## Proposed decisions, evidence, and plans
 
 - [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):
-  the draft plan for freezing the validator hypotheses; awaiting approval.
+  the approved plan for freezing the validator hypotheses; in progress.
 
 ## Implemented bootstrap and contribution
 
