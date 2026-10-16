@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: DRAFT
+Status: IN PROGRESS
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -312,8 +312,10 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   concern.
 - [x] (2026-10-15 22:50Z) Draft pull request opened for plan review:
   [leynos/refex#8](https://github.com/leynos/refex/pull/8).
-- [ ] Owner approval of this plan. Implementation must not start before it.
-- [ ] EP-M0: baseline gates green on the branch with the recorded Bun version.
+- [x] (2026-10-17) Owner approval of this plan, with acceptance of "all
+  remaining decisions as set out in this PR" (PR #8 conversation).
+- [x] (2026-10-17 00:38+02:00) EP-M0: baseline `make all` exit 0 on HEAD
+      `8ee5bae` with Bun 1.4.3; 61 tests passed across 8 files.
 - [ ] EP-M1: documentation contract and test-registration contract.
 - [ ] EP-M2: design brief, glossary additions, and capability map (1.1.1).
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
@@ -654,6 +656,19 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     difference does not justify a second toolchain. Changing the pin would
     be a toolchain upgrade outside roadmap 1.1.
   - Date/Author: 2026-10-15, planning agent, after the owner's upgrade.
+
+- Decision: treat the owner's approval on 2026-10-17 ("Happy to accept all
+  remaining decisions as set out in this PR") as two things.
+  - It approves this plan for implementation.
+  - It pre-accepts the ADR outcomes and status changes that `Decision log`
+    sets out: ADR 004 provisional, ADRs 005 and 006 accepted, ADR 007
+    candidate, the ADR 002 amendment, and the roadmap ticks. This satisfies
+    C-11 for ADRs that land as described.
+  - Any deviation discovered during implementation is a new decision. That
+    includes narrowing design §4.1, an Effect 3 selection, or an FX-1
+    reject that changes the assurance claim. Each still needs explicit
+    owner acceptance before the affected status line changes.
+  - Date/Author: 2026-10-17, implementing agent.
 
 ## Outcomes & retrospective
 
