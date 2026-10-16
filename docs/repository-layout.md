@@ -41,9 +41,12 @@ suite. These responsibilities must not become interchangeable command routers.
 contract suites. It asserts package and workflow values and receives controlled
 mutations from those suites; it has no external reuse or build
 responsibilities. Each suite is a separate file — package, dependencies,
-Markdown, workflows, the generated gate, and Makefile ordering — so a single
-invariant stays readable within the authored-file size limit rather than
-accumulating in one test file.
+Markdown, workflows, the generated gate, Makefile ordering and suite
+registration, and documentation — so a single invariant stays readable within
+the authored-file size limit rather than accumulating in one test file.
+`documentation-contracts` checks the ADR index and status vocabulary with a
+helper private to that suite, as does the suite-registration check in
+`makefile-contracts`.
 
 `bunfig.toml` owns the current coverage exclusion for generated test bodies. It
 contains no install-linker or workspace configuration and never ships in the

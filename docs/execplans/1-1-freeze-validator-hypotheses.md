@@ -316,7 +316,12 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   remaining decisions as set out in this PR" (PR #8 conversation).
 - [x] (2026-10-17 00:38+02:00) EP-M0: baseline `make all` exit 0 on HEAD
       `8ee5bae` with Bun 1.4.3; 61 tests passed across 8 files.
-- [ ] EP-M1: documentation contract and test-registration contract.
+- [x] (2026-10-17 00:41+02:00) EP-M1: documentation contract and
+  test-registration contract (`74af4dd`). Red:
+  `make test does not run ./tests/documentation-contracts.test.mjs`, then
+  `docs/adr-004-stub.md is missing from docs/contents.md`. Green: `make all`
+  passes, with 69 tests across 9 files. The guides were updated in the
+  following commit.
 - [ ] EP-M2: design brief, glossary additions, and capability map (1.1.1).
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
 - [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
