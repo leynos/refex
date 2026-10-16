@@ -354,7 +354,12 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     `set -euo pipefail` plus recorded `*.status` files.
   - The code tolerance was breached. The plan is BLOCKED pending owner
     direction; see `Decision log`.
-- [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
+- [x] (2026-10-17 02:05+02:00) EP-M3: runtime-boundary audit evidence
+  (`a2bfa6b`) and ADR 004 (1.1.2).
+  - On Effect 4.0.5, P1 to P7 ran with valid controls, and P7 found exits
+    separately observable.
+  - No compelling reason favours Effect 3.22.2.
+  - The selection is `effect` 4.0.5 behind refex-owned bindings.
 - [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
 - [ ] EP-M5: ADR 005, structural dependency environments (1.1.3).
 - [ ] EP-M6: ADR 006, complete outcomes (1.1.4).
@@ -465,6 +470,26 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - Observation: Effect 4.0.5 has no runtime dependencies but unpacks to
   51 MB, against 27 MB for 3.22.2.
   - Impact: this costs install time and CI cache space, not bundle size.
+
+- Observation (EP-M3): `@reventlessdev/rescript-effect` 1.0.0-alpha.0 was
+  published on 15 October 2026. It still binds Effect 3.22.2 and keeps the Jest
+  binding as a production dependency. It also has no `namespace`, so it exposes
+  global modules named `Effect`, `Cause`, and others.
+  - Evidence: the static audit in `docs/evidence/runtime-boundary-audit.md`.
+  - Impact: the audit targets this version rather than alpha.35.
+- Observation (EP-M3): on Effect 4.0.5, `runPromise` rejects with the bare
+  expected error value (here, a string), and `Effect.all` with unbounded
+  concurrency reports only the first of two concurrent failures. Collecting
+  `Effect.exit` for each child keeps every branch.
+  - Evidence: probes P5 and P7.
+  - Impact: refex's parallel combinators must collect each child's exit
+    themselves, and the promise boundary must use `runPromiseExit`.
+- Observation (EP-M3): an earlier P4 design timed out on Effect 3.22.2. It
+  released the old finalizer only after the second `FiberMap.run`. The
+  redesigned probe releases the finalizer from an independent timer.
+  - Evidence: a 30-second timeout, then a clean `not-awaited` verdict on both
+    lines.
+  - Impact: none on the verdict. The cause of the hang was not isolated.
 
 ## Decision log
 

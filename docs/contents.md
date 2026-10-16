@@ -23,6 +23,11 @@ and documentation are source evidence, not refex conformance results.
 
 ## Proposed decisions, evidence, and plans
 
+- [ADR 004](adr-004-runtime-boundary.md): proposed provisional runtime
+  boundary authorizing a bounded trial of `effect` 4.0.5 behind private
+  bindings.
+- [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
+  probes and the static binding audit behind ADR 004; source evidence only.
 - [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):
   the approved plan for freezing the validator hypotheses; in progress.
 
