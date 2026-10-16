@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: BLOCKED
+Status: IN PROGRESS
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -158,7 +158,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - integration edits to about eight documents.
 - Code: stop and escalate if either of the following is breached:
   - the new documentation suite and the Makefile-contract addition together
-    exceed 160 lines;
+    exceed 220 lines. The limit was 160 until the owner approved the increase
+    on 2026-10-17;
   - a non-documentation file outside `Makefile`, `typos.local.toml`,
     `tests/documentation-contracts.test.mjs`, and
     `tests/makefile-contracts.test.mjs` must change.
@@ -751,8 +752,10 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 
   Recommendation: option 1. The suites are small, deterministic, and owned by
   their files, and each extra line is a negative control.
-  - Date/Author: 2026-10-17, implementing agent. Awaiting the owner's
-    decision.
+  - Date/Author: 2026-10-17, implementing agent.
+  - Resolution: on 2026-10-17 the owner approved option 1 ("Change size
+    tolerance increase approved"). The code tolerance is now 220 lines, the
+    status returns to `IN PROGRESS`, and EP-M1 stands as delivered.
 
 ## Outcomes & retrospective
 
