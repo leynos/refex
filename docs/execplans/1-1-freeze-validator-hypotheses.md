@@ -322,7 +322,9 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   `docs/adr-004-stub.md is missing from docs/contents.md`. Green: `make all`
   passes, with 69 tests across 9 files. The guides were updated in the
   following commit.
-- [ ] EP-M2: design brief, glossary additions, and capability map (1.1.1).
+- [x] (2026-10-17 01:00+02:00) EP-M2: design brief, glossary additions, and
+  capability map (1.1.1). EV-BRIEF: 77 independently extracted capabilities all
+  map to the 50 map rows.
 - [ ] EP-M3: runtime-boundary audit evidence and ADR 004 (1.1.2).
 - [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
 - [ ] EP-M5: ADR 005, structural dependency environments (1.1.3).
@@ -673,6 +675,19 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     includes narrowing design §4.1, an Effect 3 selection, or an FX-1
     reject that changes the assurance claim. Each still needs explicit
     owner acceptance before the affected status line changes.
+  - Date/Author: 2026-10-17, implementing agent.
+
+- Decision: add five glossary entries rather than six. They are Capability
+  object (inside the Capability entry), Uninhabited channel (inside the
+  Infallible entry), Schedule, Deterministic time, and Readiness.
+  - Rationale: `docs/context.md` §2.1 already defines **Projection** as a
+    checked function from a larger to a smaller environment. A separate
+    "explicit projection" entry would duplicate it.
+  - Date/Author: 2026-10-17, implementing agent.
+- Decision: the capability map cites design sections only. Links to ADRs 004
+  to 007 are added in EP-M9, once those files exist.
+  - Rationale: the planned ADR files did not exist yet, and links to them
+    would have dangled until then.
   - Date/Author: 2026-10-17, implementing agent.
 
 ## Outcomes & retrospective
@@ -2268,7 +2283,20 @@ The expert review of the first draft found the following.
 All are addressed in this revision. The `Decision log` entries dated 2026-10-15
 record each resolution.
 
-EV-BRIEF is to be recorded in EP-M2.
+EV-BRIEF (2026-10-17). A `wyvern` sub-agent that did not see the brief read
+design §9 and roadmap phases 2 to 4, and extracted 77 fine-grained
+capabilities: 23 for Minesweeper, 25 for the roguelike, and 29 for css-view.
+The first draft of the map had 34 rows and left about 20 of them unmatched, for
+example publisher generations, Strict Mode remount, fault-injectable release,
+readiness reporting, test services, waiter settlement, and evidence records.
+The map was expanded to 50 rows, and every extracted capability now maps to a
+row. The one deliberate exclusion is web workers, which design §9.1 defers
+unless measured main-thread cost requires them.
+
+Non-vacuity: removing the row "One transient open retry with injected time;
+pending cleanup joined, not reissued" leaves the extracted css-view items 21 to
+24 unmatched. Removing the row "Fault-injectable blocked or failing release"
+leaves Minesweeper item 17 unmatched. No row has the status Implemented.
 
 ## Interfaces and dependencies
 

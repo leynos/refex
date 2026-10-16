@@ -54,7 +54,10 @@ success, expected error, and required environment.
 provide cancellation, finalization, or dependency lifetime guarantees.
 
 **Capability:** an explicitly supplied service or operation. Object fields can
-carry authority but do not constitute a security sandbox.
+carry authority but do not constitute a security sandbox. **Capability
+object:** a ReScript structural object type such as `{.."clock": Clock.t}`
+whose open row (`..`) accepts environments with additional fields; the ReScript
+analogue of Primavera's object-based injection.
 
 **Environment:** the value supplying workflow capabilities, not necessarily
 process environment variables or React context.
@@ -132,7 +135,9 @@ retaining all relevant reasons and their meaningful sequential/parallel
 structure.
 
 **Infallible:** no inhabitant in the expected-error channel, not immunity to
-interruption, defects, or failed release.
+interruption, defects, or failed release. **Uninhabited channel:** an
+expected-error type with no closed, terminating, cast-free value, used to state
+infallibility; `unit` is inhabited and does not qualify.
 
 ### 2.3. Integration and evidence
 
@@ -144,6 +149,17 @@ or refex computations. React cleanup does not join asynchronous disposal.
 
 **Schema boundary:** checking external values before domain use. Decoding alone
 is not authorization or validation of all domain invariants.
+
+**Schedule:** a description of bounded retry, backoff, jitter, or repetition
+whose state resets per execution and whose placement (acquisition, body, whole
+lifecycle, or recovery) is explicit.
+
+**Deterministic time:** clock and randomness supplied as services, so tests
+choose instants, delays, jitter, and seeds instead of patching globals.
+
+**Readiness:** an observed event proving that admission, subscription, producer
+start, or finalizer entry has happened. Tests await readiness before advancing
+a controlled clock or cancelling; a fake timestamp alone is not readiness.
 
 **Admission:** permission to start. **Mutual exclusion:** at most the stated
 number of holders. **Fairness:** an ordering/progress policy beyond exclusion.

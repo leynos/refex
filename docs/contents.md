@@ -10,6 +10,8 @@ establish a working effects API.
   constraints, success criteria, and open questions.
 - [Technical design](design.md): computation, complete outcomes, retained
   ownership, adapters, validators, and experimental acceptance gates.
+- [Design brief](design-brief.md): the initial public abstractions, deferred
+  capabilities, and a validator capability map with explicit statuses.
 - [Context](context.md): shared vocabulary, evidence status, prior art, and
   the version-specific Lody learning crosswalk.
 - [GIST roadmap](roadmap.md): the supplied edited plan extended with lifecycle
