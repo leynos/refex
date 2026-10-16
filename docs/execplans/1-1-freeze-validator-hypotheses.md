@@ -269,7 +269,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     D4. It is unverified, and the brief records it as open.
 - R-9. Effect 4's `Cause` is a flat list of reasons, with no sequential or
   parallel nodes. Design §4.1 promises sequential and parallel structure.
-  - Severity high; likelihood certain if Effect 4 is selected.
+  - Severity high; likelihood certain, because Effect 4 is the default line.
   - Mitigation: probe P7 measures what each Effect line exposes. ADR 006
     decides whether refex builds the structure itself at its own composition
     points or narrows §4.1, and records the choice as a deviation if it
@@ -495,6 +495,37 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     own contracts. Neither Effect line provides them, so they cannot
     discriminate between candidates (Wafflecat review).
   - Date/Author: 2026-10-15.
+- Decision: Effect 4.0.x is the default backend line for the primitives,
+  as the owner directed on 16 October 2026. ADR 004 selects Effect 3.22.x only
+  if the audit finds a *compelling reason*, which is one of the following:
+  1. P7 shows that Effect 4.0.x does not let the adapter observe body and
+     finalizer exits separately, so refex cannot build sequential and
+     parallel cause structure at its own composition points, and Effect
+     3.22.x does allow this.
+  2. A primitive in the list above is missing or broken in Effect 4.0.x,
+     no adapter-local workaround exists, and Effect 3.22.x provides it.
+  3. An advisory with no fix, or an `eval` or `new Function` that cannot be
+     avoided in the consumer bundle, affects Effect 4.0.x but not Effect
+     3.22.x.
+
+  These are not compelling reasons on their own:
+  - Effect 4's flat `Cause`, because refex builds the structure itself.
+  - The release cadence of the 4.0.x line, because exact pins, the
+    re-audit rule, and the binding-surface smoke test manage it.
+  - The fact that the Reventless bindings already exist, because they
+    target Effect 3.
+
+  Consequences:
+  - refex writes its own narrow bindings over Effect 4.0.x. The Reventless
+    archive is audited as prior art and as the counterexample source for
+    task 1.1.4, not as a dependency candidate for Effect 4.
+  - Effect 3.22.2 probes run only where they can establish a compelling
+    reason: P7, and any probe that Effect 4.0.x fails.
+  - Rationale: Effect 4 is the maintained line, has no runtime
+    dependencies, needs only one conditioned production dependency under
+    ADR 002, and matches the version family of Lody's evidence.
+  - Date/Author: 2026-10-16, owner direction recorded by the planning
+    agent.
 - Decision: make ADR 004's selection explicitly provisional, and bound the
   trial.
   - Scope: tasks 1.3.1 to 1.3.5.
@@ -945,9 +976,11 @@ VP-4: runtime-boundary audit probes (task 1.1.2).
     failures. For each case, record whether the line exposes ordering and
     branches, and whether `Scope.close(scope, exit)` or a finalizer can
     observe body and finalizer exits separately.
-- Method: executable scratch probes under the recorded Bun version. Each probe
-  runs twice, once against the newest Effect 4.0.x patch at the start of the
-  audit and once against Effect 3.22.2, both pinned exactly.
+- Method: executable scratch probes under the recorded Bun version. Every
+  probe runs against the newest Effect 4.0.x patch at the start of the audit,
+  pinned exactly. Probes also run against Effect 3.22.2, pinned exactly, in two
+  cases only: P7, and any probe that Effect 4.0.x fails. Those runs test
+  whether a compelling reason (see `Decision log`) exists.
 - Artefact: `docs/evidence/runtime-boundary-audit.md`, with each probe's
   source, its install and run commands, and its transcript.
 - Evidence: each probe prints one JSON line with a verdict label:
@@ -1617,18 +1650,20 @@ EP-M3: runtime boundary (task 1.1.2).
   - the binding-surface smoke-test obligation;
   - the re-audit-on-upgrade rule;
   - the "must not delegate" facts.
-- Hypothesis H-RT, to be tested rather than assumed: the selected line
-  supplies every primitive in the `Decision log` list, and exposes enough for
-  refex to build its own complete outcomes.
-  - H-RT is falsified for a line if P7 shows that body and finalizer exits
-    cannot be observed separately.
-  - It is also falsified for a line if a listed primitive is missing or
-    behaves differently from its documentation.
-  - On the preliminary evidence, Effect 3.22.x is stronger on cause
-    structure, and Effect 4.0.x is stronger on dependency footprint. The
-    ADR must decide on the probe evidence, not on this preliminary view.
+- Hypothesis H-RT, to be tested rather than assumed: Effect 4.0.x, the
+  default line, supplies every primitive in the `Decision log` list, and
+  exposes enough for refex to build its own complete outcomes.
+  - H-RT is falsified if P7 shows that body and finalizer exits cannot be
+    observed separately.
+  - It is also falsified if a listed primitive is missing or behaves
+    differently from its documentation.
+  - A falsification selects Effect 3.22.x only when it is one of the
+    compelling reasons listed in `Decision log` and Effect 3.22.x avoids
+    it. Otherwise ADR 004 keeps Effect 4.0.x and narrows the affected
+    contract, recording the narrowing as a deviation for owner acceptance.
   - Re-check the registry for a newer Reventless binding when the audit
-    starts.
+    starts. A sound Effect 4 binding would be assessed against refex's own
+    bindings.
 - Requirements and gaps: roadmap 1.1.2; D1, provisionally; A3; G2, G3, and
   G6.
 - Acceptance evidence: VP-4 transcripts with controls; the ADR 004
@@ -1957,18 +1992,21 @@ EP-M3 steps:
 1. Re-query the registry for `effect` and `@reventlessdev/rescript-effect`.
    Record the versions, publish times, integrity hashes, and the time of the
    check.
-2. In each of `$HOME/scratch/refex-1-1/audit/effect-4/` and
-   `$HOME/scratch/refex-1-1/audit/effect-3/`:
+2. In `$HOME/scratch/refex-1-1/audit/effect-4/`:
    1. Write a minimal `package.json`.
-   2. Run `bun add --exact effect@<version>`.
+   2. Run `bun add --exact effect@<4.0.x version>`.
    3. Write probes P1 to P7 with their controls.
    4. Run each probe with `bun probe-p<N>.mjs`, and capture its JSON line.
-3. Unpack the Reventless archive into an empty directory,
+3. In `$HOME/scratch/refex-1-1/audit/effect-3/`, run
+   `bun add --exact effect@3.22.2`, adapt the probes to the Effect 3 names, and
+   run P7 plus every probe that Effect 4.0.x failed. Record whether any of the
+   compelling reasons in `Decision log` holds.
+4. Unpack the Reventless archive into an empty directory,
    `$HOME/scratch/refex-1-1/audit/reventless/`. Never execute it. Complete the
    static audit table.
-4. Write `docs/evidence/runtime-boundary-audit.md`. Gate, then commit:
+5. Write `docs/evidence/runtime-boundary-audit.md`. Gate, then commit:
    "Record the runtime boundary audit evidence (1.1.2)".
-5. Write `docs/adr-004-runtime-boundary.md`, and list it in
+6. Write `docs/adr-004-runtime-boundary.md`, and list it in
    `docs/contents.md` under the heading "Proposed decisions, evidence, and
    plans", which was added with this plan. Gate, then commit: "Propose the
    provisional runtime boundary (1.1.2)".
@@ -2373,3 +2411,11 @@ added in this step. Each needs its own approved plan and lockfile change.
   commands now use the global Bun and record its version. The side-by-side Bun
   1.4.2 remains for exact-pin reproduction. The repository pin is unchanged,
   and no remaining work is otherwise affected.
+- 2026-10-16, fourth revision: the owner directed that Effect 4 be preferred
+  for the backend primitives unless there is a compelling reason not to use it.
+  - `Decision log` makes Effect 4.0.x the default and defines the three
+    compelling reasons that could select Effect 3.22.x.
+  - H-RT and VP-4 now test Effect 4.0.x first. Effect 3.22.2 runs only for
+    P7 and for any probe that Effect 4.0.x fails.
+  - The Reventless archive is audited as prior art.
+  - This reduces EP-M3's probe work, and no other milestone is affected.
