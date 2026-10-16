@@ -360,8 +360,14 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     separately observable.
   - No compelling reason favours Effect 3.22.2.
   - The selection is `effect` 4.0.5 behind refex-owned bindings.
-- [ ] EP-M4: type-level probe evidence (1.1.3 and 1.1.4).
-- [ ] EP-M5: ADR 005, structural dependency environments (1.1.3).
+- [x] (2026-10-17 02:50+02:00) EP-M4: type-level probe evidence (1.1.3 and
+  1.1.4), committed as `919cc4e`.
+  - All 25 probes pass under the harness's non-vacuity rule, and the
+    runtime `absurd` check panics as intended.
+  - New finding: an array-based cause cannot be covariant in its error
+    type (`c1`, `c2`).
+- [x] (2026-10-17 03:00+02:00) EP-M5: ADR 005, structural dependency
+  environments (1.1.3).
 - [ ] EP-M6: ADR 006, complete outcomes (1.1.4).
 - [ ] EP-M7: ADR 007, behavioural contract with proof sketch (1.1.5).
 - [ ] EP-M8: FX-1 feasibility experiment and the ADR updates that follow
@@ -490,6 +496,14 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Evidence: a 30-second timeout, then a clean `not-awaited` verdict on both
     lines.
   - Impact: none on the verdict. The cause of the hang was not isolated.
+
+- Observation (EP-M4): a cause tree whose children are an `array` cannot be
+  covariant in its error type, because ReScript arrays are invariant. With
+  `list` children it can be covariant.
+  - Evidence: probes `c1` and `c2` in `docs/evidence/type-level-probes.md`.
+  - Impact: the cause representation trades error covariance against
+    verifier support. The LemmaScript route supports arrays, not lists, and
+    ADR 006 must choose. The probe toys keep `'e` invariant.
 
 ## Decision log
 
