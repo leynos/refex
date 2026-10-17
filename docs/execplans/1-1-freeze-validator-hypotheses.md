@@ -321,7 +321,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   `docs/adr-004-stub.md is missing from docs/contents.md`. Green: `make all`
   passes, with 69 tests across 9 files. The guides were updated in the
   following commit.
-- [x] (2026-10-17 01:00+02:00) EP-M2: design brief, glossary additions, and
+- [x] (2026-10-17 00:45+02:00) EP-M2: design brief, glossary additions, and
   capability map (1.1.1). EV-BRIEF: 77 independently extracted capabilities all
   map to the 50 map rows.
 - [x] (2026-10-17 00:49+02:00) Stage B milestone CodeRabbit CLI review
@@ -335,7 +335,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - The registration check also counted a suite path that appeared only in
     a recipe comment. It now reads only the `$(BUN) test` command, and a
     comment-only negative control was added.
-- [x] (2026-10-17 01:20+02:00) The second Stage B CLI review (`--fresh`,
+- [x] (2026-10-17 00:57+02:00) The second Stage B CLI review (`--fresh`,
   committed and staged changes against `acee070`) completed with four findings,
   all valid and all fixed:
   - Gates must use the pinned Bun 1.4.2, under the developer guide's rule.
@@ -344,31 +344,46 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     it (8 pass, 1 fail), then passes again once restored.
   - FX-L3 contradicted INV-5's history record.
   - The Y-statement template used a first-person pronoun.
-- [x] (2026-10-17 01:35+02:00) The third Stage B CLI review completed with
+- [x] (2026-10-17 01:00+02:00) The third Stage B CLI review completed with
   one valid minor finding: `docs/repository-layout.md` still implied that every
   contract suite shares the support file. The paragraph now names the six
   suites that do. `make all` passed under Bun 1.4.2, with 71 tests.
-- [x] (2026-10-17 01:50+02:00) The fourth Stage B CLI review raised two
+- [x] (2026-10-17 01:03+02:00) The fourth Stage B CLI review raised two
   major findings:
   - The FX-1 pipelines lost a stage's failure behind `tee`. Fixed with
     `set -euo pipefail` plus recorded `*.status` files.
   - The code tolerance was breached. The plan is BLOCKED pending owner
     direction; see `Decision log`.
-- [x] (2026-10-17 02:05+02:00) EP-M3: runtime-boundary audit evidence
+- [x] (2026-10-17 01:42+02:00) EP-M3: runtime-boundary audit evidence
   (`a2bfa6b`) and ADR 004 (1.1.2).
   - On Effect 4.0.5, P1 to P7 ran with valid controls, and P7 found exits
     separately observable.
   - No compelling reason favours Effect 3.22.2.
   - The selection is `effect` 4.0.5 behind refex-owned bindings.
-- [x] (2026-10-17 02:50+02:00) EP-M4: type-level probe evidence (1.1.3 and
+- [x] (2026-10-17 01:48+02:00) EP-M4: type-level probe evidence (1.1.3 and
   1.1.4), committed as `919cc4e`.
   - All 25 probes pass under the harness's non-vacuity rule, and the
     runtime `absurd` check panics as intended.
   - New finding: an array-based cause cannot be covariant in its error
     type (`c1`, `c2`).
-- [x] (2026-10-17 03:00+02:00) EP-M5: ADR 005, structural dependency
+- [x] (2026-10-17 01:50+02:00) EP-M5: ADR 005, structural dependency
   environments (1.1.3).
-- [ ] EP-M6: ADR 006, complete outcomes (1.1.4).
+- [x] (2026-10-17 02:20+02:00) EP-M6: ADR 006, complete outcomes (1.1.4).
+  - The cause tree uses array children with an invariant error parameter.
+  - Structure is built at refex's composition points, so Effect 4's flat
+    cause needs no deviation from design §4.1.
+- [x] (2026-10-17 02:20+02:00) EP-M4 to EP-M6 milestone CLI reviews, run
+  against base `2069dd2`. Four passes raised five valid minor findings, all
+  fixed:
+  - an `-ise` spelling;
+  - an unset `REPO` in the reproduction steps, which also hid a wrong
+    `$PWD` compiler path;
+  - an incomplete list introduction in ADR 005;
+  - negative probes could pass beside an unrelated diagnostic. They now
+    require exactly one diagnostic block, and an ablation that adds a
+    same-batch error is reported as invalid;
+  - the harness did not fail closed. It now exits 1 unless every probe
+    passes.
 - [ ] EP-M7: ADR 007, behavioural contract with proof sketch (1.1.5).
 - [ ] EP-M8: FX-1 feasibility experiment and the ADR updates that follow
   from it.
@@ -498,12 +513,18 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Impact: none on the verdict. The cause of the hang was not isolated.
 
 - Observation (EP-M4): a cause tree whose children are an `array` cannot be
-  covariant in its error type, because ReScript arrays are invariant. With
+  covariant in its error type because ReScript arrays are invariant. With
   `list` children it can be covariant.
   - Evidence: probes `c1` and `c2` in `docs/evidence/type-level-probes.md`.
   - Impact: the cause representation trades error covariance against
     verifier support. The LemmaScript route supports arrays, not lists, and
     ADR 006 must choose. The probe toys keep `'e` invariant.
+
+- Observation (milestone review): progress timestamps for EP-M2 to EP-M6
+  had been written as estimates, and some lay after the events they preceded.
+  They have been corrected to the commit and review times in the Git history
+  and gate logs.
+  - Impact: from now on, progress entries use observed times only.
 
 ## Decision log
 
@@ -795,6 +816,22 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Resolution: on 2026-10-17 the owner approved option 1 ("Change size
     tolerance increase approved"). The code tolerance is now 220 lines, the
     status returns to `IN PROGRESS`, and EP-M1 stands as delivered.
+
+- Decision (EP-M6): no deviation from design §4.1 is needed for Effect 4's
+  flat cause. refex builds `Sequential` nodes from separately observed body and
+  finalizer exits, and `Parallel` nodes from the exits it collects for each
+  child. A backend cause that refex did not structure converts to `Sequential`
+  in Effect's occurrence order, as P7 showed.
+  - Rationale: P7 shows separate observation and ordered reasons, so no
+    reason or order is lost.
+  - Date/Author: 2026-10-17, implementing agent.
+- Decision (EP-M6): the cause tree uses array children and accepts an
+  invariant error parameter. Error widening uses `mapError` or open polymorphic
+  variants.
+  - Rationale: the LemmaScript route supports arrays and not lists, and no
+    planned composition needs error subtyping (`R9a` composes with an
+    invariant `'e`).
+  - Date/Author: 2026-10-17, implementing agent.
 
 ## Outcomes & retrospective
 
@@ -1864,7 +1901,7 @@ EP-M5: structural dependency environments (task 1.1.3).
     service type. Conflicts are composition errors.
   - Every service declares its construction inputs, invocation
     requirements, lifetime owner, and snapshot-versus-live observation.
-- An "annotation-level cast" is defined as any of: `Obj.magic`,
+- An "annotation-level cast" is defined as any of the following: `Obj.magic`,
   `%identity`, `%raw`, a polymorphic `external`, or a consumer-side `:>`
   applied to a requirement row.
 - Rejection criterion for automatic requirement accumulation. Assume the

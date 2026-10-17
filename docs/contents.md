@@ -29,6 +29,9 @@ and documentation are source evidence, not refex conformance results.
 - [ADR 005](adr-005-structural-dependency-environments.md): proposed open-row
   capability objects with function exports, named diagnostic sites, and
   explicit projection as the sound fallback.
+- [ADR 006](adr-006-complete-outcomes.md): proposed refex-owned cause tree,
+  conservative recovery types, an abstract uninhabited channel, and lossless
+  promise and native-await boundaries.
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
   probes and the static binding audit behind ADR 004; source evidence only.
 - [Type-level probes](evidence/type-level-probes.md): scratch compiler probes

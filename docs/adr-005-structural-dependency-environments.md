@@ -22,8 +22,8 @@ ReScript 12.3.1:
 - A missing field is rejected at the `provide` argument (`R3`); one key used
   with two service types is rejected at the composition expression (`R4`).
 - A non-function export, whether an accessor or a workflow, gets a weak row at
-  the exporting binding (`R5`), because the requirement is contravariant and
-  the relaxed value restriction cannot generalize it.
+  the exporting binding (`R5`) because the requirement is contravariant and the
+  relaxed value restriction cannot generalize it.
 - Closed rows reject extra fields unless a consumer writes `:>` (`R6`, `R6b`).
 - Explicit projection composes without casts and rejects an incomplete
   projection (`R7`, `R8`).
@@ -69,9 +69,9 @@ until `IO.t` has a checked definition. Error-parameter variance is settled by
 - Partial provision is a typed environment-building function, never generic
   field subtraction.
 
-An *annotation-level cast* is any of: `Obj.magic`, `%identity`, `%raw`, an
-`external` with a free result type variable, or a consumer-side `:>` coercion
-on a requirement row. Requirement composition must need none of them.
+An *annotation-level cast* is any of the following: `Obj.magic`, `%identity`,
+`%raw`, an `external` with a free result type variable, or a consumer-side `:>`
+coercion on a requirement row. Requirement composition must need none of them.
 
 ### Diagnostic sites
 

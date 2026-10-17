@@ -26,21 +26,29 @@ does with that shape and nothing about a refex implementation.
 
 ## Procedure
 
-From the repository root with the pinned toolchain installed, copy the harness
-and probe definitions from the appendices into an empty scratch directory and
-run:
+Install the repository's pinned toolchain with `make install`, copy the harness
+and probe definitions from the appendices into an empty scratch directory, and
+run from that directory, setting `REPO` to the repository root:
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"   # Bun 1.4.2
-python3 -I harness.py "$PWD/node_modules/.bin/rescript" > results.jsonl
+REPO=/path/to/refex   # the repository root, which holds node_modules
+python3 -I harness.py "$REPO/node_modules/.bin/rescript" > results.jsonl   # exits 1 unless every probe passes
 ```
 
 `harness.py` writes each probe into its own project under `build/`, compiles
 it, and checks the outcome. A positive probe must compile. A negative probe
-passes only when compilation fails, the output names the expected source file,
-and it contains the probe's named diagnostic text. Any other failure, such as a
-syntax error, an unrelated warning, or a missing module, is reported as
-`invalid`, never as a pass. Each negative probe is paired with a positive
+passes only when compilation fails with exactly one diagnostic block, the
+output names the expected source file, and it contains the probe's named
+diagnostic text. Any other failure, such as a syntax error, an unrelated
+warning, a missing module, or an extra diagnostic beside the expected one, is
+reported as `invalid`, never as a pass.
+
+The single-diagnostic rule was checked by ablation. Adding to `R3` a module
+`Unrelated.res` (`let unrelated: int = Workflow.stamp`) at the same dependency
+depth as `Main.res` yields two diagnostic blocks: the expected missing-field
+error and the unrelated one. The earlier rule would have passed that build; the
+current rule marks it `invalid`. Each negative probe is paired with a positive
 control that differs in one respect, for example `R3` with `R2` and `f3` with
 `f2`.
 
@@ -49,7 +57,7 @@ directory, and calls `Forge.reached()`, which passes a forged `Never.t` to
 `Never.absurd`:
 
 ```sh
-cd build/n4-forgeries-outside-module
+cd build/n4-forgeries-outside-module   # REPO is still set from the previous block
 mkdir -p node_modules/@rescript && ln -sfn "$REPO/node_modules/@rescript/runtime" node_modules/@rescript/runtime
 bun -e 'const m = await import("./src/Forge.res.mjs");
   try { m.reached() } catch (e) { console.log("threw:", e.message) }'
@@ -138,7 +146,7 @@ fails with its named diagnostic in its named file.
 - Open polymorphic-variant errors compose across modules (`R9a`); closed ones
   do not (`R9b`).
 - A cause tree whose children are an `array` cannot be covariant in its error
-  type (`c1`), because ReScript arrays are invariant. With `list` children it
+  type (`c1`) because ReScript arrays are invariant. With `list` children it
   can be covariant (`c2`). The choice of representation therefore trades error
   covariance against verifier support: the deductive-verification route
   supports arrays, not lists.
@@ -164,13 +172,14 @@ for ADR 006's cause representation.
 ## Appendix A: harness
 
 `harness.py`, SHA-256
-`2ff2cd89b709cc6c4e2a500eef09331fddaa105ba481d5d28fb5aef978d1a35d`.
+`40fa50db431f8d5afb7288f701d55909e64728ca27c56874cd0bb36aa8173e2a`.
 
 ```python
-"""Materialise each scratch probe project, build it with the pinned compiler, and check the outcome.
+"""Materialize each scratch probe project, build it with the pinned compiler, and check the outcome.
 
-A positive probe must compile. A negative probe must fail with its named diagnostic text, in its named file;
-any other failure (syntax error, unrelated warning, missing module) marks the probe invalid, not passed.
+A positive probe must compile. A negative probe must fail with exactly one diagnostic, carrying its named text,
+in its named file; any other failure (syntax error, unrelated warning, missing module, or an extra diagnostic
+beside the expected one) marks the probe invalid, not passed.
 """
 import json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -197,12 +206,17 @@ for probe in PROBES:
     else:
         file_ok = f"src/{probe['site']}" in out
         text_ok = probe["diagnostic"] in out
-        verdict = "pass" if (not compiled and file_ok and text_ok) else ("fail" if compiled else "invalid")
+        # Exactly one diagnostic block: an unrelated error or warning beside the expected one is invalid.
+        blocks = out.count("We've found a bug for you!") + len(re.findall(r"Warning number \d+", out))
+        sole = blocks == 1
+        verdict = "pass" if (not compiled and file_ok and text_ok and sole) else ("fail" if compiled else "invalid")
         key = next((l.strip() for l in out.splitlines() if probe["diagnostic"] in l), "")
     open(os.path.join(d, "build.out"), "w").write(out)
     results.append({"id": probe["id"], "expect": probe["expect"], "verdict": verdict, "key": key})
     print(json.dumps(results[-1]))
 print(json.dumps({"total": len(results), "passed": sum(r["verdict"] == "pass" for r in results)}))
+if any(r["verdict"] != "pass" for r in results):
+    sys.exit(1)  # fail closed: a failed or invalid probe must fail the run
 ```
 
 ## Appendix B: probe definitions
