@@ -384,7 +384,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     same-batch error is reported as invalid;
   - the harness did not fail closed. It now exits 1 unless every probe
     passes.
-- [ ] EP-M7: ADR 007, behavioural contract with proof sketch (1.1.5).
+- [x] (2026-10-17 02:30+02:00) EP-M7: ADR 007, behavioural contract with
+  proof sketch (1.1.5). It names 24 observable transitions, T-1 to T-24.
 - [ ] EP-M8: FX-1 feasibility experiment and the ADR updates that follow
   from it.
 - [ ] EP-M9: cross-document integration and the expert panel on the ADRs.
