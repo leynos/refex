@@ -1,24 +1,63 @@
 /**
-Makefile contracts: environment defaults and gate ordering.
+@file Makefile contracts: environment defaults, gate ordering, and suite
+registration.
 
-Two repository invariants are owned here. The uv cache and tool directories
+Three repository invariants are owned here. The uv cache and tool directories
 must be defaults rather than overrides, because a CI provisioner exports its own
 location and fails its post-job cache save when uv writes elsewhere. The `all`
 target must run the gates sequentially and stop at the first failure, including
 under `make -j`, so a parallel invocation cannot hide a broken gate behind an
-unrelated success.
+unrelated success. Every authored test suite must be named by the `test`
+target, because Bun does not discover `.test.res.mjs` output and an unlisted
+suite would pass by never running.
 
 Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them.
+only the values it feeds them, plus the suite-registration check below, which
+stays private because only this suite reads the `test` recipe.
 */
 
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spellingGateContract } from "./support/repository-contracts.mjs";
 
 const source = (path) => readFileSync(path, "utf8");
+
+// The executable path of every authored suite, as `make test` must name it.
+const authoredSuites = () =>
+  readdirSync("tests")
+    .filter((name) => name.endsWith(".test.mjs") || name.endsWith(".test.res"))
+    .map((name) => `./tests/${name.endsWith(".res") ? `${name}.mjs` : name}`)
+    .sort();
+
+// Throws naming the first suite that the `test` recipe's `$(BUN) test` command
+// does not run. Only the joined command counts, up to any shell comment: a path
+// in a recipe comment, a trailing comment, or another command is not executed
+// by `bun test`.
+function testTargetListsEverySuite(makefile, suites) {
+  const recipe = makefile.match(/^test:.*\n((?:\t.*\n?)+)/m)?.[1];
+  if (!recipe) throw new Error("Makefile has no test recipe");
+  const command = recipe
+    .replace(/\\\n\t*/g, " ")
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.startsWith("$(BUN) test "))
+    ?.replace(/\s#.*$/, "");
+  if (!command) throw new Error("test recipe has no $(BUN) test command");
+  const named = new Set(
+    command.split(/\s+/).filter((arg) => arg.startsWith("./tests/")),
+  );
+  for (const suite of suites) {
+    if (!named.has(suite)) throw new Error(`make test does not run ${suite}`);
+  }
+}
 
 describe("Makefile contracts", () => {
   test("spelling gate lets the provisioner choose the uv cache location", () => {
@@ -79,5 +118,43 @@ describe("Makefile contracts", () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  test("make test runs every authored test suite", () => {
+    const suites = authoredSuites();
+    expect(suites.length).toBeGreaterThanOrEqual(8);
+    testTargetListsEverySuite(source("Makefile"), suites);
+  });
+
+  test.each([
+    [
+      "an unlisted suite",
+      (makefile) => makefile.replace("./tests/consumer.test.mjs", ""),
+    ],
+    [
+      "a suite named only in a recipe comment",
+      (makefile) =>
+        makefile
+          .replace("./tests/consumer.test.mjs", "")
+          .replace(
+            "\t+$(MAKE) build\n\t$(BUN) test",
+            "\t+$(MAKE) build\n\t# ./tests/consumer.test.mjs\n\t$(BUN) test",
+          ),
+    ],
+    [
+      "a suite named only in a trailing shell comment",
+      (makefile) =>
+        makefile
+          .replace("./tests/consumer.test.mjs", "")
+          .replace(
+            "./tests/workflow-contracts.test.mjs",
+            "./tests/workflow-contracts.test.mjs # ./tests/consumer.test.mjs",
+          ),
+    ],
+  ])("suite registration rejects %s", (_, mutate) => {
+    const makefile = mutate(source("Makefile"));
+    expect(() => testTargetListsEverySuite(makefile, authoredSuites())).toThrow(
+      "make test does not run ./tests/consumer.test.mjs",
+    );
   });
 });

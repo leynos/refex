@@ -91,16 +91,26 @@ repository contract suites. This prevents a green run that never executes the
 ReScript smoke. Contract tests cover package and compiler boundaries, workflow
 permissions and pins, privileged metadata-only operations, `make -j` gate
 order, the Dependabot configuration, the Markdown rule policy and its ignore
-paths, and the Bun coverage exclusion. Controlled bad fixtures must fail the
-same invariant checks that accept the repository; every contract helper has at
-least one paired negative control.
+paths, the Bun coverage exclusion, registration of every authored suite in the
+`test` target, and the ADR index and status vocabulary. Controlled bad fixtures
+must fail the same invariant checks that accept the repository; every contract
+helper has at least one paired negative control.
+
+Bun does not discover `.test.res.mjs` output, so a new suite runs only once the
+`test` target names it. `makefile-contracts` fails when any `tests/*.test.mjs`
+or `tests/*.test.res` suite is missing from that list, so add the path to the
+`Makefile` in the same change as the suite.
 
 The contract tests are split one concern per file — `package-contracts`,
 `dependency-contracts`, `markdown-contracts`, `workflow-contracts`,
-`generated-gate`, and `makefile-contracts` — so each stays within the authored
-file size limit. They share `tests/support/repository-contracts.mjs`, which
-belongs to these suites alone. Add a new contract to the file that owns its
-subject rather than reopening a general-purpose test file.
+`generated-gate`, `makefile-contracts`, and `documentation-contracts` — so each
+stays within the authored file size limit. The first six share
+`tests/support/repository-contracts.mjs`, which belongs to these suites alone.
+Helpers that only one suite needs stay private to that suite: the
+suite-registration check in `makefile-contracts` and the ADR index check in
+`documentation-contracts` do, because the shared support file is already at its
+size limit. Add a new contract to the file that owns its subject rather than
+reopening a general-purpose test file.
 
 `scripts/check-generated.mjs` cannot be tested as a helper, because it is a
 script that reads Git state. The suite therefore builds throwaway Git

@@ -66,7 +66,8 @@ lint: ## Enforce compiler and authored support-file static checks
 test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	+$(MAKE) build
 	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/consumer.test.mjs \
-		./tests/dependency-contracts.test.mjs ./tests/generated-gate.test.mjs \
+		./tests/dependency-contracts.test.mjs \
+		./tests/documentation-contracts.test.mjs ./tests/generated-gate.test.mjs \
 		./tests/makefile-contracts.test.mjs ./tests/markdown-contracts.test.mjs \
 		./tests/package-contracts.test.mjs ./tests/workflow-contracts.test.mjs
 

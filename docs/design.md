@@ -21,6 +21,10 @@ runtime dependency nor approves publication. Goals G1-G6 live in the
 [terms of reference](terms-of-reference.md); [context](context.md) owns
 vocabulary and source provenance; [roadmap](roadmap.md) owns delivery tasks.
 
+The [design brief](design-brief.md) summarizes the initial public abstractions,
+deferred capabilities, and the contract or delegate behind each validator
+capability; it is subordinate to this document.
+
 [Relude RIO][rio] motivates Reader around IO and environment projection.
 [Primavera][primavera] motivates structural capability requirements. Neither
 establishes equivalent inference through ReScript `.resi` boundaries; E1 must.
