@@ -37,6 +37,9 @@ and documentation are source evidence, not refex conformance results.
   recovery, and host-exit limits.
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
   probes and the static binding audit behind ADR 004; source evidence only.
+- [Verification feasibility](evidence/verification-feasibility.md): the FX-1
+  tool-capability experiment behind the proof selection in ADRs 006 and 007;
+  tool evidence only.
 - [Type-level probes](evidence/type-level-probes.md): scratch compiler probes
   behind ADRs 005 and 006; source evidence only.
 - [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):

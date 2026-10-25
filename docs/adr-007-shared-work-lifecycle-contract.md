@@ -221,20 +221,49 @@ exhaustive enumeration under `bun test`:
   unresolved phase with every joiner reported;
 - one seeded mutation per invariant that the enumeration must reject.
 
-Whether L-1 to L-6 also receive a machine-checked proof against the compiled
-JavaScript depends on the verification feasibility experiment that the
-execution plan for roadmap step 1.1 runs after this ADR is drafted.
+The verification feasibility experiment
+([FX-1](evidence/verification-feasibility.md)) returned *revise*. The
+lifecycle reducer is therefore selected for machine-checked proof against its
+compiled JavaScript in task 1.3.3, in addition to enumeration:
+
+- L-1, L-2, L-3, and L-5, and the per-step forms of L-4 and L-6, are required
+  proof obligations, each reported separately and each with at least one mutant
+  that the proof must reject.
+- The trace forms of L-4 and L-6 remain induction arguments over the verified
+  per-step lemmas, recorded as unverified, until the bridge can attach a
+  termination measure (FX-1 feature F9).
+- The 1.3.3 gate pins LemmaScript 0.6.4, TypeScript 5.9.3, bignumber.js 11.1.5,
+  Dafny 4.11.0, and Z3 4.12.1 exactly. It runs the bridge, the correspondence
+  audit, the proof, the mutation catalogue, and the `dafny translate js`
+  differential check from an empty output directory, and fails closed on any
+  missing stage, proof escape, or surviving mutant.
+- While that gate runs outside CI, any change to the reducer, its contracts,
+  the mutant catalogue, the bridge scripts, or a tool pin requires a fresh
+  proof transcript in the pull request.
 
 ## Representation guidance
 
-To keep the lifecycle verifiable, task 1.3.3 implements it as a pure reducer in
-core, `step(config, state, event)`, returning the next state and an array of
-commands. Every variant constructor carries a record payload. Counters are
-`int` with the bound in `config`. Contracted signatures use a custom outcome
-variant, not `result`. Collections are arrays, not maps or lists, and the
-reducer uses no loops, `ref`, or division. The effectful shell performs the
-commands and feeds results back as events under AXIOM-1. This guidance is
-provisional until the feasibility experiment reports.
+Task 1.3.3 implements the lifecycle as a pure reducer in core,
+`step(config, state, event)`, returning the next state and an array of
+commands, which the effectful shell performs under AXIOM-1. FX-1 turned the
+following rules from proposals into binding guidance, because each one was
+needed for the proof to go through:
+
+1. Every variant constructor carries a record payload; contracted signatures
+   use a custom outcome type, not `result`.
+2. Counters are `int` with the bound in `config`, and every increment is
+   guarded by that bound.
+3. Collections are arrays, built with literals, `Array.concat`, `Array.map`, and
+   `Array.filter`; no loops, `ref`, division, maps, or lists.
+4. Helpers are first-order: no closure that builds a variant value is passed as
+   an argument.
+5. No parameter shares a type's name, and no record type shares a variant tag.
+6. Predicates used in contracts compile without `let` bindings: they switch on
+   parameters rather than field projections and build records field by field. A
+   helper that the compiler inlines into `let` bindings carries its own
+   exact-effect contracts.
+7. Each `@ensures` states one property where its conclusion is a conjunction.
+8. A proof that needs recursion avoids tail calls, which compile to loops.
 
 ## Host-exit limits
 

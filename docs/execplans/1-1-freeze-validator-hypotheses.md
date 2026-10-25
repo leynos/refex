@@ -386,8 +386,16 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     passes.
 - [x] (2026-10-17 02:30+02:00) EP-M7: ADR 007, behavioural contract with
   proof sketch (1.1.5). It names 24 observable transitions, T-1 to T-24.
-- [ ] EP-M8: FX-1 feasibility experiment and the ADR updates that follow
-  from it.
+- [x] (2026-10-17 02:55+02:00) EP-M8: FX-1 feasibility experiment and the
+  ADR updates that follow from it.
+  - Verdict: revise.
+  - The final from-scratch pass reports "fail-closed: Lifecycle, CauseTree
+    clean", with 23/23 and 6/6 mutants killed.
+  - The F9 probe failed as expected.
+  - 23 of the 25 allowed prover runs were used.
+  - The uncommitted EP-M8 edits were lost when the worktree was reset
+    externally, along with `node_modules` and the side-by-side Bun. They were
+    reapplied on 2026-10-25 from the surviving scratch artefacts.
 - [ ] EP-M9: cross-document integration and the expert panel on the ADRs.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
   gates.
@@ -526,6 +534,25 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   They have been corrected to the commit and review times in the Git history
   and gate logs.
   - Impact: from now on, progress entries use observed times only.
+
+- Observation (EP-M8): the compiled JavaScript shapes what the verifier can
+  prove, in four ways:
+  - Tail recursion becomes `while (true)`.
+  - Switching on a field projection, or using a record spread, introduces a
+    `let`, so LemmaScript emits an opaque method.
+  - Inlining can reintroduce `let`s into a small helper.
+  - A top-level conjunction in one `@ensures` becomes two Dafny
+    postconditions.
+  - Evidence: `docs/evidence/verification-feasibility.md`, prover runs 3 to
+    11 and 18.
+  - Impact: ADR 007's representation guidance now binds these rules for
+    1.3.3.
+- Observation (2026-10-25): an external `git reset` to HEAD discarded
+  uncommitted EP-M8 edits, `node_modules`, and the side-by-side Bun 1.4.2, and
+  `/tmp` was cleared.
+  - Impact: the edits were reapplied from the scratch artefacts and the
+    toolchain was reinstalled with a verified checksum. From now on, work is
+    committed as soon as it passes the gates.
 
 ## Decision log
 
@@ -832,6 +859,21 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Rationale: the LemmaScript route supports arrays and not lists, and no
     planned composition needs error subtyping (`R9a` composes with an
     invariant `'e`).
+  - Date/Author: 2026-10-17, implementing agent.
+
+- Decision (EP-M8): the FX-1 verdict is *revise*.
+  - Features F1 to F8 and F11 are supported. F10 needs a non-`int` leaf
+    payload. F9, the trace fold, is unsupported.
+  - FX-L1 to FX-L5, FX-C1, and FX-C2 verify with a clean correspondence
+    audit and full mutant kills, but only after representation changes.
+    ADR 007 now records those changes as eight binding rules.
+  - Consequences:
+    - The lifecycle reducer is selected for machine-checked proof in 1.3.3.
+    - The trace forms of L-4 and L-6 stay unverified induction arguments.
+    - LC-1 to LC-4 are selected subject to three conditions recorded in
+      ADR 006.
+  - This is the plan's *revise* branch, not an assurance downgrade, so no
+    owner decision is needed beyond the approval already given.
   - Date/Author: 2026-10-17, implementing agent.
 
 ## Outcomes & retrospective

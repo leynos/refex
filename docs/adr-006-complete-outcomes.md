@@ -161,11 +161,23 @@ These statements are hypotheses about a future proof. None is verified.
   whose output error type no input supplies must erase every old `Expected`
   leaf from a mixed cause.
 
-LC-1 to LC-4 are candidates for machine-checked proof against the compiled
-JavaScript of the pure cause module, subject to the verification feasibility
-experiment's verdict on recursion over array children (F10) and on records of
-functions (F11). If either is unsupported, bounded enumeration over small trees
-and property tests discharge them instead, and this ADR records that change.
+The verification feasibility experiment
+([FX-1](evidence/verification-feasibility.md)) verified a toy cause tree with
+array children and a record of functions as provenance: kind, child count, and
+child kinds were preserved one level deep, and defect and provenance leaves
+were unchanged, with every mutant killed. LC-1 to LC-4 are therefore selected
+for machine-checked proof against the compiled JavaScript of the pure cause
+module, with three conditions:
+
+- Recursive cause variants carry no `int` fields until the bridge's int32
+  typing predicate recurses through children (FX-1 feature F10).
+- Deep shape preservation must be stated and proved, not only the one-level
+  form FX-1 checked.
+- The generic error payload `'e` was not exercised; task 1.2.3 must confirm
+  that the route handles it before the proof gate depends on it, or else record
+  the gap and fall back to bounded enumeration over small trees and property
+  tests, as an explicit change to this ADR.
+
 LC-5 needs exceptions and stays a conformance test. The backend conversion is
 tested, not proved.
 
