@@ -896,5 +896,5 @@ cancellation (P6).
 H-RT is not falsified for Effect 4.0.5, and no compelling reason selects Effect
 3.22.x. This evidence supports ADR 004's provisional selection of `effect`
 4.0.5 behind refex-owned narrow bindings, with the Reventless package treated
-as prior art and as the source of the unsound-signature counterexamples cited
-by ADR 006 (roadmap task 1.1.4).
+as prior art and as the source of the unsound-signature counterexamples cited by
+[ADR 006](../adr-006-complete-outcomes.md).

@@ -396,7 +396,16 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - The uncommitted EP-M8 edits were lost when the worktree was reset
     externally, along with `node_modules` and the side-by-side Bun. They were
     reapplied on 2026-10-25 from the surviving scratch artefacts.
-- [ ] EP-M9: cross-document integration and the expert panel on the ADRs.
+- [x] (2026-10-25 21:06+01:00) EP-M9, part one: cross-document integration.
+  - Design sections and decisions D1, D2, D8, D9, and D10 link to ADRs 004
+    to 007.
+  - The source register gains C13 to C18, and C5 is amended.
+  - The crosswalk, Q6, and Q7 cite the ADRs.
+  - The developer guide gains ADR, evidence, and plan conventions, with a
+    mapping of the three status vocabularies.
+  - The layout gains rows for ADRs, evidence, and plans.
+  - The design brief and the runtime audit link the ADRs.
+- [ ] EP-M9, part two: the expert panel on ADRs 004 to 007.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
   gates.
 

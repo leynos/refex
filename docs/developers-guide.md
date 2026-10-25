@@ -293,7 +293,10 @@ weaken the contract to hide it: `workflowContract` still asserts
 
 Platform adapters must have real platform-specific source and tests, own their
 runtime dependencies, and depend inward on core. Core must not depend on them.
-Do not create `refex-bun` or `refex-react` as empty name reservations.
+[ADR 004](adr-004-runtime-boundary.md) proposes one exception for a bounded
+trial: the portable execution adapter that backs refex's computation types is
+part of core and may depend on its backend. Do not create `refex-bun` or
+`refex-react` as empty name reservations.
 
 Convert to a ReScript 12 monorepo when a second package has real source, tests,
 independent dependency boundaries, and a plausible publication lifecycle. Bun
@@ -305,3 +308,50 @@ No effect model, compatibility promise, release workflow, benchmarks, mutation
 testing, or formal proof infrastructure belongs in the bootstrap. Act remains a
 deferred validation option. Hosted GitHub Actions establish the actual PR check
 results.
+
+## Decisions, evidence, and plans
+
+ADRs live at `docs/adr-NNN-kebab-title.md`, numbered sequentially and never
+renumbered. Each opens with `# ADR NNN: title` and a status line, and product
+ADRs open their decision with a one-sentence Y-statement that names the
+rejected alternatives and the accepted downside. The `documentation-contracts`
+suite requires every ADR to be linked from `docs/contents.md` and to declare
+one of these statuses, matched as the text after `Status:` up to the first `.`
+or `:`:
+
+| Status                   | Meaning                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| `accepted for bootstrap` | A bootstrap decision in force.                                                |
+| `proposed`               | Written and under review; not yet accepted.                                   |
+| `provisional`            | Accepted for a bounded trial only; a qualifier after a colon names the bound. |
+| `candidate`              | An accepted contract awaiting the evidence that would confirm it.             |
+| `accepted`               | In force.                                                                     |
+| `superseded by ADR NNN`  | Replaced; kept for history.                                                   |
+
+Change an accepted ADR's decision only through a new ADR. Record a conditional
+change to an accepted ADR, once the conditioning ADR is accepted, in an
+`## Amendments` section of the amended ADR, never in its status line.
+
+Three status vocabularies coexist and must not be confused:
+
+| ADR status                 | Context evidence label (context §1)           | Design-brief capability status    |
+| -------------------------- | --------------------------------------------- | --------------------------------- |
+| `proposed`                 | Proposed                                      | Proposed                          |
+| `provisional`, `candidate` | Proposed or Unvalidated until evidence exists | Proposed                          |
+| `accepted`                 | Established once implemented and inspected    | Implemented only when installable |
+| (no ADR)                   | Deferred or Open                              | Deferred, Open, or Delegated      |
+
+Evidence records live in `docs/evidence/`. Each records a claim, pins and
+environment, the exact procedure from an empty directory, observations with
+negative controls, limits, and a decision, as design §10 requires. They are
+source or tool evidence: probes of upstream packages, scratch compiler probes,
+or tool-feasibility experiments. They are never refex conformance results, and
+their probe sources are embedded rather than committed as executable scripts.
+
+Execution plans live in `docs/execplans/`, named after the branch, and are
+living documents maintained throughout their work.
+
+Proof tooling is evaluated by scratch feasibility experiments, recorded as
+evidence, until an approved plan adds a committed gate. The first such gate is
+planned for roadmap task 1.3.3 and is described in
+[ADR 007](adr-007-shared-work-lifecycle-contract.md).

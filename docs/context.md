@@ -316,7 +316,8 @@ Sources inspected or supplied on 12 October 2026:
 - **C4:** [Relude RIO][rio] and [Primavera][primavera], compatibility
   unverified.
 - **C5:** [Reventless][reventless] and [Effect scope][effect-scope], no latest
-  version, selected dependency, or soundness claim.
+  version, selected dependency, or soundness claim as of 12 October 2026. C13
+  to C15 supersede this entry for the backend audit.
 - **C6:** [ReScript await][await], [objects][objects], and [React][react].
 - **C7:** [Sury][sury]; package and deployment questions remain open.
 - **C8:** `css-view` at `305bd947bdb063d3b93785186f2d0bc33d0a5ea3`, including
@@ -335,25 +336,49 @@ Sources inspected or supplied on 12 October 2026:
   #1377 corrections, admission, publication, and retained pending cleanup.
   Linux evidence does not establish unsupported filesystems or real Windows.
 
+Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
+
+- **C13:** [`effect`][effect-npm] 4.0.5, MIT, no runtime dependencies,
+  integrity
+  `sha512-BY4/28NlpOd99yzmV741xbVGmp+1U7tks4oB7F/Png64bTa5tm5eCA6W0RiXsnuLDDoJpjfVSo4Dnq4BZb/89Q==`,
+  probed in the [runtime-boundary audit](evidence/runtime-boundary-audit.md)
+  and provisionally selected by [ADR 004](adr-004-runtime-boundary.md).
+  Observations hold for this version only.
+- **C14:** `effect` 3.22.2, MIT, with runtime dependencies `fast-check ^3.23.1`
+  and `@standard-schema/spec ^1.0.0`; probed for comparison in the same audit.
+- **C15:** [`@reventlessdev/rescript-effect`][reventless] 1.0.0-alpha.0,
+  Apache-2.0, integrity
+  `sha512-XXenFZWN4AB8KCXugzJ/84GcuDBKruuEiP+SLE7wkkD3xSN4BPSTsSZJGMJZNXCSk5BJcVIy8pqGXqZxbNYp6w==`,
+  binding Effect 3.22.2; statically audited as prior art, not selected.
+- **C16:** [Primavera][primavera] at commit
+  `e468f2aad98384818ff861cc8ceb790bd5a766ed`, MIT; prior art for the capability
+  objects of [ADR 005](adr-005-structural-dependency-environments.md).
+- **C17:** [LemmaScript][lemmascript] 0.6.4, Dafny 4.11.0, and Z3 4.12.1, with
+  TypeScript 5.9.3 and bignumber.js 11.1.5; exercised by the
+  [verification feasibility](evidence/verification-feasibility.md) experiment
+  on toy modules only.
+- **C18:** [fast-check][fast-check] 4.10.2, the planned development dependency
+  for property and scheduler tests in roadmap tasks 1.3.x; not installed.
+
 ## 8. Lody learning crosswalk
 
 This crosswalk separates source observations from refex proposals. Neither the
 supplied note nor inspected Lody documentation is a refex test result.
 
-| Source learning                                  | refex response                                          | Delivery/evidence           |
-| ------------------------------------------------ | ------------------------------------------------------- | --------------------------- |
-| Five lifecycle questions                         | Define contracts before selecting primitives.           | (1.1.5), design §2.4.       |
-| Wait cancellation differs from raw termination   | Classify adapters and retain raw-work ownership.        | (1.3.2), (1.4.2), E3/E5/E9. |
-| Repeated close/replacement may not join          | Shared attempt receipt and explicit successor gate.     | (1.3.3)-(1.3.5), E9.        |
-| Failed release can appear successful             | Expose lifecycle failure and retained recovery owner.   | (1.3.1), (4.5.1), E3/E7/E9. |
-| Mixed-cause mapping/projection loses reasons     | Map leaves; restrict recovery rather than erase causes. | (1.2.3), (1.3.1), E1/E9.    |
-| Pending unlink outlives its waiter               | Join original work; protect unresolved generations.     | (1.3.4), (4.2.1), E9/E7.    |
-| Semaphore did not establish strict FIFO          | Separate fairness, re-entry, and exclusion contracts.   | (3.2.2), (3.4.2), E6.       |
-| Async publication exposed incomplete state       | Specify preparation, publication, and observation.      | (1.3.3), (4.3.2), E3/E7.    |
-| Construction capture changed directory semantics | Test snapshot/live inputs and explicit sharing.         | (3.2.1), (3.4.2), E6.       |
-| Acquisition-only retry preserved body execution  | Distinguish four retry regions.                         | (4.4.2), E6/E7.             |
-| Readiness and ablations found lifecycle gaps     | Await signals, inspect state, remove mechanisms.        | (1.3.5), (4.5.1), E9/E7.    |
-| Kernel progress is not consumer/platform proof   | Separate delivery state from evidence coverage.         | (5.1.3), design §11.        |
+| Source learning                                  | refex response                                          | Delivery/evidence                             |
+| ------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------- |
+| Five lifecycle questions                         | Define contracts before selecting primitives.           | (1.1.5), design §2.4, ADR 007.                |
+| Wait cancellation differs from raw termination   | Classify adapters and retain raw-work ownership.        | (1.3.2), (1.4.2), E3/E5/E9.                   |
+| Repeated close/replacement may not join          | Shared attempt receipt and explicit successor gate.     | (1.3.3)-(1.3.5), E9, ADRs 004 and 007.        |
+| Failed release can appear successful             | Expose lifecycle failure and retained recovery owner.   | (1.3.1), (4.5.1), E3/E7/E9, ADRs 006 and 007. |
+| Mixed-cause mapping/projection loses reasons     | Map leaves; restrict recovery rather than erase causes. | (1.2.3), (1.3.1), E1/E9, ADR 006.             |
+| Pending unlink outlives its waiter               | Join original work; protect unresolved generations.     | (1.3.4), (4.2.1), E9/E7, ADR 007.             |
+| Semaphore did not establish strict FIFO          | Separate fairness, re-entry, and exclusion contracts.   | (3.2.2), (3.4.2), E6.                         |
+| Async publication exposed incomplete state       | Specify preparation, publication, and observation.      | (1.3.3), (4.3.2), E3/E7.                      |
+| Construction capture changed directory semantics | Test snapshot/live inputs and explicit sharing.         | (3.2.1), (3.4.2), E6, ADR 005.                |
+| Acquisition-only retry preserved body execution  | Distinguish four retry regions.                         | (4.4.2), E6/E7.                               |
+| Readiness and ablations found lifecycle gaps     | Await signals, inspect state, remove mechanisms.        | (1.3.5), (4.5.1), E9/E7.                      |
+| Kernel progress is not consumer/platform proof   | Separate delivery state from evidence coverage.         | (5.1.3), design §11.                          |
 
 Independent supervisor retention is a proposed improvement, not something
 Lody's process-release note already supplies. That note says no root registry
@@ -379,3 +404,6 @@ importing Lody's architecture, ledger size, or migration policy wholesale.
 [lody-process]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/bug-fix/2026-10-10-effect-process-release-failure.md
 [lody-lock]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/architecture/2026-10-10-effect-file-lock-lifecycle.md
 [lody-probes]: https://github.com/LodyAI/Lody/blob/d8b3fd5bd19c632a7ad34b85fc9b26c2363c45d5/.agents/notes/implemented/process/2026-10-11-effect-reference-skills.md
+[effect-npm]: https://www.npmjs.com/package/effect
+[lemmascript]: https://github.com/midspiral/LemmaScript
+[fast-check]: https://www.npmjs.com/package/fast-check

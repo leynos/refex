@@ -164,7 +164,13 @@ contribution, if any, is the contract in the same row.
 | Differential oracle harness with normalized volatile fields                                     | css-view    | Test harness with the pinned oracle (§9.3)                                                       | Delegated |
 | Evidence records keeping missing platform coverage explicit                                     | css-view    | Evidence records (§10)                                                                           | Proposed  |
 
-Section references in the table are to the [technical design](design.md).
+Section references in the table are to the [technical design](design.md). The
+proposed decision records elaborate them:
+[ADR 004](adr-004-runtime-boundary.md) for the backend,
+[ADR 005](adr-005-structural-dependency-environments.md) for requirements,
+[ADR 006](adr-006-complete-outcomes.md) for outcomes, and
+[ADR 007](adr-007-shared-work-lifecycle-contract.md) for shared work, closure,
+and recovery.
 
 ## Status vocabulary
 

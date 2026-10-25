@@ -277,10 +277,14 @@ compatibility, upgrades, licences, and maintenance before any release change.
 host's retention, inspection, retry, transfer, and force-exit policy. Require
 an experiment showing that ignoring a diagnostic does not lose a recovery
 owner; record separately what cannot survive process exit.
+[ADR 007](adr-007-shared-work-lifecycle-contract.md) proposes a core owner
+registry and host-exit report.
 
 **Q7: What permits resource replacement?** Each adapter must name its release
 predicate, identity/generation guarantees, and any cross-process limits.
 Evidence of a finished wrapper alone cannot resolve this question.
+[ADR 007](adr-007-shared-work-lifecycle-contract.md) proposes a release receipt
+or verified isolation as the gate.
 
 Implementation owners remain unassigned. The owner accepts decisions through
 review; the [design](design.md#12-open-decisions-and-adoption) specifies the
