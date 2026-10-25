@@ -405,6 +405,19 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     mapping of the three status vocabularies.
   - The layout gains rows for ADRs, evidence, and plans.
   - The design brief and the runtime audit link the ADRs.
+- [x] (2026-10-25 21:36+01:00) EP-M7 to EP-M9 CLI reviews. They found guard
+      gaps and
+  wording issues in ADR 007, all fixed:
+  - generation on settlement and bound events;
+  - `cancelRequested` naming;
+  - an authorization guard on T-23;
+  - a confirmed predicate at T-13;
+  - INV-15 to INV-17.
+  - In FX-1, the toy predicate was tightened to INV-15 and re-proved: 10
+    verified, 24/24 mutants killed, fail-closed clean, which used the last
+    of the 25 allowed runs.
+  - The runner now takes `Z3_HOME` and `DAFNY_HOME`, asserts the pinned
+    versions, and the record documents the native tool downloads.
 - [ ] EP-M9, part two: the expert panel on ADRs 004 to 007.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
   gates.

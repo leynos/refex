@@ -38,10 +38,30 @@ below, install the pins once, copy the three bridge scripts from the skill, and
 place the toy sources, mutant catalogues, `fail-closed.mjs`, and `run-fx1.sh`
 from this record:
 
+Install the two native tools from their releases and verify each archive:
+
+- Dafny 4.11.0:
+  `https://github.com/dafny-lang/dafny/releases/download/v4.11.0/dafny-4.11.0-x64-ubuntu-22.04.zip`,
+  SHA-256 `a46a9ff7cdd720f7955854c78e95df13f4cfe6b80691b05f8654fe19e8267179`.
+  Unpack it and set `DAFNY_HOME` to the directory holding `dafny`, or put
+  `dafny` on `PATH`.
+- Z3 4.12.1:
+  `https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip`,
+  SHA-256 `c5360fd157b0f861ec8780ba3e51e2197e9486798dc93cd878df69a4b0c2b7c5`.
+  Unpack it and set `Z3_HOME` to the unpacked `z3-4.12.1-x64-glibc-2.35`
+  directory.
+
+Then, with Bun 1.4.2 on `PATH`:
+
 ```sh
 bun add --exact rescript@12.3.1 @rescript/runtime@12.3.1 lemmascript@0.6.4 typescript@5.9.3 bignumber.js@11.1.5
-./run-fx1.sh   # regenerates .verify from empty and exits non-zero on any hole
+Z3_HOME=/path/to/z3-4.12.1-x64-glibc-2.35 DAFNY_HOME=/path/to/dafny ./run-fx1.sh
 ```
+
+The runner checks the Bun, Z3, and Dafny versions and stops on any mismatch. It
+regenerates each module's `.verify` directory from empty and exits non-zero on
+any hole. `MODULES` limits a rerun to named modules, and `SKIP_F9=1` skips the
+expected-failure probe.
 
 ```json
 {"name":"refex-fx1","namespace":false,"sources":[{"dir":"src"}],
@@ -55,8 +75,11 @@ verified, 0 errors") and its 13 mutants were all killed, so the toolchain
 itself was sound on this host.
 
 Budget: the plan allowed 25 prover runs, counting a mutation sweep as one. FX-1
-used 23, including the two control runs and the final pass, and ended with a
-verdict inside the one-day limit.
+reached its verdict in 23, including the two control runs and the final pass,
+within the one-day limit. Milestone review then found that the toy's
+`wellFormed` admitted a non-zero `lastStarted` in `Acquiring` and `Open`, which
+ADR 007's INV-15 forbids. The predicate was tightened, a mutant added, and
+Lifecycle re-proved: two more runs, for 25 in total.
 
 ## Feature verdicts
 
@@ -81,7 +104,7 @@ whose failure demonstrates that the contract is checked.
 
 | Obligation       | Contract                                                                                                                  | Outcome                  | Mutants killed on it                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
-| FX-L1            | `step` preserves `wellFormed`                                                                                             | Verified                 | `wrap-attempt`                                                                       |
+| FX-L1            | `step` preserves `wellFormed`, including INV-15's `lastStarted == 0` in `Acquiring` and `Open`                            | Verified                 | `wrap-attempt`, `open-advances-attempt`                                              |
 | FX-L2            | PR-1: a close on `Open` starts exactly one attempt                                                                        | Verified                 | `close-recovers`, `refuses-everything`                                               |
 | FX-L2            | PR-7: a close in flight joins the current attempt                                                                         | Verified                 | `join-wrong-attempt`, `refuse-join`, `duplicate-start`, `refuses-everything`         |
 | FX-L3            | A stale or other-generation settlement keeps owner, phase, attempt, and the other generation, appending one history entry | Verified                 | `stale-other-generation`                                                             |
@@ -92,8 +115,8 @@ whose failure demonstrates that the contract is checked.
 | FX-C2            | `mapExpected` keeps defect and provenance leaves                                                                          | Verified at the node     | `defect-loses-message`, `provenance-forged`                                          |
 | Helper contracts | `refuse` (7 contracts) and `settle` (7 contracts) exact effects                                                           | Verified                 | one mutant each, listed in the catalogue                                             |
 
-The Lifecycle catalogue has 23 mutants and the cause-tree catalogue 6. The
-final pass killed all 29 on exactly their listed contracts. Writing the
+The Lifecycle catalogue has 24 mutants and the cause-tree catalogue 6. The
+final passes killed all 30 on exactly their listed contracts. Writing the
 catalogue also found a specification gap: `settle` first had no contract
 distinguishing a successful settlement from a failed one, so a mutant recording
 a failure as a release would have survived. Two exact-effect contracts were
@@ -169,12 +192,11 @@ These results concern the tool on toy modules and are not evidence about refex.
 
 ## Final run transcript
 
-Excerpt of `./run-fx1.sh` output from an empty `.verify` directory:
+Excerpts of the final passes, each from empty output directories: Lifecycle
+from the INV-15 rerun (`MODULES=Lifecycle SKIP_F9=1`), then CauseTree and the
+F9 probe from the preceding full pass.
 
 ```plaintext
-1.4.2
-Z3 version 4.12.1 - 64 bit
-4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2
 identical to production: inFlightAttempt, attemptMatches, generationWellFormed, wellFormed, withCurrent, refuse,
   enter, startClosing, startRecovering, settle, step
 Dafny program verifier finished with 10 verified, 0 errors
@@ -193,6 +215,7 @@ killed settle-releases-other-attempt
 killed success-records-failure
 killed failure-records-release
 killed wrap-attempt
+killed open-advances-attempt
 killed close-recovers
 killed join-wrong-attempt
 killed refuse-join
@@ -201,7 +224,9 @@ killed bound-joins
 killed stale-other-generation
 killed numbering-skips
 killed refuses-everything
-23/23 mutants killed
+24/24 mutants killed
+fail-closed: Lifecycle, CauseTree clean
+real    8m34.091s
 identical to production: mapExpected
 Dafny program verifier finished with 6 verified, 0 errors
 killed expected-becomes-defect
@@ -230,20 +255,27 @@ width rule.
 
 ### `run-fx1.sh`
 
-SHA-256 `39e0b4ddd95b60c40373a4e15ae66955c14904cfddd54c29a7f9df44109a2657`.
+SHA-256 `bf7aa62af1d27703543b59755a65e7e7c7950ef3de340b2c3dc63283455c81b4`.
 
 ```sh
 #!/usr/bin/env bash
-# FX-1 runner: regenerates every verification artefact from an empty .verify directory and fails closed.
+# FX-1 runner: regenerates verification artefacts from empty output directories and fails closed.
+# Requires: Bun 1.4.2 on PATH; Z3_HOME pointing at the unpacked z3-4.12.1-x64-glibc-2.35 directory; Dafny 4.11.0
+# either on PATH or under DAFNY_HOME. MODULES selects the modules to rerun (default: all); SKIP_F9=1 skips the
+# F9 feature probe. fail-closed.mjs always checks every module's artefacts.
 set -euo pipefail
-export PATH="$HOME/scratch/refex-1-1/z3/z3-4.12.1-x64-glibc-2.35/bin:$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"
+: "${Z3_HOME:?set Z3_HOME to the unpacked z3-4.12.1 directory}"
+export PATH="$Z3_HOME/bin${DAFNY_HOME:+:$DAFNY_HOME}:$PATH"
+MODULES="${MODULES:-Lifecycle CauseTree}"
 LSC=node_modules/lemmascript/tools/dist/lsc.js
-bun --version; z3 --version; dafny --version
+expect() { [[ "$2" == "$3"* ]] || { echo "pin mismatch: $1 is '$2', expected '$3'" >&2; exit 2; }; }
+expect bun "$(bun --version)" "1.4.2"
+expect z3 "$(z3 --version)" "Z3 version 4.12.1"
+expect dafny "$(dafny --version)" "4.11.0"
 bun install --frozen-lockfile
 bunx rescript build
-rm -rf .verify
-for m in Lifecycle CauseTree; do
-  d=.verify/$m; mkdir -p "$d"
+for m in $MODULES; do
+  d=.verify/$m; rm -rf "$d"; mkdir -p "$d"
   bun res2ls-bridge.mjs "src/$m.res" "$d" | tee "$d/bridge.out"; echo "${PIPESTATUS[0]}" > "$d/bridge.status"
   bun res2ls-correspond.mjs "src/$m.res" "$d" | tee "$d/correspond.out"; echo "${PIPESTATUS[0]}" > "$d/correspond.status"
   bun "$LSC" check --backend=dafny "$d/$m.ts" | tee "$d/check.out"; echo "${PIPESTATUS[0]}" > "$d/check.status"
@@ -251,17 +283,19 @@ for m in Lifecycle CauseTree; do
   echo "${PIPESTATUS[0]}" > "$d/mutate.status"
 done
 bun fail-closed.mjs
-# Feature probe F9 is expected to fail; it is recorded, never counted towards acceptance.
-mkdir -p .verify/Fold
-bun res2ls-bridge.mjs src/Fold.res .verify/Fold > /dev/null
-bun res2ls-correspond.mjs src/Fold.res .verify/Fold
-set +e; bun "$LSC" check --backend=dafny .verify/Fold/Fold.ts > .verify/Fold/check.out 2>&1; echo "F9 probe exit $?"; set -e
-grep -E 'Error:|verified' .verify/Fold/check.out | sed -E 's/^Fold.dfy\([0-9]+,[0-9]+\): //' | sort | uniq -c
+if [[ "${SKIP_F9:-0}" != 1 ]]; then
+  # Feature probe F9 is expected to fail; it is recorded, never counted towards acceptance.
+  rm -rf .verify/Fold; mkdir -p .verify/Fold
+  bun res2ls-bridge.mjs src/Fold.res .verify/Fold > /dev/null
+  bun res2ls-correspond.mjs src/Fold.res .verify/Fold
+  set +e; bun "$LSC" check --backend=dafny .verify/Fold/Fold.ts > .verify/Fold/check.out 2>&1; echo "F9 probe exit $?"; set -e
+  grep -E 'Error:|verified' .verify/Fold/check.out | sed -E 's/^Fold.dfy\([0-9]+,[0-9]+\): //' | sort | uniq -c
+fi
 ```
 
 ### `fail-closed.mjs`
 
-SHA-256 `00da8531ac055a0edf514648628d98382bf76b75b8d331cf825839e153acb030`.
+SHA-256 `e4165807047bfa1f4b36d886cab2bdeb82510cf53b3931df38d8e380b9510fbb`.
 
 ```js
 /**
@@ -272,7 +306,7 @@ not killed. A crash or timeout leaves a missing status file, which is a failure,
 */
 import { existsSync, readFileSync } from "node:fs";
 
-const MODULES = { Lifecycle: { verified: 10, mutants: 23 }, CauseTree: { verified: 6, mutants: 6 } };
+const MODULES = { Lifecycle: { verified: 10, mutants: 24 }, CauseTree: { verified: 6, mutants: 6 } };
 const FORBIDDEN = ["assume", "{:axiom}", "{:verify false}", "decreases *"];
 const problems = [];
 const read = (path) => (existsSync(path) ? readFileSync(path, "utf8") : null);
@@ -308,7 +342,7 @@ console.log(`fail-closed: ${Object.keys(MODULES).join(", ")} clean`);
 
 ### `Lifecycle.res`
 
-SHA-256 `386e010aebed236939e01e668906dcfdc8388ce4865df679ea628e8cb61bc6bf`.
+SHA-256 `d1ef09a25466c6833cf8c4efa71db00c890de97a685c00d62899b07e9474fc50`.
 
 ```rescript
 /***
@@ -367,7 +401,7 @@ let inFlightAttempt = (phase: phase): int =>
   }
 
 /**
-Any attempt a phase records is the last one started. The switch is on a
+Any attempt a phase records is the last one started, and no attempt precedes cleanup (ADR 007 INV-15). The switch is on a
 parameter, not a field projection: a projection compiles to a mutable `let`,
 which LemmaScript classifies as impure.
 */
@@ -378,8 +412,8 @@ let attemptMatches = (phase: phase, lastStarted: int): bool =>
   | Recovering({attempt, _}) => attempt == lastStarted
   | SettledFailed({attempt}) => attempt == lastStarted
   | Released({attempt}) => attempt == lastStarted
-  | Acquiring(_) => lastStarted >= 0
-  | Open(_) => lastStarted >= 0
+  | Acquiring(_) => lastStarted == 0
+  | Open(_) => lastStarted == 0
   }
 
 /** One generation is well formed: attempts are bounded and any recorded attempt is the last started. */
@@ -543,7 +577,7 @@ let step = (config: config, state: machine, event: event): outcome =>
 
 ### `Lifecycle.mutants.mjs`
 
-SHA-256 `60eb50e3ec216ce9ef06350cce39d59a2546ec6d60acc482d25491d52881968d`.
+SHA-256 `e97597b8cf8e17574e002533fe7ba8fdb6d6b052f032fef067c9f3c2f3eb882a`.
 
 ```js
 /**
@@ -602,6 +636,9 @@ export default [
     'kind: "released",\n        attempt: attempt'),
   one("wrap-attempt", [WELL_FORMED], 'kind: "closing",\n      attempt: state.current.lastStarted + 1 | 0',
     'kind: "closing",\n      attempt: state.current.lastStarted + 2 | 0'),
+  one("open-advances-attempt", [WELL_FORMED],
+    'kind: "open",\n                leases: []\n              }, state.current.lastStarted)',
+    'kind: "open",\n                leases: []\n              }, state.current.lastStarted + 1 | 0)'),
   one("close-recovers", [CLOSE_STARTS], "return startClosing(state, [caller]);",
     "return startRecovering(state, [caller]);"),
   one("join-wrong-attempt", [CLOSE_JOINS], "caller: caller$2,\n                    attempt: match.attempt",
