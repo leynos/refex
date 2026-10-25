@@ -162,6 +162,12 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   `Fold.res.mjs` is byte-identical to the audited one (SHA-256
   `9740fdd41435094dca9906e007fb96b6de0e0b86bcd2aca4518c2f783167c1a7`), so the
   F9 result stands.
+- After the final passes, review asked that a `MODULES` rerun check only the
+  modules it regenerated. `run-fx1.sh` now passes `$MODULES` to
+  `fail-closed.mjs`, which checks only the modules it is given, or all of them
+  when it is given none. The passes above ran the earlier versions, which
+  checked both modules. Both versions are fail-closed, and no prover run was
+  repeated, because the budget was spent.
 - No `assume`, `{:axiom}`, `{:verify false}`, `decreases *`, `//@ extern`, or
   hand-edited `.dfy` was used; `fail-closed.mjs` checks the generated Dafny for
   the first four.
@@ -255,14 +261,14 @@ width rule.
 
 ### `run-fx1.sh`
 
-SHA-256 `bf7aa62af1d27703543b59755a65e7e7c7950ef3de340b2c3dc63283455c81b4`.
+SHA-256 `665b60929880bebb558f8c5a36a35ba3baf5bdb799c919527f77bc648f3869b9`.
 
 ```sh
 #!/usr/bin/env bash
 # FX-1 runner: regenerates verification artefacts from empty output directories and fails closed.
 # Requires: Bun 1.4.2 on PATH; Z3_HOME pointing at the unpacked z3-4.12.1-x64-glibc-2.35 directory; Dafny 4.11.0
 # either on PATH or under DAFNY_HOME. MODULES selects the modules to rerun (default: all); SKIP_F9=1 skips the
-# F9 feature probe. fail-closed.mjs always checks every module's artefacts.
+# F9 feature probe. fail-closed.mjs checks the modules that this run regenerated.
 set -euo pipefail
 : "${Z3_HOME:?set Z3_HOME to the unpacked z3-4.12.1 directory}"
 export PATH="$Z3_HOME/bin${DAFNY_HOME:+:$DAFNY_HOME}:$PATH"
@@ -282,7 +288,7 @@ for m in $MODULES; do
   bun res2ls-mutate.mjs "src/$m.res" "src/$m.mutants.mjs" "$d/mutants" "$LSC" | tee "$d/mutate.out"
   echo "${PIPESTATUS[0]}" > "$d/mutate.status"
 done
-bun fail-closed.mjs
+bun fail-closed.mjs $MODULES
 if [[ "${SKIP_F9:-0}" != 1 ]]; then
   # Feature probe F9 is expected to fail; it is recorded, never counted towards acceptance.
   rm -rf .verify/Fold; mkdir -p .verify/Fold
@@ -295,7 +301,7 @@ fi
 
 ### `fail-closed.mjs`
 
-SHA-256 `e4165807047bfa1f4b36d886cab2bdeb82510cf53b3931df38d8e380b9510fbb`.
+SHA-256 `73d34b7ca4eac6891a160308147967559e3ab38fac3a886411a49a0af74b38ba`.
 
 ```js
 /**
@@ -306,7 +312,16 @@ not killed. A crash or timeout leaves a missing status file, which is a failure,
 */
 import { existsSync, readFileSync } from "node:fs";
 
-const MODULES = { Lifecycle: { verified: 10, mutants: 24 }, CauseTree: { verified: 6, mutants: 6 } };
+const EXPECTED = { Lifecycle: { verified: 10, mutants: 24 }, CauseTree: { verified: 6, mutants: 6 } };
+// Modules named on the command line are checked; with none, every module is.
+const selected = process.argv.slice(2);
+const MODULES = Object.fromEntries(
+  Object.entries(EXPECTED).filter(([name]) => selected.length === 0 || selected.includes(name)),
+);
+if (selected.some((name) => !(name in EXPECTED))) {
+  console.error(`unknown module in ${selected.join(", ")}`);
+  process.exit(1);
+}
 const FORBIDDEN = ["assume", "{:axiom}", "{:verify false}", "decreases *"];
 const problems = [];
 const read = (path) => (existsSync(path) ? readFileSync(path, "utf8") : null);

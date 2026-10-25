@@ -389,10 +389,11 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - [x] (2026-10-17 02:55+02:00) EP-M8: FX-1 feasibility experiment and the
   ADR updates that follow from it.
   - Verdict: revise.
-  - The final from-scratch pass reports "fail-closed: Lifecycle, CauseTree
-    clean", with 23/23 and 6/6 mutants killed.
-  - The F9 probe failed as expected.
-  - 23 of the 25 allowed prover runs were used.
+  - At the verdict, the pre-review final pass reported "fail-closed:
+    Lifecycle, CauseTree clean", with 23/23 and 6/6 mutants killed, and the
+    F9 probe failed as expected. It used 23 of the 25 allowed prover runs.
+  - The final counts come from the later INV-15 rerun recorded below: 24/24
+    and 6/6 mutants killed, with all 25 runs used.
   - The uncommitted EP-M8 edits were lost when the worktree was reset
     externally, along with `node_modules` and the side-by-side Bun. They were
     reapplied on 2026-10-25 from the surviving scratch artefacts.

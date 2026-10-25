@@ -169,7 +169,7 @@ were unchanged, with every mutant killed. LC-1 to LC-4 are therefore selected
 for machine-checked proof against the compiled JavaScript of the pure cause
 module, with three conditions:
 
-- Recursive cause variants carry no `int` fields until the bridge's int32
+- Recursive cause variants carry no `int` fields unless the bridge's int32
   typing predicate recurses through children (FX-1 feature F10).
 - Deep shape preservation must be stated and proved, not only the one-level
   form FX-1 checked.
