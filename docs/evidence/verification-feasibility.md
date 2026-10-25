@@ -135,6 +135,10 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   LemmaScript's translation; Dafny 4.11.0; and Z3 4.12.1. The correspondence
   audit compared every compiled function with the verified unit, so function
   bodies are the shipped JavaScript; the additions around them stay trusted.
+- `Fold.res`'s doc comment was corrected after the final pass. Its compiled
+  `Fold.res.mjs` is byte-identical to the audited one (SHA-256
+  `9740fdd41435094dca9906e007fb96b6de0e0b86bcd2aca4518c2f783167c1a7`), so the
+  F9 result stands.
 - No `assume`, `{:axiom}`, `{:verify false}`, `decreases *`, `//@ extern`, or
   hand-edited `.dfy` was used; `fail-closed.mjs` checks the generated Dafny for
   the first four.
@@ -706,7 +710,7 @@ export default [
 
 ### `Fold.res`
 
-SHA-256 `6a6f877c38510d2afff263f21ef612da082a8f65ec5de37d6156760071bc87b2`.
+SHA-256 `153bcbb31906b0eb2165877eb5ccca1d460bf22035ef0067302f5f1422447e0f`.
 
 ```rescript
 /***
@@ -741,8 +745,9 @@ let step = (current: phase, _event: event): outcome =>
   }
 
 /**
-Counts the attempts started while folding `step` over `events` from `index`. Both recursive calls are deliberately
-not in tail position: the compiler turns tail recursion into a `while` loop, which the verification route cannot model.
+Counts the attempts started while folding `step` over `events` from `index`. Neither recursive call is in tail
+position, because the compiler lowers tail recursion to a `while` loop, which the verification route cannot model. The
+fold still fails to verify: the recursion needs a termination measure that the bridge cannot attach.
 */
 @genType
 @requires("current.kind === 'closing'")

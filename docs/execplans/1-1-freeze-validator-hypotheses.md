@@ -548,8 +548,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Impact: ADR 007's representation guidance now binds these rules for
     1.3.3.
 - Observation (2026-10-25): an external `git reset` to HEAD discarded
-  uncommitted EP-M8 edits, `node_modules`, and the side-by-side Bun 1.4.2, and
-  `/tmp` was cleared.
+  uncommitted EP-M8 edits, `node_modules`, and the side-by-side Bun 1.4.2.
+  Separately, `/tmp` was cleared.
   - Impact: the edits were reapplied from the scratch artefacts and the
     toolchain was reinstalled with a verified checksum. From now on, work is
     committed as soon as it passes the gates.
@@ -861,7 +861,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     invariant `'e`).
   - Date/Author: 2026-10-17, implementing agent.
 
-- Decision (EP-M8): the FX-1 verdict is *revise*.
+- Decision (EP-M8): the FX-1 verdict is `revise`.
   - Features F1 to F8 and F11 are supported. F10 needs a non-`int` leaf
     payload. F9, the trace fold, is unsupported.
   - FX-L1 to FX-L5, FX-C1, and FX-C2 verify with a clean correspondence
@@ -872,9 +872,24 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     - The trace forms of L-4 and L-6 stay unverified induction arguments.
     - LC-1 to LC-4 are selected subject to three conditions recorded in
       ADR 006.
-  - This is the plan's *revise* branch, not an assurance downgrade, so no
-    owner decision is needed beyond the approval already given.
+  - This is the plan's `revise` branch, not an assurance downgrade, so EP-M8
+    adds no new owner decision. EP-M10 still records the owner's acceptance
+    of the ADR set, the status lines, and the final gates, and stays pending
+    until then.
   - Date/Author: 2026-10-17, implementing agent.
+
+- Decision (EP-M7 and EP-M8 milestone review): the review found guard
+  gaps in ADR 007's transitions, and ADR 007 now closes them.
+  - INV-15: `lastStarted` is 0 in `Acquiring` and `Open`, so the first
+    attempt is always within the bound.
+  - INV-16: leases and joiners are unique.
+  - INV-17: isolation is recorded once per generation.
+  - T-6, T-10, T-12, and T-23 gain guards, and T-24 refuses the excluded
+    cases.
+  - The lifecycle model in this plan's `Verification plan` keeps its
+    original wording as the planning record. ADR 007 is the authoritative
+    contract for tasks 1.3.2 to 1.3.5.
+  - Date/Author: 2026-10-25, implementing agent.
 
 ## Outcomes & retrospective
 
@@ -1542,8 +1557,8 @@ bounds in every well-formed state:
   when that caller's bound elapses or when the attempt settles, whichever comes
   first.
 - INV-14, authorization: only the owner, or the host acting for it, may
-  close, recover, or offer a transfer. A lease holder may release or cancel
-  only its own lease. Any other request is refused, and the state is unchanged.
+  close, recover, or offer a transfer. A leaseholder may release or cancel only
+  its own lease. Any other request is refused, and the state is unchanged.
 
 Exact-effect and progress clauses. These are the guard against a specification
 that a "refuse everything" reducer would satisfy.

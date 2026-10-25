@@ -90,32 +90,32 @@ Commands to the shell: `Publish`, `StartAttempt{generation, attempt}`,
 means the owner, or the host acting for it. Each transition names the
 observation a test uses to establish it.
 
-| ID   | From                                    | Event and guard                                         | To                                | Commands                                                   | Observation              |
-| ---- | --------------------------------------- | ------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------- | ------------------------ |
-| T-1  | `Acquiring`, not cancelled              | `AcquireSucceeded`                                      | `Open{[]}`                        | one `Publish`                                              | Publication readiness    |
-| T-2  | `Acquiring`, cancelled                  | `AcquireSucceeded`                                      | `Closing{a+1}`                    | one `StartAttempt`, no `Publish`                           | Finalizer entry          |
-| T-3  | `Acquiring`                             | `AcquireFailed{partial: true}`                          | `Closing{a+1}`                    | one `StartAttempt`                                         | Finalizer entry          |
-| T-4  | `Acquiring`                             | `AcquireFailed{partial: false}`                         | `AcquisitionFailed`               | none                                                       | Failure report           |
-| T-5  | `Acquiring`                             | authorized `AcquireCancelRequested`                     | `Acquiring{cancelled}`            | none                                                       | Owner record             |
-| T-6  | `Open`                                  | `LeaseAcquired`                                         | `Open`, lease added               | none                                                       | Lease readiness          |
-| T-7  | `Open`, other leases remain             | holder's `LeaseCancelled` or `LeaseReleased`            | `Open`, lease removed             | none                                                       | Other lease still served |
-| T-8  | `Open`, last lease                      | holder's `LeaseCancelled` or `LeaseReleased`            | `Closing{a+1}`                    | one `StartAttempt`                                         | Finalizer entry          |
-| T-9  | `Open`                                  | authorized `CloseRequested`                             | `Closing{a+1}`                    | `RevokeLease` per lease, one `StartAttempt`, `JoinAttempt` | Finalizer entry          |
-| T-10 | in flight                               | authorized `CloseRequested` or `RecoverRequested`       | unchanged, caller joined          | exactly one `JoinAttempt{current}`                         | Same attempt reported    |
-| T-11 | `Closing` or `Recovering`               | `OwnerBoundElapsed{current}`                            | `UnresolvedPending`, same attempt | none                                                       | Owner inspection         |
-| T-12 | in flight                               | `WaitBoundElapsed{caller, current}`                     | unchanged, caller removed         | one `Report` to that caller                                | Caller's report          |
-| T-13 | in flight                               | `AttemptSucceeded{current}`                             | `Released{receipt}`               | `Report` per joiner, `AdmitSuccessor` per deferred         | Receipt                  |
-| T-14 | in flight                               | `AttemptFailed{current}`                                | `UnresolvedSettledFailed`         | `Report` per joiner                                        | Settled-failure report   |
-| T-15 | `UnresolvedSettledFailed`, below bound  | authorized `RecoverRequested`                           | `Recovering{a+1}`                 | one `StartAttempt`, `JoinAttempt`                          | Finalizer entry          |
-| T-16 | `UnresolvedSettledFailed`, at bound     | authorized `RecoverRequested`                           | unchanged                         | `Refuse`                                                   | Refusal                  |
-| T-17 | `UnresolvedSettledFailed` or `Released` | authorized `CloseRequested`                             | unchanged                         | one `Report` of the settled state                          | Existing report          |
-| T-18 | any                                     | stale or duplicate settlement                           | unchanged, history appended       | `Refuse`                                                   | History entry            |
-| T-19 | any non-terminal                        | authorized `TransferOffered`                            | `pendingTransfer` set             | none                                                       | Owner record             |
-| T-20 | any non-terminal                        | `TransferAcknowledged` from the offered destination     | owner changed                     | none                                                       | Destination owns it      |
-| T-21 | `Released`, or isolation verified       | `SuccessorRequested`                                    | unchanged                         | `AdmitSuccessor`                                           | Successor starts         |
-| T-22 | otherwise                               | `SuccessorRequested`                                    | identity deferred                 | `DeferSuccessor`                                           | Successor waits          |
-| T-23 | any                                     | `IsolationVerified`                                     | isolation recorded                | `AdmitSuccessor` per deferred                              | Successor starts         |
-| T-24 | any                                     | unauthorized request, or `LeaseAcquired` outside `Open` | unchanged                         | `Refuse`                                                   | Refusal                  |
+| ID   | From                                         | Event and guard                                                                                                                                                                                                                                     | To                                                                                     | Commands                                                   | Observation                |
+| ---- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------- |
+| T-1  | `Acquiring`, not cancelled                   | `AcquireSucceeded`                                                                                                                                                                                                                                  | `Open{[]}`                                                                             | one `Publish`                                              | Publication readiness      |
+| T-2  | `Acquiring`, cancelled                       | `AcquireSucceeded`                                                                                                                                                                                                                                  | `Closing{a+1}`                                                                         | one `StartAttempt`, no `Publish`                           | Finalizer entry            |
+| T-3  | `Acquiring`                                  | `AcquireFailed{partial: true}`                                                                                                                                                                                                                      | `Closing{a+1}`                                                                         | one `StartAttempt`                                         | Finalizer entry            |
+| T-4  | `Acquiring`                                  | `AcquireFailed{partial: false}`                                                                                                                                                                                                                     | `AcquisitionFailed`                                                                    | none                                                       | Failure report             |
+| T-5  | `Acquiring`                                  | authorized `AcquireCancelRequested`                                                                                                                                                                                                                 | `Acquiring{cancelled}`                                                                 | none                                                       | Owner record               |
+| T-6  | `Open`, lease not held                       | `LeaseAcquired`                                                                                                                                                                                                                                     | `Open`, lease added                                                                    | none                                                       | Lease readiness            |
+| T-7  | `Open`, other leases remain                  | leaseholder's `LeaseCancelled` or `LeaseReleased`                                                                                                                                                                                                   | `Open`, that lease removed                                                             | none                                                       | Other leases remain served |
+| T-8  | `Open`, last lease                           | leaseholder's `LeaseCancelled` or `LeaseReleased`                                                                                                                                                                                                   | `Closing{a+1}`                                                                         | one `StartAttempt`                                         | Finalizer entry            |
+| T-9  | `Open`                                       | authorized `CloseRequested`                                                                                                                                                                                                                         | `Closing{a+1}`                                                                         | `RevokeLease` per lease, one `StartAttempt`, `JoinAttempt` | Finalizer entry            |
+| T-10 | in flight                                    | authorized `CloseRequested` or `RecoverRequested`                                                                                                                                                                                                   | unchanged; caller added to joiners if absent                                           | exactly one `JoinAttempt{current}`                         | Same attempt reported      |
+| T-11 | `Closing` or `Recovering`                    | `OwnerBoundElapsed{current}`                                                                                                                                                                                                                        | `UnresolvedPending`, same attempt                                                      | none                                                       | Owner inspection           |
+| T-12 | in flight, caller is a current joiner        | `WaitBoundElapsed{caller, current}`                                                                                                                                                                                                                 | unchanged, caller removed                                                              | one `Report` to that caller                                | Caller's report            |
+| T-13 | in flight                                    | `AttemptSucceeded{current, predicate}`, predicate is the adapter's declared release predicate                                                                                                                                                       | `Released{receipt}`, receipt built from the event's generation, attempt, and predicate | `Report` per joiner, `AdmitSuccessor` per deferred         | Receipt                    |
+| T-14 | in flight                                    | `AttemptFailed{current}`                                                                                                                                                                                                                            | `UnresolvedSettledFailed`                                                              | `Report` per joiner                                        | Settled-failure report     |
+| T-15 | `UnresolvedSettledFailed`, below bound       | authorized `RecoverRequested`                                                                                                                                                                                                                       | `Recovering{a+1}`                                                                      | one `StartAttempt`, `JoinAttempt`                          | Finalizer entry            |
+| T-16 | `UnresolvedSettledFailed`, at bound          | authorized `RecoverRequested`                                                                                                                                                                                                                       | unchanged                                                                              | `Refuse`                                                   | Refusal                    |
+| T-17 | `UnresolvedSettledFailed` or `Released`      | authorized `CloseRequested`                                                                                                                                                                                                                         | unchanged                                                                              | one `Report` of the settled state                          | Existing report            |
+| T-18 | any                                          | stale or duplicate settlement                                                                                                                                                                                                                       | unchanged, history appended                                                            | `Refuse`                                                   | History entry              |
+| T-19 | any non-terminal                             | authorized `TransferOffered`                                                                                                                                                                                                                        | `pendingTransfer` set                                                                  | none                                                       | Owner record               |
+| T-20 | any non-terminal                             | `TransferAcknowledged` from the offered destination                                                                                                                                                                                                 | owner changed                                                                          | none                                                       | Destination owns it        |
+| T-21 | `Released`, or isolation verified            | `SuccessorRequested`                                                                                                                                                                                                                                | unchanged                                                                              | `AdmitSuccessor`                                           | Successor starts           |
+| T-22 | otherwise                                    | `SuccessorRequested`                                                                                                                                                                                                                                | identity deferred                                                                      | `DeferSuccessor`                                           | Successor waits            |
+| T-23 | any non-terminal, isolation not yet recorded | `IsolationVerified` for the current generation                                                                                                                                                                                                      | isolation recorded, deferred successors cleared                                        | `AdmitSuccessor` per deferred                              | Successor starts           |
+| T-24 | any                                          | unauthorized request; `LeaseAcquired` outside `Open` or for a held lease; `WaitBoundElapsed` for a non-joiner; repeated or other-generation `IsolationVerified`; `AttemptSucceeded` whose predicate is not the adapter's declared release predicate | unchanged                                                                              | `Refuse`                                                   | Refusal                    |
 
 A close requested by the owner while consumers still hold leases revokes them
 (T-9). The rejected alternative, waiting for the last lease, would let a
@@ -136,8 +136,11 @@ Invariants, which must hold in every reachable state:
   equals `lastStarted`, and no other attempt of that generation is in flight.
 - INV-3, no duplicate destructive call: `StartAttempt` is emitted only by
   T-2, T-3, T-8, T-9, and T-15.
-- INV-4, receipt soundness: `Released` is reached only by T-13, and the
-  receipt carries the generation, attempt, and predicate.
+- INV-4, receipt soundness: `Released` is reached only by T-13, from an
+  `AttemptSucceeded` for the current attempt whose predicate is the adapter's
+  declared release predicate (AXIOM-5). The receipt is built from that event
+  and carries its generation, attempt, and predicate. An unconfirmed success is
+  refused (T-24) and leaves the attempt in flight.
 - INV-5, stale and duplicate refusal: a settlement for a non-current attempt,
   another generation, or a settled phase changes no owner, phase, or attempt,
   and appends one refusal record to `history`.
@@ -155,7 +158,16 @@ Invariants, which must hold in every reachable state:
 - INV-12, ownership before publication: `Publish` is emitted only by T-1.
 - INV-13, one report per joiner per attempt.
 - INV-14, authorization: only the owner or the host may close, recover, or
-  offer a transfer; a lease holder may release or cancel only its own lease.
+  offer a transfer; a leaseholder may release or cancel only its own lease.
+- INV-15, fresh attempts before cleanup: in `Acquiring` and `Open`,
+  `lastStarted` is 0. With `maxAttempt` at least 1, T-2, T-3, T-8, and T-9
+  therefore always start attempt 1 within the bound; only recovery (T-15, T-16)
+  can reach it.
+- INV-16, uniqueness: the lease set and each attempt's joiners hold every
+  identity at most once, so removing a lease removes exactly that lease
+  (INV-10) and each joiner receives one report (INV-13).
+- INV-17, isolation is recorded once per generation, and recording it admits
+  and clears the deferred successors.
 
 Exact-effect and progress clauses guard against a contract that a reducer
 refusing everything would satisfy: PR-1 is T-9, PR-2 is T-13, PR-3 is T-14,
@@ -166,14 +178,14 @@ T-2, and PR-13 is T-12, each with exactly the commands listed.
 Lemma statements:
 
 - L-1: `step` preserves `wellFormed`, the conjunction of INV-1, INV-2, INV-6,
-  INV-11, and the structural shape constraints.
+  INV-11, INV-15, INV-16, and the structural shape constraints.
 - L-2: each PR clause holds as a postcondition of `step`.
 - L-3: INV-5 and INV-14 hold as frame postconditions of `step`.
 - L-4: per generation, emitted `StartAttempt` commands carry attempts 1, 2, 3,
   and so on, consecutively, each after an accepted failure of its predecessor.
   The per-step proof is carried by `lastStarted` and `lastSettledFailed`; the
   trace statement follows by induction.
-- L-5: INV-4, INV-7, and INV-12 hold as postconditions of `step`.
+- L-5: INV-4, INV-7, INV-12, and INV-17 hold as postconditions of `step`.
 - L-6: per step, owner and obligation are unchanged except under T-4, T-13,
   and T-20; the trace statement follows by induction.
 
@@ -222,9 +234,9 @@ exhaustive enumeration under `bun test`:
 - one seeded mutation per invariant that the enumeration must reject.
 
 The verification feasibility experiment
-([FX-1](evidence/verification-feasibility.md)) returned *revise*. The
-lifecycle reducer is therefore selected for machine-checked proof against its
-compiled JavaScript in task 1.3.3, in addition to enumeration:
+([FX-1](evidence/verification-feasibility.md)) returned the verdict `revise`.
+The lifecycle reducer is therefore selected for machine-checked proof against
+its compiled JavaScript in task 1.3.3, in addition to enumeration:
 
 - L-1, L-2, L-3, and L-5, and the per-step forms of L-4 and L-6, are required
   proof obligations, each reported separately and each with at least one mutant
