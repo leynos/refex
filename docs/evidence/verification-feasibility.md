@@ -168,6 +168,18 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   when it is given none. The passes above ran the earlier versions, which
   checked both modules. Both versions are fail-closed, and no prover run was
   repeated, because the budget was spent.
+- The F9 probe's expected failure is now checked fail-closed by
+  `check-f9.sh`, which the runner calls. The probe must have failed, and failed
+  for the missing termination measure, so an unexpected pass or an unrelated
+  failure fails the run. The check was exercised on the recorded probe output
+  without a further prover run, and an output without the expected message was
+  rejected.
+- Review asked whether the F9 postcondition `result === 0` is vacuous,
+  because the `closing` precondition makes the `Start` branch unreachable. It
+  is not vacuous. The precondition is satisfiable, it mirrors L-4's antecedent
+  (an attempt in flight), and a `step` that emitted `Start` while closing would
+  falsify the postcondition. The unreachable branch is the property itself. No
+  claim rests on F9 either way, because it did not verify.
 - No `assume`, `{:axiom}`, `{:verify false}`, `decreases *`, `//@ extern`, or
   hand-edited `.dfy` was used; `fail-closed.mjs` checks the generated Dafny for
   the first four.
@@ -261,7 +273,7 @@ width rule.
 
 ### `run-fx1.sh`
 
-SHA-256 `665b60929880bebb558f8c5a36a35ba3baf5bdb799c919527f77bc648f3869b9`.
+SHA-256 `084a4c5a89a59c718a0de96be2cf3745502c9964c17334da654b8d4ed10ff64f`.
 
 ```sh
 #!/usr/bin/env bash
@@ -294,8 +306,11 @@ if [[ "${SKIP_F9:-0}" != 1 ]]; then
   rm -rf .verify/Fold; mkdir -p .verify/Fold
   bun res2ls-bridge.mjs src/Fold.res .verify/Fold > /dev/null
   bun res2ls-correspond.mjs src/Fold.res .verify/Fold
-  set +e; bun "$LSC" check --backend=dafny .verify/Fold/Fold.ts > .verify/Fold/check.out 2>&1; echo "F9 probe exit $?"; set -e
+  set +e; bun "$LSC" check --backend=dafny .verify/Fold/Fold.ts > .verify/Fold/check.out 2>&1
+  echo "$?" > .verify/Fold/check.status; set -e
+  echo "F9 probe exit $(cat .verify/Fold/check.status)"
   grep -E 'Error:|verified' .verify/Fold/check.out | sed -E 's/^Fold.dfy\([0-9]+,[0-9]+\): //' | sort | uniq -c
+  ./check-f9.sh
 fi
 ```
 
@@ -353,6 +368,24 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(`fail-closed: ${Object.keys(MODULES).join(", ")} clean`);
+```
+
+### `check-f9.sh`
+
+SHA-256 `23f19db8df309e4e9f576898dfcf233d6a0adb524b570d204e50239cb8087a1f`.
+
+```sh
+#!/usr/bin/env bash
+# Fail-closed check of the F9 probe: it must have run, failed, and failed for the expected reason (no termination
+# measure), so an unexpected pass or an unrelated failure fails the FX-1 run.
+set -euo pipefail
+out=.verify/Fold/check.out
+status=$(cat .verify/Fold/check.status 2>/dev/null || echo missing)
+[[ -f "$out" ]] || { echo "F9: no probe output" >&2; exit 1; }
+[[ "$status" != 0 && "$status" != missing ]] || { echo "F9: probe status $status, expected a failure" >&2; exit 1; }
+grep -q 'cannot prove termination; try supplying a decreases clause' "$out" \
+  || { echo "F9: probe failed for an unexpected reason" >&2; exit 1; }
+echo "F9: expected failure confirmed (status $status, missing termination measure)"
 ```
 
 ### `Lifecycle.res`
