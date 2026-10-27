@@ -17,18 +17,18 @@ proved.
 
 ## Pins and environment
 
-| Item             | Value                                                                                                                                                                                                                                                                                                                                |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Host             | Linux 6.12.0-211.62.1.el10_2.x86_64 (Rocky 10)                                                                                                                                                                                                                                                                                       |
-| Bun              | 1.4.2                                                                                                                                                                                                                                                                                                                                |
-| ReScript         | 12.3.1, with genType (`{"language": "typescript", "generatedFileExtension": ".gen.ts"}`)                                                                                                                                                                                                                                             |
-| LemmaScript      | 0.6.4, `sha512-rnAnCt36hmAhu7RjlbrY6ky5kDcTfk9Tv1q+0rxaVJJqiQ7uH5fgYgNuyA0MXmeujuegCsm2OWrc99fwJunhAg==`, binary `tools/dist/lsc.js`                                                                                                                                                                                                 |
-| TypeScript       | 5.9.3 (the bridge uses the TypeScript 5 compiler API)                                                                                                                                                                                                                                                                                |
-| bignumber.js     | 11.1.5                                                                                                                                                                                                                                                                                                                               |
-| Dafny            | 4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2                                                                                                                                                                                                                                                                                      |
-| Z3               | 4.12.1, `z3-4.12.1-x64-glibc-2.35.zip`, SHA-256 `c5360fd157b0f861ec8780ba3e51e2197e9486798dc93cd878df69a4b0c2b7c5`                                                                                                                                                                                                                   |
-| Bridge scripts   | `res2ls-bridge.mjs` `8b2e62b3be90b2ac327e406ade544e71c7c0940cc2bcd58f0593b5e3bc851b76`, `res2ls-correspond.mjs` `96cfee1eddb78ae25a7b9cfbd2e1bcd3a232894fac64900258d4e74d8f274036`, `res2ls-mutate.mjs` `d2060149ea7c98d0499a20b2d39aeabb4286e97febd697dd2e680d3d9c89c274`, copied unchanged from the skill's `references/examples/` |
-| Scratch lockfile | `bun.lock` SHA-256 `caf000a69fef02fe64811004f29ec39b6feca005d7b8ace450a7a08e734921c8`                                                                                                                                                                                                                                                |
+| Item             | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Host             | Linux 6.12.0-211.62.1.el10_2.x86_64 (Rocky 10)                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Bun              | 1.4.2                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ReScript         | 12.3.1, with genType (`{"language": "typescript", "generatedFileExtension": ".gen.ts"}`)                                                                                                                                                                                                                                                                                                                                                              |
+| LemmaScript      | 0.6.4, `sha512-rnAnCt36hmAhu7RjlbrY6ky5kDcTfk9Tv1q+0rxaVJJqiQ7uH5fgYgNuyA0MXmeujuegCsm2OWrc99fwJunhAg==`, binary `tools/dist/lsc.js`                                                                                                                                                                                                                                                                                                                  |
+| TypeScript       | 5.9.3 (the bridge uses the TypeScript 5 compiler API)                                                                                                                                                                                                                                                                                                                                                                                                 |
+| bignumber.js     | 11.1.5                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Dafny            | 4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Z3               | 4.12.1, `z3-4.12.1-x64-glibc-2.35.zip`, SHA-256 `c5360fd157b0f861ec8780ba3e51e2197e9486798dc93cd878df69a4b0c2b7c5`                                                                                                                                                                                                                                                                                                                                    |
+| Bridge scripts   | `res2ls-bridge.mjs` `8b2e62b3be90b2ac327e406ade544e71c7c0940cc2bcd58f0593b5e3bc851b76`, `res2ls-correspond.mjs` `96cfee1eddb78ae25a7b9cfbd2e1bcd3a232894fac64900258d4e74d8f274036`, `res2ls-mutate.mjs` `d2060149ea7c98d0499a20b2d39aeabb4286e97febd697dd2e680d3d9c89c274`, copied unchanged from the `rescript-deductive-verification` skill's `references/examples/` and embedded in full in the appendix, because they are not published elsewhere |
+| Scratch lockfile | `bun.lock` SHA-256 `caf000a69fef02fe64811004f29ec39b6feca005d7b8ace450a7a08e734921c8`                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## Procedure
 
@@ -180,6 +180,10 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   (an attempt in flight), and a `step` that emitted `Start` while closing would
   falsify the postcondition. The unreachable branch is the property itself. No
   claim rests on F9 either way, because it did not verify.
+- The runner's pin check was made exact after the final passes. The passes
+  used prefix matching, but the versions they printed were exactly Bun 1.4.2,
+  Z3 4.12.1, and Dafny 4.11.0, so the result is unchanged. `PINS_ONLY=1` runs
+  only the check, which passes with the pinned tools and rejects Bun 1.4.4.
 - No `assume`, `{:axiom}`, `{:verify false}`, `decreases *`, `//@ extern`, or
   hand-edited `.dfy` was used; `fail-closed.mjs` checks the generated Dafny for
   the first four.
@@ -273,7 +277,7 @@ width rule.
 
 ### `run-fx1.sh`
 
-SHA-256 `084a4c5a89a59c718a0de96be2cf3745502c9964c17334da654b8d4ed10ff64f`.
+SHA-256 `06de149a2619d32f7b862f6b5c9681e6a65feb1c050ab025595148decd5758a9`.
 
 ```sh
 #!/usr/bin/env bash
@@ -286,10 +290,12 @@ set -euo pipefail
 export PATH="$Z3_HOME/bin${DAFNY_HOME:+:$DAFNY_HOME}:$PATH"
 MODULES="${MODULES:-Lifecycle CauseTree}"
 LSC=node_modules/lemmascript/tools/dist/lsc.js
-expect() { [[ "$2" == "$3"* ]] || { echo "pin mismatch: $1 is '$2', expected '$3'" >&2; exit 2; }; }
+# Exact version-token comparison: `1.4.20` must not pass for `1.4.2`.
+expect() { [[ "$2" == "$3" ]] || { echo "pin mismatch: $1 is '$2', expected '$3'" >&2; exit 2; }; }
 expect bun "$(bun --version)" "1.4.2"
-expect z3 "$(z3 --version)" "Z3 version 4.12.1"
-expect dafny "$(dafny --version)" "4.11.0"
+expect z3 "$(z3 --version | awk '{print $3}')" "4.12.1"   # "Z3 version 4.12.1 - 64 bit"
+expect dafny "$(dafny --version | cut -d+ -f1)" "4.11.0"  # "4.11.0+<commit>"
+if [[ "${PINS_ONLY:-0}" == 1 ]]; then echo "pins: bun 1.4.2, z3 4.12.1, dafny 4.11.0"; exit 0; fi
 bun install --frozen-lockfile
 bunx rescript build
 for m in $MODULES; do
@@ -386,6 +392,969 @@ status=$(cat .verify/Fold/check.status 2>/dev/null || echo missing)
 grep -q 'cannot prove termination; try supplying a decreases clause' "$out" \
   || { echo "F9: probe failed for an unexpected reason" >&2; exit 1; }
 echo "F9: expected failure confirmed (status $status, missing termination measure)"
+```
+
+### `res2ls-bridge.mjs`
+
+SHA-256 `8b2e62b3be90b2ac327e406ade544e71c7c0940cc2bcd58f0593b5e3bc851b76`.
+
+```js
+/**
+@file res2ls bridge: turn one compiled ReScript module into a LemmaScript
+verification unit, using only compiler output and the contracts written on the
+ReScript declarations.
+
+  bun res2ls-bridge.mjs <path/to/Module.res> <out-dir>
+
+Inputs, all produced by the ReScript 12 toolchain from `Module.res`:
+
+- `Module.res.mjs`: the production JavaScript, used verbatim as the bodies
+  (in-source output with the `.res.mjs` suffix);
+- `Module.gen.ts`: genType's TypeScript view of the runtime types;
+- `bsc -only-parse -dparsetree`: the `@requires` and `@ensures` attributes;
+- `rescript-tools doc`: ReScript-level types, to tell `int` from `float`.
+
+Outputs: `<out-dir>/Module.ts`, the unit `lsc check --backend=dafny` proves,
+and `<out-dir>/Module.manifest.json`, which ties the unit to the hashes of its
+inputs for `res2ls-correspond.mjs`.
+
+The unit differs from the production JavaScript only by insertion (types,
+`//@` lines, a prelude) and two reversible rewrites, both undone by the
+correspondence audit:
+
+- `e | 0` becomes `int32(e)`, because LemmaScript lowers `|` without int32
+  wrap-around. TRUSTED: the prelude's `int32` equals `| 0` on safe integers.
+- compiler-generated locals such as `by$1` become `by__1`, because `$` is not
+  a Dafny identifier character. Names containing `__`, or a `$` that is not a
+  trailing number, are refused so that the audit's reversal is exact.
+
+Contract strings come from Printast, which prints each non-ASCII byte as a
+three-digit decimal escape; they are decoded as UTF-8, strictly.
+*/
+
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { basename, dirname, join } from "node:path";
+import ts from "typescript";
+
+export const BRIDGE_VERSION = "1";
+
+/** Returns the hex SHA-256 digest of `text`. */
+const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+
+/** Directory holding `bsc.exe` and `rescript-tools.exe` for this host. */
+export function rescriptBin(fromDir = process.cwd()) {
+  if (process.env.RESCRIPT_BIN) {
+    return process.env.RESCRIPT_BIN;
+  }
+  const require = createRequire(join(fromDir, "package.json"));
+  const pkg = `@rescript/${process.platform}-${process.arch}/package.json`;
+  return join(dirname(require.resolve(pkg)), "bin");
+}
+
+// ── Contracts from the ReScript parse tree ──────────────────────────────
+
+const CONTRACT_ATTRIBUTES = new Set(["requires", "ensures"]);
+const OCAML_ESCAPES = {
+  n: "\n",
+  t: "\t",
+  r: "\r",
+  b: "\b",
+  "\\": "\\",
+  '"': '"',
+  "'": "'",
+  " ": " ",
+};
+
+/**
+ * Decodes an OCaml string literal as the compiler's Printast prints it.
+ * Printast escapes each non-ASCII byte as exactly three decimal digits, so
+ * the literal is a byte string: collect the bytes, then decode them as UTF-8,
+ * refusing anything malformed rather than guessing.
+ */
+export function ocamlString(literal) {
+  const bytes = [];
+  for (let i = 1; i < literal.length - 1; i++) {
+    const char = literal[i];
+    if (char !== "\\") {
+      bytes.push(...new TextEncoder().encode(char));
+      continue;
+    }
+    i++;
+    const escaped = literal[i];
+    if (escaped in OCAML_ESCAPES) {
+      bytes.push(OCAML_ESCAPES[escaped].charCodeAt(0));
+    } else if (/[0-9]/.test(escaped)) {
+      const digits = literal.slice(i, i + 3);
+      if (!/^[0-9]{3}$/.test(digits) || Number(digits) > 255) {
+        throw new Error(`malformed decimal escape \\${digits} in ${literal}`);
+      }
+      bytes.push(Number(digits));
+      i += 2;
+    } else {
+      throw new Error(`unsupported escape \\${escaped} in ${literal}`);
+    }
+  }
+  return new TextDecoder("utf-8", { fatal: true }).decode(
+    Uint8Array.from(bytes),
+  );
+}
+
+/**
+ * Maps each top-level value name to its `@requires` and `@ensures` strings,
+ * in source order. A contract attribute without exactly one string literal
+ * is an error, not something to skip.
+ */
+export function contractsFromParsetree(text) {
+  const contracts = new Map();
+  const attribute =
+    /attribute\s+"([^"]+)"\s*\[\s*(?:structure_item\s+Pstr_eval\s+expression\s+Pexp_constant PConst_string \(("(?:[^"\\]|\\.)*"),[^)]*\)\s*\])?/g;
+  // Each binding prints as `<def>`, then its attributes, then its pattern.
+  for (const def of text.split(/^\s*<def>\s*$/m).slice(1)) {
+    const name = def.match(/Ppat_var "([^"]+)"/)?.[1];
+    const head = def.slice(0, def.indexOf("pattern"));
+    const found = { requires: [], ensures: [] };
+    for (const match of head.matchAll(attribute)) {
+      if (!CONTRACT_ATTRIBUTES.has(match[1])) {
+        continue;
+      }
+      if (!name || !match[2]) {
+        throw new Error(
+          `@${match[1]} on ${name ?? "a non-variable binding"} must carry one string literal`,
+        );
+      }
+      found[match[1]].push(ocamlString(match[2]));
+    }
+    if (found.requires.length > 0 || found.ensures.length > 0) {
+      contracts.set(name, found);
+    }
+  }
+  return contracts;
+}
+
+/**
+ * Spells the return value of a contract as `\result`. Contracts use `result`
+ * for the return value; `\result` would need `\\result` inside a ReScript
+ * string.
+ */
+const toLemmaScript = (spec) => spec.replace(/\bresult\b/g, "\\result");
+
+// ── Types from genType and rescript-tools doc ───────────────────────────
+
+/**
+ * Parses genType output, returning its type aliases and the function-typed
+ * signatures keyed by name.
+ */
+function genTypeDeclarations(genTs) {
+  const sf = ts.createSourceFile("gen.ts", genTs, ts.ScriptTarget.Latest, true);
+  const types = [];
+  const signatures = new Map();
+  for (const st of sf.statements) {
+    if (ts.isTypeAliasDeclaration(st)) {
+      types.push(st.getText(sf));
+    }
+    if (ts.isVariableStatement(st)) {
+      for (const d of st.declarationList.declarations) {
+        if (d.type && ts.isFunctionTypeNode(d.type)) {
+          signatures.set(d.name.getText(sf), d.type);
+        }
+      }
+    }
+  }
+  return { sf, types, signatures };
+}
+
+/**
+ * Splits `text` at each `separator` outside brackets, trimming the parts and
+ * dropping an empty tail. A `=>` is not read as a closing bracket.
+ */
+function splitTopLevel(text, separator) {
+  const parts = [];
+  let depth = 0;
+  let current = "";
+  for (let i = 0; i < text.length; i++) {
+    if (text.startsWith("=>", i)) {
+      current += "=>";
+      i++;
+      continue;
+    }
+    const ch = text[i];
+    if ("(<{[".includes(ch)) {
+      depth++;
+    } else if (")>}]".includes(ch)) {
+      depth--;
+    }
+    if (ch === separator && depth === 0) {
+      parts.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) {
+    parts.push(current.trim());
+  }
+  return parts;
+}
+
+/**
+ * ReScript parameter and result types of a value, from its documentation
+ * signature `let f: (a, b) => r`. Returns no parameters for anything that is
+ * not a single top-level function arrow.
+ */
+export function signatureTypes(doc, name) {
+  const signature = doc.items.find(
+    (item) => item.kind === "value" && item.name === name,
+  )?.signature;
+  const body = signature?.replace(/^let [^:]+:\s*/, "") ?? "";
+  const arrows = [];
+  let depth = 0;
+  for (let i = 0; i < body.length; i++) {
+    if (body.startsWith("=>", i)) {
+      if (depth === 0) {
+        arrows.push(i);
+      }
+      i++;
+    } else if ("(<{[".includes(body[i])) {
+      depth++;
+    } else if (")>}]".includes(body[i])) {
+      depth--;
+    }
+  }
+  if (arrows.length !== 1) {
+    return { params: [], ret: null };
+  }
+  let params = body.slice(0, arrows[0]).trim();
+  if (params.startsWith("(") && params.endsWith(")")) {
+    params = params.slice(1, -1);
+  }
+  return {
+    params: splitTopLevel(params, ",").map((p) => p.replace(/^~\w+:\s*/, "")),
+    ret: body.slice(arrows[0] + 2).trim(),
+  };
+}
+
+/**
+ * For each variant type with an `int` field, directly or through another
+ * such type, a predicate stating ReScript's typing guarantee that the field
+ * fits in int32. genType maps `int` and `float` alike to `number`, so this
+ * information exists only at the ReScript level.
+ */
+function rangePredicates(doc, genSf) {
+  const variants = new Map(
+    doc.items
+      .filter((item) => item.kind === "type" && item.detail?.kind === "variant")
+      .map((item) => [item.name, item.detail.items]),
+  );
+  const tags = new Map();
+  for (const st of genSf.statements) {
+    if (ts.isTypeAliasDeclaration(st) && ts.isUnionTypeNode(st.type)) {
+      tags.set(
+        st.name.text,
+        st.type.types.map((member) => {
+          const prop = member.members?.find(
+            (m) => m.type && ts.isLiteralTypeNode(m.type),
+          );
+          return (
+            prop && {
+              field: prop.name.getText(genSf),
+              tag: prop.type.literal.text,
+            }
+          );
+        }),
+      );
+    }
+  }
+  const needs = (name, seen = new Set()) => {
+    if (seen.has(name) || !variants.has(name)) {
+      return false;
+    }
+    seen.add(name);
+    return variants
+      .get(name)
+      .some((ctor) =>
+        (ctor.payload?.fields ?? []).some(
+          (f) => f.signature === "int" || needs(f.signature, seen),
+        ),
+      );
+  };
+  const predicates = new Map();
+  for (const [name, ctors] of variants) {
+    if (!needs(name)) {
+      continue;
+    }
+    const memberTags = tags.get(name);
+    if (
+      !memberTags ||
+      memberTags.length !== ctors.length ||
+      memberTags.some((t) => !t)
+    ) {
+      throw new Error(
+        `${name}: genType members do not line up with its constructors; give every constructor a record payload`,
+      );
+    }
+    const cases = ctors.map((ctor, i) => {
+      const conjuncts = (ctor.payload?.fields ?? []).flatMap((f) => {
+        if (f.signature === "int") {
+          return [`isInt32(v.${f.name})`];
+        }
+        return needs(f.signature)
+          ? [`int32Typed_${f.signature}(v.${f.name})`]
+          : [];
+      });
+      const body = conjuncts.length > 0 ? conjuncts.join(" && ") : "true";
+      return `    case "${memberTags[i].tag}":\n      return ${body};`;
+    });
+    predicates.set(
+      name,
+      [
+        "//@ pure",
+        `function int32Typed_${name}(v: ${name}): boolean {`,
+        `  switch (v.${memberTags[0].field}) {`,
+        ...cases,
+        "  }",
+        "}",
+      ].join("\n"),
+    );
+  }
+  return predicates;
+}
+
+// ── The verification-only prelude ───────────────────────────────────────
+
+export const INT32_PRELUDE = `// ReScript \`int\` is a wrapping int32; the compiler emits \`e | 0\`.
+// TRUSTED: for safe integers x, int32(x) === (x | 0). Established by test.
+//@ pure
+function int32(x: number): number {
+  //@ ensures -2147483648 <= \\result && \\result <= 2147483647
+  //@ ensures -2147483648 <= x && x <= 2147483647 ==> \\result === x
+  const m = ((x % 4294967296) + 4294967296) % 4294967296;
+  return m >= 2147483648 ? m - 4294967296 : m;
+}
+
+//@ pure
+function isInt32(x: number): boolean {
+  return -2147483648 <= x && x <= 2147483647;
+}`;
+
+/** Reports whether `name` is one of the bridge's own prelude helpers. */
+export const isPreludeName = (name) =>
+  name === "int32" || name === "isInt32" || name.startsWith("int32Typed_");
+
+// ── Production bodies from the compiled JavaScript ──────────────────────
+
+/**
+ * Rewrites a compiler-generated local such as `by$1` to `by__1`, because `$`
+ * is not a Dafny identifier character. The rewrite must be exactly
+ * reversible, so the audit can undo it: a `$` anywhere but before a trailing
+ * number, and a `__` already present in production code, are refused rather
+ * than rewritten.
+ */
+export function dollarFree(name) {
+  if (name.includes("__")) {
+    throw new Error(`${name}: "__" is reserved for the bridge's $ rewrite`);
+  }
+  const rewritten = name.replace(/\$(\d+)$/, "__$1");
+  if (rewritten.includes("$")) {
+    throw new Error(
+      `${name}: only a trailing $<number>, as the compiler generates, can be rewritten`,
+    );
+  }
+  return rewritten;
+}
+
+/** Reports whether `node` is an expression of the form `e | 0`. */
+function isOrZero(node) {
+  return (
+    ts.isBinaryExpression(node) &&
+    node.operatorToken.kind === ts.SyntaxKind.BarToken &&
+    ts.isNumericLiteral(node.right) &&
+    node.right.text === "0"
+  );
+}
+
+/**
+ * Returns the text edits that give a compiled function its genType parameter
+ * and result types, its contract comments, `$`-free local names, and `int32`
+ * calls in place of `e | 0`.
+ */
+function functionEdits(st, jsSf, sig, genSf, contract, typing) {
+  const edits = [];
+  const name = st.name.text;
+  st.parameters.forEach((p, i) => {
+    const type = sig.parameters[i]?.type?.getText(genSf);
+    if (!type) {
+      throw new Error(`${name}: genType gives no type for parameter ${i}`);
+    }
+    edits.push({ pos: p.end, end: p.end, text: `: ${type}` });
+  });
+  const close = st.parameters.end + 1;
+  edits.push({ pos: close, end: close, text: `: ${sig.type.getText(genSf)}` });
+
+  const lines = [
+    ...(typing.requires.length + typing.ensures.length > 0
+      ? ["  // ReScript typing: trusted on entry, proved on exit."]
+      : []),
+    ...typing.requires.map((r) => `  //@ requires ${r}`),
+    ...typing.ensures.map((e) => `  //@ ensures ${e}`),
+    ...contract.requires.map((r) => `  //@ requires ${toLemmaScript(r)}`),
+    ...contract.ensures.map((e) => `  //@ ensures ${toLemmaScript(e)}`),
+  ];
+  if (lines.length > 0) {
+    const open = st.body.getStart(jsSf) + 1;
+    edits.push({ pos: open, end: open, text: `\n${lines.join("\n")}` });
+  }
+
+  const visit = (node) => {
+    if (ts.isIdentifier(node) && /\$|__/.test(node.text)) {
+      edits.push({
+        pos: node.getStart(jsSf),
+        end: node.end,
+        text: dollarFree(node.text),
+      });
+    }
+    if (isOrZero(node)) {
+      edits.push({
+        pos: node.getStart(jsSf),
+        end: node.left.getStart(jsSf),
+        text: "int32(",
+      });
+      edits.push({ pos: node.left.end, end: node.end, text: ")" });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(st.body);
+  return edits;
+}
+
+/**
+ * Returns the `requires` and `ensures` predicates that a function's ReScript
+ * types imply: `int` values are 32-bit, and predicated types hold their
+ * `int32Typed_` predicate.
+ */
+function typingContracts(name, sig, genSf, doc, predicates) {
+  const { params, ret } = signatureTypes(doc, name);
+  const requires = sig.parameters.flatMap((p, i) => {
+    const type = p.type?.getText(genSf);
+    const param = p.name.getText(genSf);
+    if (params[i] === "int") {
+      return [`isInt32(${param})`];
+    }
+    return predicates.has(type) ? [`int32Typed_${type}(${param})`] : [];
+  });
+  const retType = sig.type.getText(genSf);
+  let ensures = [];
+  if (ret === "int") {
+    ensures = ["isInt32(\\result)"];
+  } else if (predicates.has(retType)) {
+    ensures = [`int32Typed_${retType}(\\result)`];
+  }
+  return { requires, ensures };
+}
+
+/** Reads the four inputs for `resPath` without writing anything. */
+export function readInputs(resPath, bin = rescriptBin()) {
+  const stem = resPath.replace(/\.res$/, "");
+  const parse = spawnSync(
+    join(bin, "bsc.exe"),
+    ["-only-parse", "-dparsetree", resPath],
+    { encoding: "utf8" },
+  );
+  if (parse.status !== 0) {
+    throw new Error(`bsc -dparsetree failed for ${resPath}: ${parse.stderr}`);
+  }
+  return {
+    res: readFileSync(resPath, "utf8"),
+    js: readFileSync(`${stem}.res.mjs`, "utf8"),
+    genTs: readFileSync(`${stem}.gen.ts`, "utf8"),
+    // Printast writes the tree to stderr; stdout carries JavaScript.
+    parsetree: parse.stderr,
+    doc: JSON.parse(
+      execFileSync(join(bin, "rescript-tools.exe"), ["doc", resPath], {
+        encoding: "utf8",
+      }),
+    ),
+  };
+}
+
+/** Builds the unit text and manifest from already-read inputs. */
+export function buildUnit(moduleName, inputs) {
+  const contracts = contractsFromParsetree(inputs.parsetree);
+  const { sf: genSf, types, signatures } = genTypeDeclarations(inputs.genTs);
+  const predicates = rangePredicates(inputs.doc, genSf);
+  const jsSf = ts.createSourceFile(
+    `${moduleName}.res.mjs`,
+    inputs.js,
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const functions = jsSf.statements.filter(
+    (st) => ts.isFunctionDeclaration(st) && st.name,
+  );
+  if (functions.length === 0) {
+    throw new Error(
+      `${moduleName}.res.mjs has no function bodies: its values compile to aliases of other code, such as @rescript/runtime, which cannot be verified here`,
+    );
+  }
+
+  const edits = [];
+  const unbridged = [];
+  for (const st of functions) {
+    const name = st.name.text;
+    if (isPreludeName(name)) {
+      throw new Error(`${name} collides with a name the bridge reserves`);
+    }
+    const sig = signatures.get(name);
+    if (!sig) {
+      unbridged.push(name);
+      continue;
+    }
+    const contract = contracts.get(name) ?? { requires: [], ensures: [] };
+    const contracted = contract.requires.length + contract.ensures.length > 0;
+    if (contracted && /[{]/.test(sig.getText(genSf))) {
+      throw new Error(
+        `${name}: genType inlines an anonymous object type in its signature; give that type a @genType name`,
+      );
+    }
+    const typing = contracted
+      ? typingContracts(name, sig, genSf, inputs.doc, predicates)
+      : { requires: [], ensures: [] };
+    edits.push(...functionEdits(st, jsSf, sig, genSf, contract, typing));
+  }
+  for (const name of contracts.keys()) {
+    if (!signatures.has(name)) {
+      throw new Error(`contract on ${name}, which has no @genType signature`);
+    }
+  }
+
+  // Apply edits back to front; at equal positions the wider edit goes first,
+  // so an insertion never lands inside text that is about to be replaced.
+  let text = inputs.js;
+  for (const e of [...edits].sort((a, b) => b.pos - a.pos || b.end - a.end)) {
+    text = text.slice(0, e.pos) + e.text + text.slice(e.end);
+  }
+  const first = functions[0].getStart(jsSf);
+  const last = functions.at(-1).end;
+  const growth = edits
+    .filter((e) => e.pos < last)
+    .reduce((n, e) => n + e.text.length - (e.end - e.pos), 0);
+
+  const unit = [
+    `// Generated by res2ls ${BRIDGE_VERSION} from ${moduleName}.res; do not edit.`,
+    `// Function bodies are ${moduleName}.res.mjs as the compiler emitted it.`,
+    "",
+    types.join("\n\n"),
+    "",
+    INT32_PRELUDE,
+    "",
+    [...predicates.values()].join("\n\n"),
+    "",
+    text.slice(first, last + growth).trim(),
+    "",
+  ].join("\n");
+
+  const manifest = {
+    bridge: BRIDGE_VERSION,
+    module: moduleName,
+    inputs: {
+      [`${moduleName}.res`]: sha256(inputs.res),
+      [`${moduleName}.res.mjs`]: sha256(inputs.js),
+      [`${moduleName}.gen.ts`]: sha256(inputs.genTs),
+    },
+    unit: { [`${moduleName}.ts`]: sha256(unit) },
+    contracts: Object.fromEntries(contracts),
+    rangePredicates: [...predicates.keys()],
+    unbridged,
+  };
+  return { unit, manifest };
+}
+
+/** Reads, builds, and writes the unit and manifest for one module. */
+export function bridge(resPath, outDir, bin = rescriptBin()) {
+  const moduleName = basename(resPath, ".res");
+  const { unit, manifest } = buildUnit(moduleName, readInputs(resPath, bin));
+  mkdirSync(outDir, { recursive: true });
+  const unitPath = join(outDir, `${moduleName}.ts`);
+  writeFileSync(unitPath, unit);
+  writeFileSync(
+    join(outDir, `${moduleName}.manifest.json`),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  return { unitPath, manifest };
+}
+
+if (import.meta.main) {
+  const [resPath, outDir] = process.argv.slice(2);
+  if (!resPath || !outDir) {
+    console.error("usage: bun res2ls-bridge.mjs <Module.res> <out-dir>");
+    process.exit(2);
+  }
+  const { unitPath, manifest } = bridge(resPath, outDir);
+  console.log(`wrote ${unitPath}`);
+  for (const name of manifest.unbridged) {
+    console.log(`not bridged (no @genType signature): ${name}`);
+  }
+}
+```
+
+### `res2ls-correspond.mjs`
+
+SHA-256 `96cfee1eddb78ae25a7b9cfbd2e1bcd3a232894fac64900258d4e74d8f274036`.
+
+```js
+/**
+@file res2ls correspondence audit: show that a verification unit is the production
+JavaScript the ReScript compiler emitted, not a model of it.
+
+  bun res2ls-correspond.mjs <path/to/Module.res> <out-dir>
+
+Passes only when:
+
+1. every input hash in the manifest matches the files beside `Module.res`,
+   and the unit's own hash matches, so the unit was generated from exactly
+   these sources and not edited since; and
+2. erasing the unit's types with TypeScript's own transpiler, dropping the
+   bridge's prelude, and undoing the two documented rewrites (`int32(e)` back
+   to `e | 0`, `x__n` back to `x$n`) yields function declarations that print
+   identically to those in `Module.res.mjs`.
+
+Every compiled function must appear in the unit: one without a @genType
+signature is reported as unverified, not silently ignored.
+*/
+
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+import ts from "typescript";
+import { isPreludeName } from "./res2ls-bridge.mjs";
+
+/** Returns the hex SHA-256 digest of `text`. */
+const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+
+/**
+ * Returns a transform that reverses the bridge's two rewrites: `int32(e)` back
+ * to `e | 0`, and `x__n` back to `x$n`.
+ */
+function undoRewrites(context) {
+  const visit = (node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "int32" &&
+      node.arguments.length === 1
+    ) {
+      return ts.factory.createBinaryExpression(
+        ts.visitNode(node.arguments[0], visit),
+        ts.SyntaxKind.BarToken,
+        ts.factory.createNumericLiteral(0),
+      );
+    }
+    // The bridge refuses production names containing `__`, so every `__n`
+    // here is one of its own `$n` rewrites.
+    if (ts.isIdentifier(node) && /__\d+$/.test(node.text)) {
+      return ts.factory.createIdentifier(node.text.replace(/__(\d+)$/, "$$$1"));
+    }
+    return ts.visitEachChild(node, visit, context);
+  };
+  return (node) => ts.visitNode(node, visit);
+}
+
+/** Prints each non-prelude function declaration, comments removed. */
+export function printedFunctions(source, fileName, undo) {
+  const sf = ts.createSourceFile(
+    fileName,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.JS,
+  );
+  const [out] = ts.transform(sf, undo ? [undoRewrites] : []).transformed;
+  const printer = ts.createPrinter({ removeComments: true });
+  return new Map(
+    out.statements
+      .filter(
+        (st) =>
+          ts.isFunctionDeclaration(st) &&
+          st.name &&
+          !isPreludeName(st.name.text),
+      )
+      .map((st) => [
+        st.name.text,
+        printer.printNode(ts.EmitHint.Unspecified, st, out),
+      ]),
+  );
+}
+
+/** Compares a unit's text with production JavaScript; returns problems. */
+export function compareUnit(unitText, productionJs) {
+  const erased = ts.transpileModule(unitText, {
+    compilerOptions: {
+      target: ts.ScriptTarget.ESNext,
+      module: ts.ModuleKind.ESNext,
+    },
+  }).outputText;
+  const unit = printedFunctions(erased, "unit.js", true);
+  const production = printedFunctions(productionJs, "production.js", false);
+  const problems = [];
+  const identical = [];
+  for (const name of new Set([...unit.keys(), ...production.keys()])) {
+    if (!production.has(name)) {
+      problems.push(`${name} is in the unit but not in production`);
+    } else if (!unit.has(name)) {
+      problems.push(`${name} is in production but was not verified`);
+    } else if (unit.get(name) === production.get(name)) {
+      identical.push(name);
+    } else {
+      problems.push(`${name} differs from production`);
+    }
+  }
+  return { identical, problems };
+}
+
+/**
+ * Checks a generated unit against its manifest and the production JavaScript.
+ * Returns the functions that match production and any problems found.
+ */
+export function correspond(resPath, outDir) {
+  const moduleName = basename(resPath, ".res");
+  const sourceDir = dirname(resPath);
+  const manifest = JSON.parse(
+    readFileSync(join(outDir, `${moduleName}.manifest.json`), "utf8"),
+  );
+  const problems = [];
+  for (const [file, hash] of Object.entries(manifest.inputs)) {
+    if (sha256(readFileSync(join(sourceDir, file), "utf8")) !== hash) {
+      problems.push(`${file} changed after the unit was generated`);
+    }
+  }
+  const unitText = readFileSync(join(outDir, `${moduleName}.ts`), "utf8");
+  if (sha256(unitText) !== manifest.unit[`${moduleName}.ts`]) {
+    problems.push(`${moduleName}.ts was edited after generation`);
+  }
+  const productionJs = readFileSync(
+    join(sourceDir, `${moduleName}.res.mjs`),
+    "utf8",
+  );
+  const compared = compareUnit(unitText, productionJs);
+  return {
+    identical: compared.identical,
+    problems: [...problems, ...compared.problems],
+  };
+}
+
+if (import.meta.main) {
+  const [resPath, outDir] = process.argv.slice(2);
+  if (!resPath || !outDir) {
+    console.error("usage: bun res2ls-correspond.mjs <Module.res> <out-dir>");
+    process.exit(2);
+  }
+  const { identical, problems } = correspond(resPath, outDir);
+  console.log(`identical to production: ${identical.join(", ") || "none"}`);
+  for (const problem of problems) {
+    console.log(`MISMATCH: ${problem}`);
+  }
+  process.exit(problems.length > 0 ? 1 : 0);
+}
+```
+
+### `res2ls-mutate.mjs`
+
+SHA-256 `d2060149ea7c98d0499a20b2d39aeabb4286e97febd697dd2e680d3d9c89c274`.
+
+```js
+/**
+@file res2ls mutation check: show that each contract on a module says something, by
+breaking the production JavaScript and requiring the proof to fail on exactly
+the contracts the break should violate.
+
+  bun res2ls-mutate.mjs <path/to/Module.res> <mutants.mjs> <out-dir> <lsc.js>
+
+`mutants.mjs` default-exports an array of
+`{ name, breaks: [contract fragment, ...], edits: [{ old, new }, ...] }`.
+Each `old` must occur exactly once in `Module.res.mjs`. Each fragment must
+match exactly one failed contract, and every failed contract must be matched,
+so a mutant that breaks more, or less, than it claims fails the check.
+
+The mutants edit the compiled JavaScript rather than the ReScript source: the
+proof is about that JavaScript, and editing it directly avoids a second
+compiler project. A mutant that is not even well-formed Dafny, or that fails
+for a reason other than a postcondition, is reported as an error.
+*/
+
+import { spawnSync } from "node:child_process";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { buildUnit, readInputs } from "./res2ls-bridge.mjs";
+
+/** Applies `edits` to `text`, requiring each `old` to occur exactly once. */
+export function applyEdits(text, edits, label = "mutant") {
+  let out = text;
+  for (const { old, new: replacement } of edits) {
+    const first = out.indexOf(old);
+    if (first === -1 || out.indexOf(old, first + 1) !== -1) {
+      throw new Error(
+        `${label}: edit target must occur exactly once: ${JSON.stringify(old)}`,
+      );
+    }
+    out = out.slice(0, first) + replacement + out.slice(first + old.length);
+  }
+  if (out === text) {
+    throw new Error(`${label}: edits leave the JavaScript unchanged`);
+  }
+  return out;
+}
+
+/**
+ * Returns the source contract of every postcondition Dafny could not prove,
+ * as `\result`-free text, by matching the failing `.dfy` ensures line to the
+ * unit's `//@ ensures` line with the same position in the same function.
+ */
+export function failedContracts(verifierOutput, dfy, unit) {
+  const dfyLines = dfy.split("\n");
+  const unitLines = unit.split("\n");
+  const failing = new Set();
+  for (const m of verifierOutput.matchAll(
+    /\.dfy\((\d+),\d+\): Related location: this is the postcondition that could not be proved/g,
+  )) {
+    failing.add(Number(m[1]) - 1);
+  }
+  const contracts = [];
+  for (const index of [...failing].sort((a, b) => a - b)) {
+    let header = index;
+    while (header >= 0 && !/^(method|function) /.test(dfyLines[header])) {
+      header--;
+    }
+    if (header < 0) {
+      throw new Error(`no declaration above .dfy line ${index + 1}`);
+    }
+    const name = dfyLines[header].match(/^(?:method|function) (\w+)/)[1];
+    const ordinal = dfyLines
+      .slice(header + 1, index + 1)
+      .filter((line) => /^\s+ensures /.test(line)).length;
+    const fn = unitLines.findIndex((line) =>
+      line.startsWith(`function ${name}(`),
+    );
+    const ensures = unitLines
+      .slice(fn + 1)
+      .filter((line) => /^\s*\/\/@ ensures /.test(line))
+      .slice(0, ordinal);
+    if (fn === -1 || ensures.length < ordinal) {
+      throw new Error(`cannot match .dfy line ${index + 1} to ${name}`);
+    }
+    contracts.push(
+      ensures
+        .at(-1)
+        .replace(/^\s*\/\/@ ensures /, "")
+        .replaceAll("\\result", "result"),
+    );
+  }
+  return contracts;
+}
+
+/** Compares failed contracts with the fragments a mutant claims to break. */
+export function judge(failed, breaks) {
+  const problems = [];
+  for (const fragment of breaks) {
+    const hits = failed.filter((c) => c.includes(fragment));
+    if (hits.length !== 1) {
+      problems.push(
+        `"${fragment}" matches ${hits.length} failed contracts, not 1`,
+      );
+    }
+  }
+  for (const contract of failed) {
+    if (!breaks.some((fragment) => contract.includes(fragment))) {
+      problems.push(`unexpected failure: ${contract}`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * Judges one finished verifier run of a mutant; returns a list of problems,
+ * empty when the mutant was killed on exactly the contracts it lists.
+ * `readDfy` is called only once the run is known to have reached Dafny.
+ */
+export function judgeRun({ status, output }, readDfy, unit, breaks, log) {
+  if (status === 0) {
+    return ["survived: the proof still passes"];
+  }
+  const errors = [...output.matchAll(/\.dfy\(\d+,\d+\): Error: (.*)/g)].map(
+    (m) => m[1],
+  );
+  if (errors.length === 0) {
+    // A crash, a timeout, or a translation failure before Dafny ran: the
+    // mutant was not judged, so it must not count as killed.
+    return [`lsc exited with status ${status} and no Dafny error; see ${log}`];
+  }
+  const foreign = errors.filter((e) => !/postcondition/.test(e));
+  if (foreign.length > 0) {
+    return foreign.map((e) => `failed for another reason: ${e}`);
+  }
+  return judge(failedContracts(output, readDfy(), unit), breaks);
+}
+
+/** Bridges, proves, and judges one mutant; returns a list of problems. */
+function runMutant(moduleName, inputs, mutant, outDir, lscPath) {
+  const dir = join(outDir, mutant.name);
+  mkdirSync(dir, { recursive: true });
+  const js = applyEdits(inputs.js, mutant.edits, mutant.name);
+  const { unit } = buildUnit(moduleName, { ...inputs, js });
+  const unitPath = join(dir, `${moduleName}.ts`);
+  writeFileSync(unitPath, unit);
+  const run = spawnSync(
+    process.execPath,
+    [lscPath, "check", "--backend=dafny", unitPath],
+    { encoding: "utf8" },
+  );
+  const output = `${run.stdout}${run.stderr}`;
+  const log = join(dir, "verify.log");
+  writeFileSync(log, output);
+  return judgeRun(
+    { status: run.status, output },
+    () => readFileSync(join(dir, `${moduleName}.dfy`), "utf8"),
+    unit,
+    mutant.breaks,
+    log,
+  );
+}
+
+if (import.meta.main) {
+  const [resPath, mutantsPath, outDir, lscPath] = process.argv.slice(2);
+  if (!resPath || !mutantsPath || !outDir || !lscPath) {
+    console.error(
+      "usage: bun res2ls-mutate.mjs <Module.res> <mutants.mjs> <out-dir> <lsc.js>",
+    );
+    process.exit(2);
+  }
+  const moduleName = basename(resPath, ".res");
+  const inputs = readInputs(resPath);
+  const { default: mutants } = await import(
+    pathToFileURL(resolve(mutantsPath)).href
+  );
+  let failures = 0;
+  for (const mutant of mutants) {
+    const problems = runMutant(
+      moduleName,
+      inputs,
+      mutant,
+      outDir,
+      resolve(lscPath),
+    );
+    console.log(
+      `${problems.length === 0 ? "killed" : "PROBLEM"} ${mutant.name}`,
+    );
+    for (const problem of problems) {
+      console.log(`  ${problem}`);
+    }
+    failures += problems.length === 0 ? 0 : 1;
+  }
+  console.log(`${mutants.length - failures}/${mutants.length} mutants killed`);
+  process.exit(failures === 0 ? 0 : 1);
+}
 ```
 
 ### `Lifecycle.res`
