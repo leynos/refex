@@ -419,6 +419,20 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     of the 25 allowed runs.
   - The runner now takes `Z3_HOME` and `DAFNY_HOME`, asserts the pinned
     versions, and the record documents the native tool downloads.
+- [x] (2026-10-27 13:20+01:00) EP-M7 to EP-M9 CLI reviews converged. Further
+      rounds against
+  base `302086e` hardened ADR 007:
+  - totality (T-24 is now a catch-all);
+  - idempotent joins;
+  - caller identity on lease, transfer, and isolation events;
+  - an explicit generation identifier;
+  - successor admission after a failed acquisition;
+  - one admission per identity (INV-18);
+  - failure bookkeeping (INV-19) and the L-4 base case;
+  - four bridge limits recorded as gate obligations.
+  - The FX-1 runner gained exact pin checks, `chmod` instructions, a
+    fail-closed F9 check, and embedded bridge sources.
+  - The final round reported 0 findings, and `make all` passes.
 - [ ] EP-M9, part two: the expert panel on ADRs 004 to 007.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
   gates.
