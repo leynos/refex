@@ -61,11 +61,15 @@ each generation:
   predecessor never matches it;
 - `owner` and an optional `pendingTransfer` destination;
 - `phase`, one of the phases listed below;
-- `lastStarted` and `lastSettledFailed`, the attempt history fields;
+- `lastStarted`, the last attempt started, and `lastSettledFailed`, the last
+  attempt that settled as failed (0 before any failure); T-14 sets
+  `lastSettledFailed` to the failed attempt, and T-15 starts a new attempt only
+  when `lastSettledFailed == lastStarted`;
 - `history`, an append-only array of reports;
 - `isolationVerified`, a boolean.
 
-The producer also holds `deferredSuccessors`, keyed by successor identity.
+The producer also holds `deferredSuccessors` and `admittedSuccessors`, both
+keyed by successor identity.
 
 Phases: `Acquiring{cancelRequested}`, `Open{leases}`,
 `Closing{attempt, joiners}`, `UnresolvedPending{attempt, joiners, report}`,
@@ -82,11 +86,14 @@ Events: `AcquireSucceeded`, `AcquireFailed{partial}`,
 `OwnerBoundElapsed{generation, attempt}`,
 `AttemptSucceeded{generation, attempt, predicate}`,
 `AttemptFailed{generation, attempt, issue}`, `RecoverRequested{caller}`,
-`TransferOffered{destination}`, `TransferAcknowledged{destination}`,
-`SuccessorRequested{identity}`, and `IsolationVerified{generation, evidence}`.
-Attempt numbers are scoped to a generation, so every settlement and bound event
-names its generation; a "current" event in the table below matches both the
-current generation and its in-flight attempt, and any other is stale (T-18).
+`TransferOffered{caller, destination}`, `TransferAcknowledged{destination}`,
+`SuccessorRequested{identity}`, and
+`IsolationVerified{caller, generation, evidence}`. Every privileged event names
+its `caller`, so the reducer itself decides authorization (INV-14) from the
+event and the generation's owner, rather than trusting the shell. Attempt
+numbers are scoped to a generation, so every settlement and bound event names
+its generation; a "current" event in the table below matches both the current
+generation and its in-flight attempt, and any other is stale (T-18).
 
 Commands to the shell: `Publish`, `StartAttempt{generation, attempt}`,
 `JoinAttempt{caller, attempt}`, `Report{caller, report}`, `RevokeLease{lease}`,
@@ -177,10 +184,13 @@ Invariants, which must hold in every reachable state:
   (INV-10) and each joiner receives one report (INV-13).
 - INV-17, isolation is recorded once per generation, and recording it admits
   and clears the deferred successors.
-- INV-18, one successor per identity: `deferredSuccessors` holds each
-  exclusive identity at most once, a repeated `SuccessorRequested` for a
-  deferred or admitted identity is refused (T-24), and each admission removes
-  its identity, so no identity is admitted twice.
+- INV-18, one successor per identity: an exclusive identity appears at most
+  once across `deferredSuccessors` and `admittedSuccessors`. Admission moves it
+  from the first to the second, and a `SuccessorRequested` for an identity
+  already in either is refused (T-24), so no identity is admitted twice.
+- INV-19, settled failure bookkeeping: in `UnresolvedSettledFailed`,
+  `lastSettledFailed == lastStarted`; elsewhere
+  `lastSettledFailed < lastStarted` or both are 0.
 
 Exact-effect and progress clauses guard against a contract that a reducer
 refusing everything would satisfy: PR-1 is T-9, PR-2 is T-13, PR-3 is T-14,
@@ -192,13 +202,16 @@ exactly the commands listed.
 Lemma statements:
 
 - L-1: `step` preserves `wellFormed`, the conjunction of INV-1, INV-2, INV-6,
-  INV-11, INV-15, INV-16, and the structural shape constraints.
+  INV-11, INV-15, INV-16, INV-19, and the structural shape constraints.
 - L-2: each PR clause holds as a postcondition of `step`.
 - L-3: INV-5 and INV-14 hold as frame postconditions of `step`.
 - L-4: per generation, emitted `StartAttempt` commands carry attempts 1, 2, 3,
-  and so on, consecutively, each after an accepted failure of its predecessor.
-  The per-step proof is carried by `lastStarted` and `lastSettledFailed`; the
-  trace statement follows by induction.
+  and so on, consecutively. Base case: attempt 1 is started by T-2, T-3, T-8,
+  or T-9 from `lastStarted == 0` (INV-15), with no predecessor. Step case:
+  attempt k + 1 is started only by T-15, after T-14 recorded the failure of
+  attempt k (`lastSettledFailed == k`, INV-19). The per-step proof is carried by
+  `lastStarted` and `lastSettledFailed`; the trace statement follows by
+  induction.
 - L-5: INV-4, INV-7, INV-12, INV-17, and INV-18 hold as postconditions of
   `step`.
 - L-6: per step, owner and obligation are unchanged except under T-4, T-13,
@@ -268,7 +281,7 @@ its compiled JavaScript in task 1.3.3, in addition to enumeration:
   audit, the proof, the mutation catalogue, and the `dafny translate js`
   differential check from an empty output directory, and fails closed on any
   missing stage, proof escape, or surviving mutant.
-- FX-1 found three limits in the bridge, which are part of the trusted base.
+- FX-1 found four limits in the bridge, which are part of the trusted base.
   The 1.3.3 gate either fixes them upstream in the skill, or rejects the inputs
   that would expose them:
   - The bridge rewrites `result` even inside quoted contract literals, so a
@@ -278,6 +291,9 @@ its compiled JavaScript in task 1.3.3, in addition to enumeration:
     reads, because the audit compares only function declarations.
   - Its int32 typing predicate does not traverse array elements (rule 6
     below).
+  - It finds a definition's pattern node by the first occurrence of the text
+    `pattern`, so no contract or attribute before the pattern may contain
+    that word.
 - While that gate runs outside CI, any change to the reducer, its contracts,
   the mutant catalogue, the bridge scripts, or a tool pin requires a fresh
   proof transcript in the pull request.

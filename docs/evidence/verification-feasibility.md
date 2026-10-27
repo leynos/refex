@@ -185,7 +185,7 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   used prefix matching, but the versions they printed were exactly Bun 1.4.2,
   Z3 4.12.1, and Dafny 4.11.0, so the result is unchanged. `PINS_ONLY=1` runs
   only the check, which passes with the pinned tools and rejects Bun 1.4.4.
-- Review of the embedded bridge scripts found three limits in this part of
+- Review of the embedded bridge scripts found four limits in this part of
   the trusted base. The scripts are unchanged copies pinned by hash, so the
   limits are recorded here, and ADR 007 makes closing or guarding them a 1.3.3
   gate obligation. None of them affected this experiment.
@@ -196,6 +196,9 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
     functions. The toys have no such bindings.
   - The int32 typing predicate does not traverse array elements. That is the
     mechanism behind the F10 `int` failure recorded above.
+  - `contractsFromParsetree` finds a definition's pattern node by the first
+    occurrence of the text `pattern`. A contract or attribute containing that
+    word could be cut or skipped. No toy contract contains it.
 - No `assume`, `{:axiom}`, `{:verify false}`, `decreases *`, `//@ extern`, or
   hand-edited `.dfy` was used; `fail-closed.mjs` checks the generated Dafny for
   the first four.
