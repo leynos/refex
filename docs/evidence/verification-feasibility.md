@@ -55,6 +55,7 @@ Then, with Bun 1.4.2 on `PATH`:
 
 ```sh
 bun add --exact rescript@12.3.1 @rescript/runtime@12.3.1 lemmascript@0.6.4 typescript@5.9.3 bignumber.js@11.1.5
+chmod +x run-fx1.sh check-f9.sh
 Z3_HOME=/path/to/z3-4.12.1-x64-glibc-2.35 DAFNY_HOME=/path/to/dafny ./run-fx1.sh
 ```
 
