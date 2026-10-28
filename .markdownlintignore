@@ -3,3 +3,4 @@ lib/
 coverage/
 .uv-cache/
 .uv-tools/
+.vtcode/
