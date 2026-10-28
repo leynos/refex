@@ -16,7 +16,8 @@ adapter packages, examples, benchmarks, or website exist.
 | `rescript.json`                                               | Namespacing, sources, exports, warnings, and editor analysis.                     | Single ReScript package configuration.                                                  |
 | `package.json`, `bun.lock`                                    | Metadata, exact dependencies, ESM entry points, and frozen graph.                 | Root package and development tooling.                                                   |
 | `bunfig.toml`                                                 | Exclude test bodies from text and LCOV coverage.                                  | Current test configuration; no workspace anticipation.                                  |
-| `tests/support/repository-contracts.mjs`                      | Private invariant assertions for the repository contract suite.                   | Owned solely by that suite; no external reuse.                                          |
+| `tests/support/package-dependency-contracts.mjs`              | Private package, Dependabot, and coverage assertions.                             | Owned by the package and dependency suites; no external reuse.                          |
+| `tests/support/toolchain-workflow-contracts.mjs`              | Private Markdown, spelling-gate, and workflow assertions.                         | Owned by the Markdown, Makefile, and workflow suites; no external reuse.                |
 | `Makefile`                                                    | Stable contributor entrypoints and sequential commit gates.                       | Root build interface.                                                                   |
 | `biome.json`                                                  | Authored JavaScript and JSON policy.                                              | Excludes compiler output.                                                               |
 | `.markdownlint.jsonc`, `.markdownlintignore`                  | Markdown rule policy and excluded paths.                                          | Documentation gate.                                                                     |
@@ -40,17 +41,20 @@ owns only source/output synchronization; the package checker owns only archive
 inspection and consumer fixtures; contract-test helpers stay within their
 suite. These responsibilities must not become interchangeable command routers.
 
-`tests/support/repository-contracts.mjs` belongs exclusively to the package,
-dependency, Markdown, workflow, generated-gate, and Makefile contract suites;
-`documentation-contracts` does not use it. It asserts package and workflow
-values and receives controlled mutations from those suites; it has no external
-reuse or build responsibilities. Each suite is a separate file — package,
-dependencies, Markdown, workflows, the generated gate, Makefile ordering and
-suite registration, and documentation — so a single invariant stays readable
-within the authored-file size limit rather than accumulating in one test file.
-`documentation-contracts` checks the ADR index and status vocabulary with a
-helper private to that suite, as does the suite-registration check in
-`makefile-contracts`.
+Two support modules serve the contract suites.
+`tests/support/package-dependency-contracts.mjs` belongs exclusively to the
+package and dependency suites and asserts package, Dependabot, and coverage
+values. `tests/support/toolchain-workflow-contracts.mjs` belongs exclusively to
+the Markdown, Makefile, and workflow suites and asserts Markdown,
+spelling-gate, and workflow values. `documentation-contracts` and
+`generated-gate` use neither. Both receive controlled mutations from their
+suites and have no external reuse or build responsibilities. Each suite is a
+separate file — package, dependencies, Markdown, workflows, the generated gate,
+Makefile ordering and suite registration, and documentation — so a single
+invariant stays readable within the authored-file size limit rather than
+accumulating in one test file. `documentation-contracts` checks the ADR index
+and status vocabulary with a helper private to that suite, as does the
+suite-registration check in `makefile-contracts`.
 
 `bunfig.toml` owns the current coverage exclusion for generated test bodies. It
 contains no install-linker or workspace configuration and never ships in the

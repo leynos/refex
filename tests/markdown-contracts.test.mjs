@@ -7,8 +7,8 @@ survive that replacement rather than resetting to the tool's defaults. Both
 contracts carry negative controls that reopen an exemption, widen a width, or
 silence a rule, so a policy assertion that accepts everything fails here.
 
-Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them.
+Shared assertions live in `support/toolchain-workflow-contracts.mjs`; this
+file owns only the values it feeds them.
 */
 
 import { describe, expect, test } from "bun:test";
@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import {
   markdownLintContract,
   markdownPolicyContract,
-} from "./support/repository-contracts.mjs";
+} from "./support/toolchain-workflow-contracts.mjs";
 
 // Private to this suite: reads the repository's own files, not a generic model.
 const source = (path) => readFileSync(path, "utf8");

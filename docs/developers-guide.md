@@ -104,13 +104,17 @@ or `tests/*.test.res` suite is missing from that list, so add the path to the
 The contract tests are split one concern per file — `package-contracts`,
 `dependency-contracts`, `markdown-contracts`, `workflow-contracts`,
 `generated-gate`, `makefile-contracts`, and `documentation-contracts` — so each
-stays within the authored file size limit. The first six share
-`tests/support/repository-contracts.mjs`, which belongs to these suites alone.
-Helpers that only one suite needs stay private to that suite: the
-suite-registration check in `makefile-contracts` and the ADR index check in
-`documentation-contracts` do, because the shared support file is already at its
-size limit. Add a new contract to the file that owns its subject rather than
-reopening a general-purpose test file.
+stays within the authored file size limit. Assertions are shared through two
+modules that belong to these suites alone:
+`tests/support/package-dependency-contracts.mjs` serves `package-contracts` and
+`dependency-contracts`, and `tests/support/toolchain-workflow-contracts.mjs`
+serves `markdown-contracts`, `workflow-contracts`, and `makefile-contracts`.
+`generated-gate` and `documentation-contracts` use neither. When a support
+module approaches the size limit, split it along the same subject boundary
+rather than growing a general-purpose test file. Helpers that only one suite
+needs stay private to that suite: the suite-registration check in
+`makefile-contracts` and the ADR index check in `documentation-contracts` do.
+Add a new contract to the file that owns its subject.
 
 `scripts/check-generated.mjs` cannot be tested as a helper, because it is a
 script that reads Git state. The suite therefore builds throwaway Git

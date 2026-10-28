@@ -80,12 +80,12 @@ the design, not implemented, exercised, or verified.
   unresolved reports stay owned after React's synchronous cleanup. Does not
   promise: a React state framework or query cache. Contract:
   [design §8.1](design.md#81-react-ownership).
-- **Codecs.** Boundary decoding uses `rescript-schema` through a narrow
-  adapter, preserving decode paths in typed protocol errors. Promises:
-  malformed messages cannot reach domain transitions. Does not promise: that
-  decoding authorizes or validates domain invariants. The package, browser
-  policy, and runtime code-generation exposure under a content security policy
-  remain open as D4. Contract:
+- **Codecs** (Proposed; package Open, D4). Boundary decoding uses
+  `rescript-schema` through a narrow adapter, preserving decode paths in typed
+  protocol errors. Promises: malformed messages cannot reach domain
+  transitions. Does not promise: that decoding authorizes or validates domain
+  invariants. The package, browser policy, and runtime code-generation exposure
+  under a content security policy remain open as D4. Contract:
   [design §8.2](design.md#82-schemas-network-and-process-adapters).
 
 The native-await bridge (`Direct`) is an experiment, not an initial
@@ -143,7 +143,7 @@ contribution, if any, is the contract in the same row.
 | Complete outcomes for body-plus-release and acquisition-plus-release failure                    | Roguelike   | Complete outcomes (§4)                                                                           | Proposed  |
 | Separate retry placement for acquisition, body, cycle, and recovery                             | Roguelike   | Schedules (§6.3)                                                                                 | Proposed  |
 | Typed transport separating outcome classes; cancellation is not rollback                        | Roguelike   | Network adapter boundary (§8.2); `fetch` from the platform                                       | Proposed  |
-| Model-based checks of commands, revisions, and ownership                                        | Roguelike   | Property-testing tooling against the pure model (§10.3)                                          | Delegated |
+| Model-based checks of commands, revisions, and ownership                                        | Roguelike   | `fast-check` (C18) against the pure model (§10.3)                                                | Delegated |
 | React game client reusing the runtime provider and hook                                         | Roguelike   | React ownership (§8.1); React itself                                                             | Proposed  |
 | Typed CLI and backend-mode planning before side effects                                         | css-view    | Validator domain code in plain ReScript ([§9.3](design.md#93-reimplementation-of-css-view))      | Delegated |
 | Nested browser, context, and page resources, including late acquisition                         | css-view    | Resources (§5.1); Playwright                                                                     | Proposed  |
@@ -177,10 +177,14 @@ and recovery.
 | Brief status | Meaning                                                                     | Context label (§1)      |
 | ------------ | --------------------------------------------------------------------------- | ----------------------- |
 | Proposed     | A refex contract specified in the design; not implemented or exercised.     | Proposed or Unvalidated |
-| Delegated    | Supplied by a named library, the platform, or validator-owned code.         | Established or Open     |
+| Delegated    | Supplied outside refex; no refex integration is implemented.                | Open (until integrated) |
 | Deferred     | Outside the initial supported scope; needs its own consumer.                | Deferred                |
 | Open         | A decision or experiment must settle it first.                              | Open                    |
 | Implemented  | Present in installable source; no capability in this brief has this status. | Established             |
+
+Delegated names the owner of a capability, not its maturity: the delegate
+exists outside refex, but nothing here is implemented, so every Delegated row
+reads as Open until a refex integration exists.
 
 A row moves to Implemented only when installable source exists. Consumer
 exercise and interpreter or platform verification are recorded separately in

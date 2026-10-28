@@ -9,8 +9,8 @@ trial.` reads as `provisional`. Negative controls drop an index link, invent a
 status, remove the status line, and link a missing ADR, so a contract that
 accepts everything fails here.
 
-The helper is private to this suite: no other suite reads ADRs, and the shared
-support module is already at its size limit.
+The helper is private to this suite because no other suite reads ADRs, so
+there is no second caller to justify a shared support module.
 */
 
 import { describe, expect, test } from "bun:test";
@@ -76,6 +76,32 @@ describe("Documentation contracts", () => {
     adrIndexContract("[ADR 099](adr-099-x.md)", [adr]);
   });
 
+  test("a superseded status naming its successor is accepted", () => {
+    const adr = {
+      path: "docs/adr-099-x.md",
+      text: "# ADR 099: x\n\nStatus: superseded by ADR 012. Kept for history.\n",
+    };
+    adrIndexContract("[ADR 099](adr-099-x.md)", [adr]);
+  });
+
+  test("the developers guide status table matches the suite vocabulary", () => {
+    const guide = readFileSync("docs/developers-guide.md", "utf8");
+    const lines = guide.split("\n");
+    const row = lines.findIndex((line) => line.startsWith("| `provisional`"));
+    expect(row).toBeGreaterThan(0);
+    let start = row;
+    while (lines[start - 1]?.startsWith("|")) start -= 1;
+    let end = row;
+    while (lines[end + 1]?.startsWith("|")) end += 1;
+    const documented = lines
+      .slice(start, end + 1)
+      .map((line) => line.match(/^\| `([^`]+)`/)?.[1])
+      .filter(Boolean);
+    expect(new Set(documented)).toEqual(
+      new Set([...STATUSES, "superseded by ADR NNN"]),
+    );
+  });
+
   test.each([
     [
       "an ADR missing from the index",
@@ -111,6 +137,24 @@ describe("Documentation contracts", () => {
         adrs.map((adr, index) =>
           index === 0
             ? { ...adr, text: adr.text.replace(/^Status: .*$/m, "Context.") }
+            : adr,
+        ),
+      ],
+    ],
+    [
+      "a status line that is not the first line after the title",
+      "adr-001-repository-bootstrap.md has no recognized status line",
+      (contents, adrs) => [
+        contents,
+        adrs.map((adr, index) =>
+          index === 0
+            ? {
+                ...adr,
+                text: adr.text.replace(
+                  /^(# .*\n)/,
+                  "$1\nA paragraph before the status.\n",
+                ),
+              }
             : adr,
         ),
       ],

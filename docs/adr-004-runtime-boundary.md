@@ -2,6 +2,11 @@
 
 Status: proposed. Date: 17 October 2026.
 
+On owner acceptance, this ADR's status becomes
+`provisional: authorizes a bounded trial (tasks 1.3.1 to 1.3.5)`, and ADR 002
+receives its amendment at that point. At the end of task 1.3.5 it becomes
+`accepted` or `superseded by ADR NNN`.
+
 ## Context
 
 refex needs an execution backend for lazy work, scopes, fibres, interruption,
@@ -28,6 +33,11 @@ The [runtime-boundary audit](evidence/runtime-boundary-audit.md) established:
   does not await the old finalizer, and interrupting `tryPromise` does not wait
   for work that ignores its abort signal. Effect 4.0.5's `runPromise` rejects
   with the bare expected error.
+- On Effect 4.0.5, provision is lazy: supplying a service runs no environment
+  access, and each execution of the provided computation runs afresh (probe P1).
+- The audit did not cover native variant representation or calling
+  conventions, which design §2.3 lists as audit items; task 1.3.1 closes that
+  gap (see its obligations).
 - `@reventlessdev/rescript-effect` 1.0.0-alpha.0 binds Effect 3.22.2, depends
   at runtime on a Jest binding package, exposes un-namespaced global modules,
   lacks `Scope`, `mapError`, `catchCause`, and `uninterruptibleMask` bindings,
@@ -72,9 +82,10 @@ unchecked conversion. Bindings follow the repository's FFI rules: no
 position unless it is phantom and sound, such as the error type of a
 constructor that cannot fail.
 
-### Conditioned clauses
+### One conditioned clause and two interpretations
 
-This ADR conditions exactly three statements, and only for the trial:
+This ADR conditions one statement (clause 1) and interprets two (clauses 2 and
+3), and only for the trial. Clauses 2 and 3 leave their rules unchanged:
 
 1. ADR 002: "Only the matching `@rescript/runtime` package is a runtime
    dependency." During the trial, `effect` 4.0.5 is the one additional
@@ -91,15 +102,16 @@ This ADR conditions exactly three statements, and only for the trial:
 Every other ADR 002 rule stands, including dev-only Bun bindings, no global
 namespace opens, and no empty adapter packages. The enforcement point that task
 1.3.1 deliberately changes is `packageContract` in
-`tests/support/repository-contracts.mjs`, which gains an exact allowlist of
-production dependency names: `@rescript/runtime` and `effect`.
+`tests/support/package-dependency-contracts.mjs`, which gains an exact
+allowlist of production dependency names: `@rescript/runtime` and `effect`.
 
 ### Trial bounds
 
 - Tasks: roadmap 1.3.1 to 1.3.5.
 - Permitted changes: the exact `effect` pin in `package.json` `dependencies`,
-  `bun.lock`, private `src/` modules absent from the public allowlist, and the
-  dependency contract above.
+  `bun.lock`, private `src/` modules absent from the public allowlist, the
+  dependency contract above, and `.github/dependabot.yml` with its workflow
+  contract test `tests/workflow-contracts.test.mjs`.
 - Not permitted: any change to `package.json` `exports` or `files` for
   backend reasons, a workspace or second package, or an Effect type in a public
   interface.
@@ -107,12 +119,23 @@ production dependency names: `@rescript/runtime` and `effect`.
   configuration, per ADR 002's workspace trigger.
 - Final selection: D1 closes at the end of task 1.3.5, by updating this ADR's
   status or by a superseding ADR.
+- Exit criterion for task 1.3.5: if the trial is rolled back or a falsifier
+  fires, the native minimal core (design decision D7) is brought forward as the
+  next roadmap work, rather than trying another library first.
 
 ### Obligations on task 1.3.1
 
 - A binding-surface smoke test that imports every bound Effect name and
   asserts its runtime kind, because ReScript `external` declarations are not
-  checked against Effect's TypeScript declarations.
+  checked against Effect's TypeScript declarations. It also round-trips each
+  bound `Exit` and `Cause` shape and each binding's calling convention (arity,
+  currying, and the `_tag` discriminant versus ReScript's `TAG`) through a
+  ReScript fixture. This satisfies design §2.3's "native variant
+  representation, calling conventions" audit item, which the 1.1 audit did not
+  cover.
+- An `ignore` entry for `effect` (all update types) in
+  `.github/dependabot.yml`, asserted by the workflow contract suite, so no
+  automated update moves the pin.
 - A browser-target bundle of the packed consumer that contains no
   `new Function` and no `eval(`, with its minified and gzipped size recorded as
   the E8 baseline.
@@ -125,8 +148,9 @@ production dependency names: `@rescript/runtime` and `effect`.
 ### Upgrades
 
 Any minor or patch upgrade of `effect` requires a fresh runtime-boundary audit
-and reruns of E1 to E3 and E9 before the pin moves. The probes in the evidence
-record are version-specific.
+and reruns of E1 to E3 and E9 before the pin moves. E1 to E3 and E9 are defined
+in [design §10](design.md#10-experimental-validation). The probes in the
+evidence record are version-specific.
 
 ## Alternatives considered
 
@@ -151,8 +175,9 @@ record are version-specific.
   binding-surface smoke test in 1.3.1.
 - Rollback triggers during the trial: failure of E1 to E3 or E9, an advisory
   with no fix, `eval` or `new Function` in the consumer bundle, or a failed
-  smoke test. Rollback removes the dependency, the private adapter modules, and
-  the allowlist entry.
+  smoke test. Rollback removes the dependency, the private adapter modules, the
+  allowlist entry, and the Dependabot `ignore` entry. Its destination is a
+  native minimal core, refex's own small effect interpreter (D7).
 - Production adoption requires E1 to E3 and E9 to pass at the end of 1.3.5.
 
 ## Consequences
@@ -161,7 +186,13 @@ refex can start tasks 1.3.1 to 1.3.5 against a pinned, audited backend without
 exposing it. Lifecycle contracts that Effect's names suggest but do not provide
 become refex's own implementation work, tested by E3 and E9. The package gains
 a runtime dependency only in a reviewed, reversible step, and ADR 002 gains an
-amendment note only once this ADR is accepted.
+amendment note only once this ADR becomes provisional.
+
+A security advisory affecting the pinned `effect` triggers the same re-audit
+before the pin moves. The tolerated window is seven days from publication,
+during which the advisory is recorded against the trial. If the advisory is
+exploitable through a refex path and the re-audit cannot finish in that window,
+the trial rolls back.
 
 ## References
 

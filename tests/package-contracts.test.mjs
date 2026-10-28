@@ -7,8 +7,8 @@ support files, and the compiler's treatment of the Bun boundary recorded in
 ADR 002. Every contract is paired with negative controls that mutate a real
 file or fixture, so a contract that cannot fail does not pass.
 
-Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them.
+Shared assertions live in `support/package-dependency-contracts.mjs`; this
+file owns only the values it feeds them.
 */
 
 import { describe, expect, test } from "bun:test";
@@ -21,7 +21,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { packageContract } from "./support/repository-contracts.mjs";
+import { packageContract } from "./support/package-dependency-contracts.mjs";
 
 // Private to this suite: reads the repository's own files, not a generic model.
 const root = process.cwd();

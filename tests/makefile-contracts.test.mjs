@@ -11,9 +11,9 @@ unrelated success. Every authored test suite must be named by the `test`
 target, because Bun does not discover `.test.res.mjs` output and an unlisted
 suite would pass by never running.
 
-Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them, plus the suite-registration check below, which
-stays private because only this suite reads the `test` recipe.
+Shared assertions live in `support/toolchain-workflow-contracts.mjs`; this
+file owns only the values it feeds them, plus the suite-registration check
+below, which stays private because only this suite reads the `test` recipe.
 */
 
 import { describe, expect, test } from "bun:test";
@@ -26,7 +26,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spellingGateContract } from "./support/repository-contracts.mjs";
+import { spellingGateContract } from "./support/toolchain-workflow-contracts.mjs";
 
 const source = (path) => readFileSync(path, "utf8");
 
@@ -130,6 +130,7 @@ describe("Makefile contracts", () => {
     [
       "an unlisted suite",
       (makefile) => makefile.replace("./tests/consumer.test.mjs", ""),
+      null,
     ],
     [
       "a suite named only in a recipe comment",
@@ -140,6 +141,7 @@ describe("Makefile contracts", () => {
             "\t+$(MAKE) build\n\t$(BUN) test",
             "\t+$(MAKE) build\n\t# ./tests/consumer.test.mjs\n\t$(BUN) test",
           ),
+      "\t# ./tests/consumer.test.mjs\n",
     ],
     [
       "a suite named only in a trailing shell comment",
@@ -150,9 +152,13 @@ describe("Makefile contracts", () => {
             "./tests/workflow-contracts.test.mjs",
             "./tests/workflow-contracts.test.mjs # ./tests/consumer.test.mjs",
           ),
+      "./tests/workflow-contracts.test.mjs # ./tests/consumer.test.mjs",
     ],
-  ])("suite registration rejects %s", (_, mutate) => {
+  ])("suite registration rejects %s", (_, mutate, injected) => {
     const makefile = mutate(source("Makefile"));
+    // A `.replace` that matches nothing would leave the Makefile valid and let
+    // the rejection below pass for the wrong reason, so prove the mutation hit.
+    if (injected !== null) expect(makefile).toContain(injected);
     expect(() => testTargetListsEverySuite(makefile, authoredSuites())).toThrow(
       "make test does not run ./tests/consumer.test.mjs",
     );

@@ -56,12 +56,19 @@ files when open and fail to compose when closed (`R9a`, `R9b`).
 `Never.t` is abstract in `Never.resi` and implemented as
 `type t = {absurd: 'a. 'a}`. `Never.absurd: t => 'a` is implemented as
 `(_: t) => panic("Never.absurd reached")`, so a forged value fails loudly
-rather than returning `undefined`. The guarantee is exactly this: no closed,
-terminating, cast-free term of type `Never.t` exists outside `Never.res`.
-`Never.res` and the escapes `Obj.magic`, `%identity`, `%raw`, any `external`
-with a free result type variable, and untyped JavaScript are in the trusted
-base. `unit` is never used to mean infallible. Task 1.3.1 must turn a foreign
-rejection inside `Fx<_, Never.t, _>` into a defect, never an expected leaf.
+rather than returning `undefined`. The guarantee is exactly this: because
+`Never.resi` exports only `t` and `absurd`, no term of `Never.t` exists outside
+`Never.res` except through an `external` or compiler primitive. That includes
+standard-library externals such as `Option.getUnsafe`, `Null.getUnsafe`, and
+`Array.getUnsafe`, which are `%identity` or `%array_unsafe_get` primitives with
+a free result type. `Never.res`, those externals, `Obj.magic`, `%identity`,
+`%raw`, and untyped JavaScript are in the trusted base. The guarantee rests on
+the interface's abstraction, not on the `'a. 'a` encoding, which only resists
+`let rec` construction inside `Never.res`. Task 1.2.3 extends the `n4` probe
+fixture with three forgeries: `Option.getUnsafe(None)`,
+`Null.getUnsafe(Null.null)`, and `[]->Array.getUnsafe(0)`. `unit` is never used
+to mean infallible. Task 1.3.1 must turn a foreign rejection inside
+`Fx<_, Never.t, _>` into a defect, never an expected leaf.
 
 ### Cause model
 
@@ -75,14 +82,18 @@ payload, which the deductive-verification route requires:
 | `Interrupted` | `{execution}`                  | Managed interruption of an identified execution                                             |
 | `Release`     | `{issue: releaseIssue}`        | Inability to establish a release condition                                                  |
 | `Provenance`  | `{opaque}`                     | An earlier cause kept for diagnosis, behind a record of functions that hides its error type |
-| `Sequential`  | `{children: array<cause<'e>>}` | Ordered composition                                                                         |
+| `Sequential`  | `{children: array<cause<'e>>}` | Composition in occurrence order; no causal claim                                            |
 | `Parallel`    | `{children: array<cause<'e>>}` | Concurrent branches, with no invented total order                                           |
 
 Well-formedness: no node has an empty child list, and a single-child node is
-flattened to its child. Children are arrays, so the error parameter is invariant
-(`c1`). refex accepts that: error widening goes through explicit `mapError` or
-open polymorphic variants, which need unification, not subtyping. Arrays keep
-the verification route available, whereas lists would not (FX-1, feature F10).
+flattened to its child. `Sequential` records occurrence order only and claims
+no causal relation. A concrete tree with array children is invariant in its
+error parameter (`c1`), and `IO.resi` must declare `'e` invariant. While `IO.t`
+binds the backend abstractly, that declaration is trusted, since an abstract
+FFI-backed type accepts a declared `+'e` unchecked (`v1`). refex accepts
+invariance: error widening goes through explicit `mapError` or open polymorphic
+variants, which need unification, not subtyping. Lists are untested on the
+verification route; arrays were tested (FX-1, F10).
 
 Structure is built where refex knows it:
 
@@ -94,7 +105,8 @@ Structure is built where refex knows it:
 - A backend cause with one reason converts to the matching leaf. A backend
   cause with several reasons, which refex did not structure itself, converts to
   `Sequential` in the backend's reported order. Effect 4 records reasons in
-  occurrence order (P7, `ordered`).
+  occurrence order (P7, `ordered`), and `Sequential` claims no causal relation,
+  so the conversion invents no causation.
 
 The conversion is total and keeps every reason. No narrowing of design §4.1
 follows from Effect 4's flat cause.
@@ -106,16 +118,24 @@ follows from Effect 4's flat cause.
   through `catchCause` and `failCause`, never through the backend's `mapError`
   (P2). If `f` throws, the outcome is a `Defect` for the mapping failure
   composed with the original cause held as `Provenance`, never the old leaves
-  relabelled with the new type.
+  relabelled with the new type. The outcome is
+  `Sequential[Provenance{original cause}, Defect{mapping failure}]`.
 - The recovery family is `catchError`, `match`, `result`, and
   `Direct.result`. Each either keeps the input error type `E` in its output
   error channel, so a mixed cause propagates losslessly, or demotes the
   propagated expected leaves to `Provenance`. None has an output error type
-  that no input supplies. The model-level argument is parametricity: a
-  cast-free total function cannot produce a value of a type it was never given,
-  so a free output error type forces erasure or a cast; `f3` and `f4` are the
-  implementation-level evidence. `result` is
-  `Fx<A, E, R> => Fx<result<A, E>, E, R>`.
+  that no input supplies. Here "erase" means an old leaf is no longer an
+  `Expected` leaf, whether dropped or demoted to `Provenance`. The model-level
+  argument is parametricity: a cast-free total function cannot produce a value
+  of a type it was never given, so a free output error type forces erasing
+  (dropping or demoting) or a cast; `f3` and `f4` are the implementation-level
+  evidence.
+- The intended signatures are `result`:
+  `Fx<A, E, R> => Fx<result<A, E>, E, R>`; `catchError`:
+  `(Fx<A, E, R>, E => Fx<A, E, R>) => Fx<A, E, R>`; and `match`:
+  `(Fx<A, E, R>, ~onError: E => B, ~onSuccess: A => B) => Fx<B, E, R>`.
+  `result`, `catchError`, and `match` keep `E`. Only an explicitly named
+  demoting variant, of which this ADR defines none, may demote.
 - A handler for several expected-only failures needs an explicit aggregation
   policy and never silently chooses the first leaf.
 
@@ -158,8 +178,8 @@ These statements are hypotheses about a future proof. None is verified.
 - LC-5, conformance only: a throwing `f` yields a mapping defect and keeps the
   original cause as `Provenance`.
 - LC-6, model-level: a cast-free total implementation of a recovery signature
-  whose output error type no input supplies must erase every old `Expected`
-  leaf from a mixed cause.
+  whose output error type no input supplies must erase (drop or demote) every
+  old `Expected` leaf from a mixed cause.
 
 The verification feasibility experiment
 ([FX-1](evidence/verification-feasibility.md)) verified a toy cause tree with
@@ -183,15 +203,15 @@ tested, not proved.
 
 ## Alternatives considered
 
-| Option                                       | Assessment                                                                                                                 |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| A refex-owned cause tree with array children | Selected. Inspectable, verifiable, structure built at refex's composition points.                                          |
-| The same tree with list children             | Rejected for now. Covariant in `'e`, but outside the verification route's supported constructs.                            |
-| Exposing the backend `Cause`                 | Rejected. Backend type in public interfaces (ADR 004), flat on Effect 4, and its `mapError` and `runPromise` lose reasons. |
-| `unit` as the infallible error type          | Rejected. `unit` is inhabited.                                                                                             |
-| A recursive variant or record as `Never`     | Rejected. Inhabited through `let rec` (`n1`).                                                                              |
-| Free output error types in recovery          | Rejected. Forces erasure or casts (`f3`, `f4`); the Reventless `either` and `catchAll` take the cast branch.               |
-| Release issues inside every domain `E`       | Rejected. Would force every error variant to absorb backend finalizer failures.                                            |
+| Option                                       | Assessment                                                                                                                                                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A refex-owned cause tree with array children | Selected. Inspectable, verifiable, structure built at refex's composition points.                                                                                                                             |
+| The same tree with list children             | Rejected for now. Covariant in `'e`, but untested on the verification route; arrays were tested (FX-1, F10).                                                                                                  |
+| Exposing the backend `Cause`                 | Rejected. Backend type in public interfaces (ADR 004), flat on Effect 4, and its `mapError` and `runPromise` lose reasons.                                                                                    |
+| `unit` as the infallible error type          | Rejected. `unit` is inhabited.                                                                                                                                                                                |
+| A recursive variant or record as `Never`     | Rejected. Inhabited through `let rec` (`n1`).                                                                                                                                                                 |
+| Free output error types in recovery          | Rejected. A free output type loses typed recoverability of the remaining `E` leaves: it forces dropping, demoting, or casting them (`f3`, `f4`); the Reventless `either` and `catchAll` take the cast branch. |
+| Release issues inside every domain `E`       | Rejected. Would force every error variant to absorb backend finalizer failures.                                                                                                                               |
 
 ## Falsifiers and evidence
 
