@@ -489,7 +489,22 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     either resolved in an ADR or is already recorded as an open decision (D1,
     D2, D8, D9, D10) whose handling the panel did not fault.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
-  gates.
+  gates. Blocked on two owner decisions and one gate repair:
+  - Owner acceptance of the ADR set. PR 8 is open and no acceptance comment
+    exists, so no status line, roadmap box, or `## Outcomes & retrospective`
+    entry may advance yet.
+  - The tolerance breach escalated on 2026-10-27 is still awaiting direction.
+    Option 1 (raise the code tolerance to 270 lines and extend the file
+    allowlist to `tests/support/**`) is recommended, and `make all` passes
+    either way, but adopting it is the owner's call.
+  - `make audit` fails on `markdown-it` 14.3.2, a transitive development
+    dependency of `markdownlint-cli` 0.49.1. `GHSA-gfr2-rv44-r23c` is high
+    severity and fixed in 14.3.3; `GHSA-vfgh-jcmw-g37q` is low and fixed in the
+    same version. This is not a trial regression: it is neither the pinned
+    `effect` nor a production dependency, so ADR 004's advisory window does not
+    apply. The fix is a `markdown-it` override to 14.3.3, which changes
+    `bun.lock` and `package.json`; the plan's interface tolerance forbids that
+    without direction, so it is escalated rather than applied.
 
 ## Surprises & discoveries
 
@@ -1018,6 +1033,24 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     breach follows from a repository rule the plan did not anticipate rather
     than from scope growth. The plan stays `IN PROGRESS`; no status line,
     roadmap box, or outcome is advanced on the strength of this round.
+  - Date/Author: 2026-10-28, implementing agent.
+
+- Decision (2026-10-28, EP-M10 gate triage): record the `make audit` failure
+  rather than repair it under this plan.
+  - Evidence: `make audit` reports `markdown-it` 14.3.2 with
+    `GHSA-gfr2-rv44-r23c` (high) and `GHSA-vfgh-jcmw-g37q` (low), both fixed in
+    14.3.3. The package arrives through `markdownlint-cli` 0.49.1, which pins
+    `markdown-it` at `~14.3.0`.
+  - Rationale: ADR 004's seven-day advisory window covers the pinned `effect`,
+    which is absent from the graph until task 1.3.1. No production dependency
+    is affected, and no refex code path reaches `markdown-it`.
+  - Why not fixed here: the repair is an `overrides` entry, which changes
+    `package.json` and `bun.lock`, and the plan's interface tolerance forbids
+    either without owner direction. The override is also not free: it would
+    move a transitive range beyond what `markdownlint-cli` declares, so it
+    wants the same review a pin move gets.
+  - Consequence: EP-M10 stays blocked until the owner either approves the
+    override or accepts the failure as a known advisory for this milestone.
   - Date/Author: 2026-10-28, implementing agent.
 
 ## Outcomes & retrospective
