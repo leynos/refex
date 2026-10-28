@@ -16,7 +16,9 @@ The [runtime-boundary audit](evidence/runtime-boundary-audit.md) showed that
 neither Effect line joins a repeated scope close, awaits a replaced fibre's
 finalizer, or waits for work that ignores its abort signal. These contracts are
 therefore refex's own. This ADR is the behavioural contract that roadmap tasks
-1.3.2 to 1.3.5 implement; it is a candidate until E9 supplies evidence.
+1.3.2 to 1.3.5 implement. Its status is `proposed`; on acceptance it becomes
+`candidate`, the status for an accepted contract that is still awaiting the
+evidence E9 and the 1.3.x tasks supply.
 
 ## Decision
 
@@ -70,7 +72,9 @@ opaque values compared for identity only; the reducer interprets neither.
   attempt that settled as failed (0 before any failure); T-14 sets
   `lastSettledFailed` to the failed attempt, and T-15 starts a new attempt only
   when `lastSettledFailed == lastStarted`;
-- `history`, an append-only array of reports;
+- `history`, an append-only array of report-or-refusal records, the element
+  type covering both what T-1 to T-17 report to a caller and the refusal that
+  T-18 and T-24 append;
 - `isolationVerified`, a boolean;
 - `deferredSuccessors` and `admittedSuccessors`, both keyed by successor
   identity. They belong to the predecessor generation, so a successor
@@ -84,12 +88,24 @@ carries no obligation. `UnresolvedPending` is the owner-visible phase reached
 when the owner's observation bound elapses while an attempt is still in flight;
 a caller's own bound only delivers that caller a report.
 
+Every `report` field in a phase, and every record appended to `history`, is
+synthesized by the reducer from the generation, attempt, phase, and cause it
+already holds when the transition is taken. No adapter, shell, or caller
+supplies one, so a report cannot disagree with the state it describes, and T-11
+needs no command to populate the field it sets.
+
 A generation is *live* while it carries an obligation, that is, while its phase
 is neither `Released` nor `AcquisitionFailed` (INV-8). T-25's "no live
 generation" guard therefore means that every earlier generation has reached one
 of those two phases. A `Released` generation is retained in the registry,
 because T-21 needs it to admit a successor and T-17 to answer a close request,
 but it is no longer live, so a released predecessor does not block T-25.
+
+T-25 admits only an identity that no live generation holds. Its second guard,
+"an identity its predecessor admitted", is the successor case: a fresh identity
+whose predecessor generation recorded it in `admittedSuccessors`. A
+`SuccessorRequested` for an identity owned by a live generation is refused by
+T-24, so the registry never holds two live generations for one identity.
 
 Events: `AcquireRequested{caller}`, `AcquireSucceeded`,
 `AcquireFailed{partial}`, `AcquireCancelRequested{caller}`,
@@ -107,6 +123,14 @@ event and the generation's owner, rather than trusting the shell. Attempt
 numbers are scoped to a generation, so every settlement and bound event names
 its generation; a "current" event in the table below matches both the current
 generation and its in-flight attempt, and any other is stale (T-18).
+
+`AcquireFailed{partial}` reports a failure after acquiring something:
+`partial: true` means resources now need release, so T-3 starts the cleanup
+attempt, while `partial: false` means nothing was acquired, so T-4 is terminal.
+The classification is the adapter's, on the same footing as AXIOM-5b, and task
+1.3.2 carries it as a conformance obligation. A failure the adapter cannot
+classify is reported as partial, because a spurious cleanup attempt is cheaper
+than a leaked resource.
 
 Commands to the shell: `StartAcquisition{generation}`,
 `JoinAcquisition{caller, generation}`, `Publish`,
@@ -205,8 +229,12 @@ Invariants, which must hold in every reachable state:
   join again and receives a further report for that new join. An acquisition
   join (T-5, T-26) is answered by T-1 or T-4, or is carried into the attempt
   that T-2 or T-3 starts.
-- INV-14, authorization: only the owner or the host may close, recover, or
-  offer a transfer; a leaseholder may release or cancel only its own lease.
+- INV-14, authorization: only the owner or the host may close, recover, offer
+  a transfer, cancel an acquisition (T-5), or record isolation (T-23); a
+  leaseholder may release or cancel only its own lease. A re-entrant
+  `AcquireRequested` (T-26, T-27) is authorized for the generation's owner on
+  the same rule. The five guarded rows therefore name every authority INV-14
+  grants, and T-24 refuses the rest.
 - INV-15, fresh attempts before cleanup: in `Acquiring` and `Open`,
   `lastStarted` is 0. With `maxAttempt` at least 1, T-2, T-3, T-8, and T-9
   therefore always start attempt 1 within the bound; only recovery (T-15, T-16)
@@ -455,8 +483,10 @@ the host-exit report makes visible.
 Proof maintenance has its own cost, which task 1.3.3 takes on: enabling genType
 and deciding whether its `.gen.ts` output is committed, native Dafny and Z3
 installs, vendoring the bridge scripts that FX-1 kept in scratch, a checker for
-the four bridge limits, reruns of roughly eight and a half minutes per change,
-and a development-only verification pipeline kept apart from the product build.
+the four bridge limits, reruns measured at `real 8m34.091s` for one full FX-1
+pass on the FX-1 host, so every change to the reducer, its contracts, or a tool
+pin pays that cost before the gate reports, and a development-only verification
+pipeline kept apart from the product build.
 
 ## References
 

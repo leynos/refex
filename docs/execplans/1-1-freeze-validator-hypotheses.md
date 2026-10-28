@@ -456,7 +456,38 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   developer guide, and two sections of this plan still named the deleted
   `tests/support/repository-contracts.mjs`. `make all` passes with 74 tests
   across 9 files under Bun 1.4.2.
-- [ ] EP-M9, part two: the expert panel on ADRs 004 to 007.
+- [x] (2026-10-28 01:45Z) EP-M9, part two: the expert panel on ADRs 004 to
+  007. The four lenses were reviewed against the current sources, and every
+  finding was checked against the file and line it names before any edit. Two
+  delegated lens sessions were dispatched for the Telefono and Doggylump
+  readings and returned no content, so the whole panel was worked through
+  directly on the main thread instead; the readings below are that review, not
+  a transcript of delegated reports:
+  - Telefono (contracts and types, ADRs 005 and 006) found `provide` used as a
+    diagnostic site without being declared, and `LC-1` naming `mapExpected`
+    where the production API is `mapError`. Both are now fixed in ADRs 005 and
+    006.
+  - Doggylump (failure modes, ADR 007) found `AcquireFailed{partial}` never
+    defined, `history` typed as reports only although T-18 and T-24 append
+    refusals, `INV-14` omitting the two authorities T-5 and T-23 exercise, T-11
+    setting a `report` field while emitting no command, and the T-25 successor
+    guard stated only in the prose. All five are now fixed in ADR 007. The
+    pre-mortem produced no new blocker: its scenarios are the E9 scenarios
+    already mapped to tasks 1.3.2 to 1.3.5.
+  - Pandalump and Dinolump (structure and viability, ADR 004 and integration)
+    found the exit criterion routing a P7 falsifier to a native core while the
+    falsifier itself selects Effect 3.22.x, and a status sentence in ADR 007
+    implying `candidate` before acceptance. Both are now fixed. Every internal
+    link and anchor in ADRs 004 to 007 resolves, and `packageContract` still
+    lives at the path ADR 004 names.
+  - Wafflecat and Buzzy Bee (alternatives and cost, backend and FX-1) found
+    one unsupported cost figure: "roughly eight and a half minutes per change"
+    against a recorded `real 8m34.091s` for a single full pass. ADR 007 now
+    quotes the measurement. The strongest alternative, a native minimal
+    runtime, is already in ADR 004's table and deferred to 6.5.1.
+  - No finding was rejected as invalid, and none was a blocker. Each was
+    either resolved in an ADR or is already recorded as an open decision (D1,
+    D2, D8, D9, D10) whose handling the panel did not fault.
 - [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
   gates.
 

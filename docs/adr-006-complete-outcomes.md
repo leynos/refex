@@ -169,8 +169,10 @@ remain D8, settled by E3 and E9 before a public interface freezes.
 
 These statements are hypotheses about a future proof. None is verified.
 
-- LC-1: `mapExpected(f, c)` has the same node kinds, child counts, and child
-  order as `c`.
+- LC-1: `mapError(f, c)` has the same node kinds, child counts, and child
+  order as `c`. The production API is `mapError`; the FX-1 cause-tree toy named
+  its equivalent `mapExpected`, and the evidence record and FX-C1 use that
+  name. Task 1.3.3 proves the production function under its own name.
 - LC-2: non-expected leaves, including `Provenance`, are unchanged.
 - LC-3: `f` maps every `Expected` leaf.
 - LC-4: `result` yields `Error(e)` only when the flattened cause is the single

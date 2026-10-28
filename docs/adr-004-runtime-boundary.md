@@ -119,9 +119,12 @@ allowlist of production dependency names: `@rescript/runtime` and `effect`.
   configuration, per ADR 002's workspace trigger.
 - Final selection: D1 closes at the end of task 1.3.5, by updating this ADR's
   status or by a superseding ADR.
-- Exit criterion for task 1.3.5: if the trial is rolled back or a falsifier
-  fires, the native minimal core (design decision D7) is brought forward as the
-  next roadmap work, rather than trying another library first.
+- Exit criterion for task 1.3.5: if the trial is rolled back, the native
+  minimal core (design decision D7) is brought forward as the next roadmap
+  work, rather than trying another library first. This is the rollback
+  destination for every rollback trigger below. The P7 falsifier is the
+  exception: it faults the cause-shape observation rather than the trial's
+  outcome, so it selects Effect 3.22.x, as that falsifier states.
 
 ### Obligations on task 1.3.1
 

@@ -66,6 +66,10 @@ until `IO.t` has a checked definition. Error-parameter variance is settled by
 - Named environments, adapters to existing application state, and any place
   where an open row would leak an internal key use explicit projection,
   `contramapEnvironment: (Fx<A, E, Small>, Large => Small) => Fx<A, E, Large>`.
+- Requirement discharge is `provide: (Fx<A, E, R>, R) => IO.t<A, E>`, as design
+  §3.2 declares it. It consumes the requirement, so it is the only site where
+  the compiler can report a missing or conflicting field before anything runs,
+  which is why the table below names it.
 - Partial provision is a typed environment-building function, never generic
   field subtraction.
 
