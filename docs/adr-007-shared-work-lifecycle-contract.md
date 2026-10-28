@@ -53,8 +53,13 @@ states which it provides. Interrupting `tryPromise` provides only stop waiting
 ## Lifecycle model
 
 The model below is specified, not implemented. One producer identity has a
-configuration `maxAttempt` (an `int`, at least 1) and the following fields for
-each generation:
+configuration and the following fields for each generation. The configuration
+holds `maxAttempt` (an `int`, at least 1) and the adapter's declaration, which
+the reducer needs in order to decide T-13, T-18, T-23, and T-24 rather than
+trusting the shell: `releasePredicate`, the one predicate value T-13 accepts
+and T-18 refuses in favour of any other, and `evidenceKinds`, the declared
+kinds of isolation evidence T-23 accepts and T-24 refuses outside. Both are
+opaque values compared for identity only; the reducer interprets neither.
 
 - `generation`, the identifier that settlement, bound, and isolation events
   must match; a successor gets a new identifier, so a late event for a
@@ -78,6 +83,13 @@ Phases: `Acquiring{cancelRequested, joiners}`, `Open{leases}`,
 carries no obligation. `UnresolvedPending` is the owner-visible phase reached
 when the owner's observation bound elapses while an attempt is still in flight;
 a caller's own bound only delivers that caller a report.
+
+A generation is *live* while it carries an obligation, that is, while its phase
+is neither `Released` nor `AcquisitionFailed` (INV-8). T-25's "no live
+generation" guard therefore means that every earlier generation has reached one
+of those two phases. A `Released` generation is retained in the registry,
+because T-21 needs it to admit a successor and T-17 to answer a close request,
+but it is no longer live, so a released predecessor does not block T-25.
 
 Events: `AcquireRequested{caller}`, `AcquireSucceeded`,
 `AcquireFailed{partial}`, `AcquireCancelRequested{caller}`,
