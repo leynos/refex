@@ -494,8 +494,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     exists, so no status line, roadmap box, or `## Outcomes & retrospective`
     entry may advance yet.
   - The tolerance breach escalated on 2026-10-27 is still awaiting direction.
-    The 270-line ceiling proposed then is superseded: at head `886d5f1` the
-    suite pair totals 276 lines, and the complete diff is 28 files and 7,962
+    The 270-line ceiling proposed then is superseded: at head `45d034a` the
+    suite pair totals 276 lines, and the complete diff is 28 files and 7,992
     net lines, so both the 26-file and 3,000-line limits are exceeded
     independently of the suite pair. A single head-specific exception request
     covering those measurements and every non-allowlisted path is recorded in
@@ -1045,9 +1045,11 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     this entry said 283, which mistakenly used the 97 added lines as the net
     growth. Both `acee0706` and `74af4dd^` give the same 276.
 
-    The complete diff against `acee0706` is 28 changed files and 7,962 net
-    added lines, which exceeds both the 26-file and 3,000-line limits in
-    Constraints independently of the suite pair. The exemption request must
+    The complete diff against `acee0706` is 28 changed files and 7,992 net
+    added lines at head `45d034a` (8,263 insertions, 271 deletions), which
+    exceeds both the 26-file and 3,000-line limits in Constraints
+    independently of the suite pair. The figure was 7,962 at `886d5f1`; the
+    two record corrections added the remaining 30. The exemption request must
     state the accepted head and its measured totals rather than numbers chosen
     in advance, and it must name every non-documentation path in the diff, not
     only `tests/support/**`. Beyond the two suites and the support modules,
