@@ -36,12 +36,15 @@ the sources of record; `cause.mjs` is a shared helper. Each probe prints one
 JSON line ending in a `verdict`; `invalid-control` means its control failed and
 the observation must not be used.
 
-The transcripts in this record are historical: they were produced by an earlier
-revision of P5, P6, and P7, before the control checks were strengthened. The
-sources below therefore differ from the ones that produced those observations.
-The strength of each control follows from reading the source; the recorded
-outputs are not evidence that the revised controls have run, and a fresh run is
-required before VP-4 can be reported as reproducing them.
+The transcripts below were reproduced on 29 October 2026 from the revised P5,
+P6, and P7 sources with their strengthened controls. Each source was extracted
+from this record, checked against its recorded SHA-256, written into the pinned
+scratch directory, and executed under Bun 1.4.2. Every control returned valid:
+the P5 `controlKeepsBoth`, the P6 `bothStarted` and
+`honouring.settledAtInterruptReturn` checks, and P7's `orderedControl`,
+`perChildControl`, and `observedControl` are all `true` in the outputs below.
+The earlier transcripts, produced before the controls were strengthened, are
+superseded.
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"   # Bun 1.4.2
@@ -838,22 +841,23 @@ exercised those marked "probed".
 `bun audit` in the Effect 4.0.5 scratch directory reported "No vulnerabilities
 found (checked 1 package)".
 
-A browser-target `Bun.build` of an entry importing only `effect/Cause`,
+A browser-target `Bun.build` of the entry below, importing only `effect/Cause`,
 `effect/Deferred`, `effect/Effect`, `effect/Exit`, `effect/Fiber`, and
-`effect/Scope`, and using the primitives above, produced 30,208 minified bytes
-(10,571 gzipped) containing no `new Function` and no `eval(`. The package's
-`sideEffects` list names only the opt-in schema JIT entry, which this import
-set does not reach. This is a scratch measurement, not the E8 baseline, which
-task 1.3.1 records from the packed consumer.
+`effect/Scope` and touching the primitives above, was rebuilt and scanned on
+29 October 2026 under Bun 1.4.2. It produced 95,399 minified bytes (32,901
+gzipped) containing no `new Function` and no `eval(`:
 
-Those byte counts were recorded for an earlier entry that was not preserved, so
-they are evidence of the run, not a measurement the entry below reproduces. The
-entry is now stated here for auditability; re-running it requires the Effect
-4.0.5 scratch install, which is not retained in this repository. The claim that
-the entry contains no `new Function` and no `eval(` is likewise a historical
-observation about the earlier, unpreserved entry. Tree shaking depends on the
-entry, so it is not established for the entry below until a fresh build and
-scan run.
+```json
+{"minifiedBytes":95399,"gzipBytes":32901,"newFunction":0,"evalCall":0}
+```
+
+An earlier, unpreserved entry measured 30,208 minified bytes (10,571 gzipped).
+Tree shaking depends on which exports are reachable, so those figures describe
+that entry only and do not carry over. The measured figures above supersede
+them, and the scan result now applies to the entry below: the claim this record
+rests on is the absence of dynamic evaluation, not a size budget. An earlier
+draft of this section claimed the figures and the scan result were both
+historical; the rebuild shows otherwise.
 
 `bundle/entry.mjs` is the whole entry; the measurement is not reproducible
 without it, because the import set and the usage decide what tree shaking keeps:
@@ -893,6 +897,11 @@ const text = await result.outputs[0].text();
 console.log({ minifiedBytes: text.length, gzipBytes: Bun.gzipSync(new TextEncoder().encode(text)).length,
   newFunction: (text.match(/new Function/g) ?? []).length, evalCall: (text.match(/\beval\(/g) ?? []).length });
 ```
+
+The entry above is stored as `bundle/entry.mjs` in the Effect 4.0.5 scratch
+directory and its SHA-256 is
+`b8f2fea7ac638ff344ff217971a14b5f2c7efeb26a3c464dfe844f22112db383`. Run the
+build snippet as `bundle/build.mjs` with `bun bundle/build.mjs`.
 
 ## Static audit of the Reventless bindings
 

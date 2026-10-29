@@ -54,3 +54,10 @@ Bun test ergonomics remain available without making the library Bun-specific.
 Runtime interpretation, React integration, and browser execution need later
 design decisions, source, and tests. The pure bootstrap function establishes
 none of those semantics.
+
+## Amendments
+
+[ADR 004](adr-004-runtime-boundary.md) conditionally permits a private,
+portable execution adapter in core and its backend dependency for the bounded
+trial in tasks 1.3.1 to 1.3.5. Production adoption remains subject to its named
+evidence gates; the bootstrap dependency policy otherwise remains in force.

@@ -1,11 +1,11 @@
 # ADR 004: provisional runtime boundary
 
-Status: proposed. Date: 17 October 2026.
+Status: provisional: authorizes a bounded trial (tasks 1.3.1 to 1.3.5). Date:
+17 October 2026.
 
-On owner acceptance, this ADR's status becomes
-`provisional: authorizes a bounded trial (tasks 1.3.1 to 1.3.5)`, and ADR 002
-receives its amendment at that point. At the end of task 1.3.5 it becomes
-`accepted` or `superseded by ADR NNN`.
+The owner accepted this bounded trial on 29 October 2026, and ADR 002 records
+its conditional amendment. At the end of task 1.3.5 this ADR becomes `accepted`
+or `superseded by ADR NNN`.
 
 ## Context
 

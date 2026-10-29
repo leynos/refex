@@ -1,6 +1,6 @@
 # ADR 006: complete outcomes
 
-Status: proposed. Date: 17 October 2026.
+Status: candidate. Date: 17 October 2026.
 
 ## Context
 

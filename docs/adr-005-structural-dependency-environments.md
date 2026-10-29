@@ -1,6 +1,6 @@
 # ADR 005: structural dependency environments
 
-Status: proposed. Date: 17 October 2026.
+Status: candidate. Date: 17 October 2026.
 
 ## Context
 

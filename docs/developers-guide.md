@@ -297,7 +297,7 @@ weaken the contract to hide it: `workflowContract` still asserts
 
 Platform adapters must have real platform-specific source and tests, own their
 runtime dependencies, and depend inward on core. Core must not depend on them.
-[ADR 004](adr-004-runtime-boundary.md) proposes one exception for a bounded
+[ADR 004](adr-004-runtime-boundary.md) authorizes one exception for a bounded
 trial: the portable execution adapter that backs refex's computation types is
 part of core and may depend on its backend. Do not create `refex-bun` or
 `refex-react` as empty name reservations.

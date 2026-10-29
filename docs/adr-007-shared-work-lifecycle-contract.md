@@ -1,6 +1,6 @@
 # ADR 007: shared work, closure, and recovery contract
 
-Status: proposed. Date: 17 October 2026.
+Status: candidate. Date: 17 October 2026.
 
 ## Context
 
@@ -16,9 +16,8 @@ The [runtime-boundary audit](evidence/runtime-boundary-audit.md) showed that
 neither Effect line joins a repeated scope close, awaits a replaced fibre's
 finalizer, or waits for work that ignores its abort signal. These contracts are
 therefore refex's own. This ADR is the behavioural contract that roadmap tasks
-1.3.2 to 1.3.5 implement. Its status is `proposed`; on acceptance it becomes
-`candidate`, the status for an accepted contract that is still awaiting the
-evidence E9 and the 1.3.x tasks supply.
+1.3.2 to 1.3.5 implement. Its status is `candidate`: the accepted contract
+still awaits evidence E9 and the 1.3.x tasks supply.
 
 ## Decision
 

@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -488,25 +488,11 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - No finding was rejected as invalid, and none was a blocker. Each was
     either resolved in an ADR or is already recorded as an open decision (D1,
     D2, D8, D9, D10) whose handling the panel did not fault.
-- [ ] EP-M10: owner acceptance, status lines, roadmap ticks, and final
-  gates. One gate is repaired and two owner decisions remain:
-  - Owner acceptance of the ADR set. PR 8 is open and no acceptance comment
-    exists, so no status line, roadmap box, or `## Outcomes & retrospective`
-    entry may advance yet.
-  - The tolerance breach escalated on 2026-10-27 is still awaiting direction.
-    The 270-line ceiling proposed then is superseded: at head `45d034a` the
-    suite pair totals 276 lines, and the complete diff is 28 files and about
-    7,990 net lines, so both the 26-file and 3,000-line limits are exceeded
-    independently of the suite pair. A single head-specific exception request
-    covering those measurements and every non-allowlisted path is recorded in
-    the Decision log; submitting it and accepting it are the owner's call,
-    and `make all` passes either way.
-  - Repaired: `make audit` failed on `markdown-it` 14.3.2, a transitive
-    development dependency of `markdownlint-cli` 0.49.1. `bun audit fix` moved
-    the lock entry to 14.3.3, the version both advisories are fixed in, and
-    `package.json` is untouched because 14.3.3 satisfies the declared
-    `~14.3.0`. `make audit` now reports no vulnerabilities. See the Decision
-    log entry of 2026-10-28.
+- [x] (2026-10-29) EP-M10: the owner accepted ADRs 004 to 007 and the
+  2026-10-27 tolerance breach in the task instructions. Statuses, ADR 002's
+  conditional amendment, and roadmap boxes now reflect that decision. The
+  earlier audit passed after the lockfile repair; final gates accompany the
+  closure commit.
 
 ## Surprises & discoveries
 
@@ -557,8 +543,8 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     for work that ignores the signal.
   - `FiberMap.run` interrupts the fibre it replaces. Its documentation does
     not say that it joins that fibre's cleanup.
-  - Evidence: source reading by the reviewer, still to be confirmed by
-    executed probes P2 to P6.
+  - Evidence: source reading by the reviewer, confirmed by executed probes
+    P2 to P6 on 29 October 2026, whose verdicts match every clause above.
   - Impact: these become "must not delegate" facts, not criteria for
     choosing a backend.
 - Observation: ReScript 12.3.1 does not parse an empty variant
@@ -1093,10 +1079,56 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     packages)"; `make all` still passes with 74 tests across 9 files.
   - Date/Author: 2026-10-28, implementing agent.
 
+- Decision (2026-10-29, VP-4 reproduction): record the reproduced probe
+  results as the evidence of record instead of treating the transcripts as
+  historical.
+  - Context: CodeRabbit's follow-up on head `c40a232` found no defect but kept
+    VP-4 open, because the P5, P6, and P7 sources in
+    `docs/evidence/runtime-boundary-audit.md` had been strengthened after the
+    recorded transcripts were produced. The record said so itself, so the
+    outputs did not establish that the revised controls had run.
+  - What was done: the eight documented sources were extracted from the record
+    and each matched its recorded SHA-256. They were written into the pinned
+    scratch directories beside the exact `effect@4.0.5` and `effect@3.22.2`
+    installs and run under Bun 1.4.2.
+  - Result on `effect` 4.0.5: P5 `squashed`, P6 `not-awaited`, P7
+    `flat; separately-observable=true`. Result on `effect` 3.22.2: P5 `full`,
+    P6 `not-awaited`, P7 `tree; separately-observable=true`. Every control
+    reported valid: P5 `controlKeepsBoth`, P6 `bothStarted` with
+    `honouring.settledAtInterruptReturn`, and P7 `orderedControl`,
+    `perChildControl`, and `observedControl` all `true`.
+  - Bundle measurement: rebuilding the entry recorded in this document
+    produced 95,399 minified bytes (32,901 gzipped) with zero `new Function`
+    and zero `eval(` calls. The earlier 30,208-byte figure belongs to a
+    different, unpreserved entry and is retained only as history. The claim
+    that supports ADR 004 is the absence of dynamic evaluation, which the
+    rebuild confirms for the recorded entry.
+  - Consequence: VP-4's reproducibility obligation is discharged for P5, P6,
+    and P7 and for the bundle scan. The verdicts are unchanged, so no ADR
+    text, status, roadmap box, or EP-M10 step moves on this entry. EP-M10's
+    owner decisions were subsequently supplied on 29 October.
+  - Date/Author: implementing agent.
+
+- Decision (2026-10-29): the owner accepted ADRs 004 to 007 and the
+  tolerance breach escalated on 27 October in the current task instructions.
+  The exception covers the recorded suite growth, overall diff, and named
+  non-documentation paths; it does not authorize runtime implementation. ADR
+  004 is provisional for the bounded trial and ADRs 005 to 007 are candidates
+  pending their evidence gates.
+
 ## Outcomes & retrospective
 
-Not yet started. Complete at each milestone boundary and before setting the
-status to `COMPLETE`.
+Roadmap 1.1 now has a design brief, four owner-accepted decisions, three
+reproducible evidence records, and repository contracts for ADR indexing and
+test registration. ADR 004 authorizes a bounded trial; ADRs 005 to 007 remain
+candidates pending their named experiments. The lifecycle and cause obligations
+are specified, not proven. Later milestones own implementation and verification.
+
+The audit exposed backend semantic gaps and a vulnerable development
+dependency; the latter was repaired. Strengthened probe controls had to be
+rerun before claiming reproducibility. The owner accepted the recorded
+tolerance breach on 29 October 2026, including the expanded scope and
+associated paths.
 
 ## Context and orientation
 

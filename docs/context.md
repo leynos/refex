@@ -31,8 +31,8 @@ choices do not silently supersede them. Guides describe what runs today.
 
 This revision materializes the user's edited roadmap as `docs/roadmap.md`,
 retaining its six phases and original task identifiers. It integrates new
-criteria and appends tasks within their existing workstreams. No checkbox
-becomes complete merely because documentation now describes the work.
+criteria and appends tasks within their existing workstreams. A checked
+specification task does not establish implementation or verification.
 
 ## 2. Ubiquitous language
 
