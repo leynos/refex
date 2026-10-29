@@ -404,9 +404,9 @@ Effect 3.22.2:
 Interpretation: Both lines start the successor, and return, before the old
 finalizer completes. refex owns the generation gate. The verdict checks both
 early-behaviour flags; either one rejects joined replacement. On
-30 October 2026 the revised source was rerun under Bun 1.4.2 against both
-pinned versions. Both flags were `true` in each run, reproducing the
-transcripts above.
+30 October 2026 (Europe/Berlin; 29 October UTC) the revised source was rerun
+under Bun 1.4.2 against both pinned versions. Both flags were `true` in each
+run, reproducing the transcripts above.
 
 ### P5: promise projection
 

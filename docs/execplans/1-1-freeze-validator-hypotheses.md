@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -488,7 +488,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - No finding was rejected as invalid, and none was a blocker. Each was
     either resolved in an ADR or is already recorded as an open decision (D1,
     D2, D8, D9, D10) whose handling the panel did not fault.
-- [ ] (2026-10-29) EP-M10: the owner accepted ADRs 004 to 007 and the
+- [x] (2026-10-29) EP-M10: the owner accepted ADRs 004 to 007 and the
   2026-10-27 tolerance breach in the task instructions. Statuses, ADR 002's
   conditional amendment, and roadmap boxes now reflect that decision. The
   earlier audit passed after the lockfile repair; final gates accompany the
@@ -1142,6 +1142,13 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   fixture and production `result` path, not a pure mapping proof. Final
   verification and review are pending.
 
+- Decision (2026-10-30, local lifecycle review): unknown or mismatched event
+  targets have no per-generation history destination, so their refusal leaves
+  the registry unchanged and emits only `Refuse`. Valid-target refusals append
+  only to the selected entry. Initial and successor acquisition both register
+  their requesting caller as a joiner so every acquisition request has a
+  defined completion path. The transition oracles must check both cases.
+
 ## Outcomes & retrospective
 
 Roadmap 1.1 now has a design brief, four owner-accepted decisions, three
@@ -1741,7 +1748,7 @@ Lifecycle model, owned by ADR 007:
   - `pendingTransfer`, an optional destination;
   - `phase`;
   - `lastStarted` and `lastSettledFailed`, the attempt history fields;
-  - `history`, an append-only list of reports;
+  - `history`, an append-only list of reports and valid-target refusals;
   - `isolationVerified`, a boolean;
   - `deferredSuccessors`, `admittedSuccessors`, and `startedSuccessors`, keyed
     by successor identity. Consumed admissions remain recorded to refuse
@@ -1762,17 +1769,24 @@ Lifecycle model, owned by ADR 007:
   still in flight. Per-caller bounds deliver reports but never change the phase.
 - Event addressing: an envelope names `targetIdentity` and
   `targetGeneration`. The reducer selects that entry and refuses mismatched or
-  unknown targets. Only initial `AcquireRequested` omits `targetGeneration`,
-  and it is accepted only when the requested identity has no predecessor.
-  Successor acquisition targets its admitting predecessor and names that
-  generation in the optional `admission` field. Initial acquisition and
-  re-entry carry no admission; re-entry must name the addressed entry's
-  identity. Unknown, mismatched, or consumed admissions are refused, keeping
-  the initial, successor, and re-entry forms disjoint.
+  unknown targets. If no valid entry is selected, T-24 emits one `Refuse`,
+  keeps the registry unchanged, and appends no history. A valid-target refusal
+  appends only to that entry's history, preserving its owner, phase, and
+  attempt; there is no registry-level refusal history. Only initial
+  `AcquireRequested` omits `targetGeneration`, and it is accepted only when the
+  requested identity has no predecessor. Successor acquisition targets its
+  admitting predecessor and names that generation in the optional `admission`
+  field. Initial acquisition and re-entry carry no admission; re-entry must
+  name the addressed entry's identity. Unknown, mismatched, or consumed
+  admissions are refused, keeping the initial, successor, and re-entry forms
+  disjoint.
 - Events:
   - acquisition: `AcquireRequested{identity, caller, admission}`,
     `AcquireSucceeded{generation}`, `AcquireFailed{generation, partial}`, and
-    `AcquireCancelRequested{caller}`;
+    `AcquireCancelRequested{caller}`. T-25 starts initial and successor
+    acquisitions with the requesting caller as the sole joiner. T-1 or T-4
+    reports to it; T-2 or T-3 carries it into the cleanup attempt for that
+    attempt's report;
   - leases: `LeaseAcquired{lease, caller}`, `LeaseCancelled{lease, caller}`,
     and `LeaseReleased{lease, caller}`. A lease is a generation-scoped token
     `{generation, tokenId}`. Acquisition binds it to the named caller;
@@ -1819,8 +1833,10 @@ bounds in every well-formed state:
 - INV-4, receipt soundness: `Released{receipt}` is reached only from
   `AttemptSucceeded` for the current attempt, in an in-flight phase. The
   receipt carries the generation, attempt, and predicate.
-- INV-5, stale and duplicate refusal: the following are each refused. They
-  are recorded in `history`, and owner, phase, and attempt stay unchanged:
+- INV-5, stale and duplicate refusal: with a valid target entry, the following
+  are each refused and recorded in that entry's `history`; its owner, phase,
+  and attempt stay unchanged. Invalid targets instead follow T-24's
+  unchanged-registry rule:
   - a settlement for a non-current attempt;
   - a settlement for another generation;
   - any settlement outside an in-flight phase, including after `Released`.
@@ -1854,11 +1870,13 @@ bounds in every well-formed state:
 - INV-13, one report per joiner: each caller that joins an attempt
   receives exactly one `Report` for that attempt. The report is sent either
   when that caller's bound elapses or when the attempt settles, whichever comes
-  first.
+  first. The initial acquisition caller is a joiner from T-25; T-1 or T-4
+  reports its acquisition outcome, or T-2 or T-3 carries its join into cleanup.
 - INV-14, authorization: only the owner, or the host acting for it, may
   close, recover, or offer a transfer. A leaseholder may release or cancel only
   a generation-matching token whose stored holder is that caller. Any other
-  request is refused, and the state is unchanged.
+  request is refused, preserving owner, phase, and attempt; a valid target
+  records the refusal in its history.
 
 Exact-effect and progress clauses. These are the guard against a specification
 that a "refuse everything" reducer would satisfy.
@@ -1896,6 +1914,11 @@ that a "refuse everything" reducer would satisfy.
   `Closing` and emits exactly one `StartAttempt` and no `Publish`.
 - PR-13: `WaitBoundElapsed` for a joined caller and the current attempt
   emits exactly one `Report` to that caller and removes it from the joiners.
+- PR-14: T-25 creates a fresh generation, emits one `StartAcquisition`, and
+  records the requesting caller as its initial acquisition joiner. Its join
+  completes through T-1 or T-4, or through the cleanup attempt after T-2 or T-3.
+- PR-15: T-26 adds each newly joined caller once and emits one
+  `JoinAcquisition`; a repeated join emits none.
 
 Lemma statements:
 
@@ -1925,7 +1948,11 @@ compiled reducer under `bun test`:
     mismatched event targets, stale lease tokens, and wrong-holder events;
   - attempts up to `maxAttempt = 3`, plus out-of-range attempt values.
 - Oracle: the INV and PR predicates, written from the E9 acceptance column
-  independently of `wellFormed`.
+  independently of `wellFormed`. Include oracle cases in which unknown or
+  identity-mismatched targets emit one `Refuse`, leave the whole registry
+  unchanged, and append no history; valid-target refusals append only to the
+  selected entry. Check that T-25's caller receives its completion report after
+  success, non-partial failure, and cancellation or partial-failure cleanup.
 - Inductiveness: every INV is also checked over *all* well-formed states
   within the bounds, not only reachable ones.
 - Reachability: every reachable state can reach either `Released`, or an
