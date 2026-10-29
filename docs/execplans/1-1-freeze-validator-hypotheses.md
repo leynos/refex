@@ -1841,8 +1841,9 @@ that a "refuse everything" reducer would satisfy.
   `StartAttempt`.
 - PR-9: `TransferAcknowledged` from the offered destination changes the
   owner.
-- PR-10: `SuccessorRequested` after `Released`, or with
-  `isolationVerified`, emits `AdmitSuccessor`. Otherwise it emits
+- PR-10: For an identity in neither successor set that no other live
+  generation holds, `SuccessorRequested` after `Released`, `AcquisitionFailed`,
+  or with `isolationVerified` emits `AdmitSuccessor`. Otherwise it emits
   `DeferSuccessor`, never `Refuse`.
 - PR-11: `IsolationVerified` admits every deferred successor.
 - PR-12: `AcquireSucceeded` without a cancellation request moves to `Open`

@@ -276,9 +276,10 @@ Exact-effect and progress clauses guard against a contract that a reducer
 refusing everything would satisfy: PR-1 is T-9, PR-2 is T-13, PR-3 is T-14,
 PR-4 is T-15, PR-5 is T-11, PR-6 is T-6, PR-7 is T-10 (one `JoinAttempt` per
 newly joined caller), PR-8 is T-8, PR-9 is T-20, PR-10 is T-21 and T-22 (never
-`Refuse` for an identity in neither set), PR-11 is T-23, PR-12 is T-1 and T-2,
-PR-13 is T-12, PR-14 is T-25, and PR-15 is T-26 (one `JoinAcquisition` per
-newly joined caller), each with exactly the commands listed.
+`Refuse` for an identity in neither set that no other live generation holds),
+PR-11 is T-23, PR-12 is T-1 and T-2, PR-13 is T-12, PR-14 is T-25, and PR-15 is
+T-26 (one `JoinAcquisition` per newly joined caller), each with exactly the
+commands listed.
 
 Lemma statements:
 
