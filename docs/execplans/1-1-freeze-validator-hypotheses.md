@@ -1019,9 +1019,10 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     repository rule required the split that the plan's allowlist forbids.
     Neither instruction can be satisfied while the other stands unamended.
   - Options, in the order this plan recommends them:
-    1. Amend the tolerance to 270 lines and extend the file allowlist to
-       `tests/support/**`. This keeps every control and size-limit compliance,
-       and raises the ceiling by the amount actually used.
+    1. Amend the tolerance to a ceiling measured at the accepted head and
+       extend the file allowlist to `tests/support/**`. This keeps every
+       control and size-limit compliance, and raises the ceiling by the amount
+       actually used.
     2. Revert the split and accept a 428-line authored file, which contradicts
        `AGENTS.md` and the observation recorded above.
     3. Trim the suites back under 220 lines by dropping the status-table check
@@ -1031,6 +1032,23 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     breach follows from a repository rule the plan did not anticipate rather
     than from scope growth. The plan stays `IN PROGRESS`; no status line,
     roadmap box, or outcome is advanced on the strength of this round.
+  - Correction (2026-10-29). The 270-line figure proposed on 27 October was
+    already too small when it was written, so it cannot be the ceiling. At
+    head `7db1a6b`, measured the same way as the breach, the pair totals 283
+    lines: `tests/documentation-contracts.test.mjs` is 186 lines and
+    `tests/makefile-contracts.test.mjs` has grown by 97 net lines against
+    `74af4dd^` (was 83 when the breach was raised). The exemption request must
+    therefore state the accepted head and its measured total rather than a
+    number chosen in advance, and it must name every non-documentation path in
+    the diff, not only `tests/support/**`. Beyond the two suites and the
+    support modules, the diff also touches `Makefile`, `.gitignore`,
+    `.markdownlintignore`, and `bun.lock`, and it renames
+    `tests/support/repository-contracts.mjs`. The lockfile change is the
+    `markdown-it` 14.3.3 advisory fix; documenting it is not owner
+    authorization for it. One exception request should cover the measured
+    line total, the file count, and every additional path, with the owner's
+    decision linked here. This correction records a measurement; it grants
+    nothing and changes no threshold.
   - Date/Author: 2026-10-28, implementing agent.
 
 - Decision (2026-10-28, EP-M10 gate triage): repair the `make audit` failure
@@ -1417,6 +1435,16 @@ VP-5: type-level probes (tasks 1.1.3 and 1.1.4).
   policy (`+A` as errors), built with the repository's own
   `node_modules/.bin/rescript`. Every probe crosses at least one `.res`/`.resi`
   boundary. Inline-annotation probes are forbidden.
+- Recorded exception (2026-10-29): `n1`, `n2`, and `n3` in
+  `docs/evidence/type-level-probes.md` are internal encoding controls. They ask
+  whether a recursive encoding is inhabited, whether `let rec` is rejected for
+  a polymorphic field, and whether construction inside a module compiles; each
+  question is confined to one module's own syntax, so a `.resi` file would add
+  no information. They are not counted toward the boundary obligation, are
+  labelled as internal controls in the evidence record, and do not support any
+  claim about crossing a module boundary or about constructing `Never.t` from
+  outside. `n4` and the requirement probes carry those claims. VP-5 is
+  therefore partially conformant by stated exception, not fully conformant.
 - Requirement probes, for ADR 005. All exports are functions unless the
   probe says otherwise.
   - R1 positive: two accessor modules compose into one open row.

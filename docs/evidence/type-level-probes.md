@@ -9,11 +9,21 @@ conformance. Date: 17 October 2026. Pins: ReScript 12.3.1 (the repository's
 Scratch ReScript projects test whether the type-level claims that ADR 005
 (structural dependency environments) and ADR 006 (complete outcomes) rely on
 hold under the pinned compiler, and whether each falsifier those ADRs name is
-observable. Every probe crosses at least one `.res`/`.resi` boundary; none
-relies on inline annotations, which can unify a supposedly free type variable
-away. The probes use toy `Cause`, `IO`, and `Fx` modules shaped like the
-proposed representation, not refex source, so they establish what the compiler
-does with that shape and nothing about a refex implementation.
+observable. Every probe that tests visibility crosses at least one
+`.res`/`.resi` boundary, and none relies on inline annotations, which can unify
+a supposedly free type variable away. The probes use toy `Cause`, `IO`, and
+`Fx` modules shaped like the proposed representation, not refex source, so they
+establish what the compiler does with that shape and nothing about a refex
+implementation.
+
+One stated exception: `n1`, `n2`, and `n3` are internal encoding controls. They
+test whether a recursive encoding is inhabited, whether `let rec` is rejected
+for a polymorphic field, and whether construction inside a module compiles.
+Those questions are about a single module's own syntax, so a `.resi` file would
+add no information, and each is stated without one. They are not evidence about
+crossing a module boundary, and they are not counted toward the boundary claim
+above; `n4` and the later probes carry the cross-module and
+`Never.t`-construction claims.
 
 ## Pins and environment
 

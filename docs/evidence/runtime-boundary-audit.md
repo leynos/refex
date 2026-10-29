@@ -412,6 +412,9 @@ const mixed = Effect.scoped(
   ),
 );
 const exit = await Effect.runPromiseExit(mixed); // control: full cause available
+const controlText = JSON.stringify(exit);
+const controlKeepsBoth =
+  controlText.includes("body-failed") && controlText.includes("release-defect");
 let rejection;
 try {
   await Effect.runPromise(mixed);
@@ -429,7 +432,12 @@ console.log(
     probe: "P5",
     exitCause: describe(exit.cause),
     rejection: rejected,
-    verdict: keepsBoth ? "full" : "squashed",
+    controlKeepsBoth,
+    verdict: !controlKeepsBoth
+      ? "invalid-control"
+      : keepsBoth
+        ? "full"
+        : "squashed",
   }),
 );
 ```
@@ -528,16 +536,20 @@ const run = async (honours) => {
 };
 const ignoring = await run(false),
   honouring = await run(true); // honouring is the control
+const bothStarted = ignoring.started && honouring.started;
 console.log(
   JSON.stringify({
     probe: "P6",
     ignoring,
     honouring,
-    verdict: !honouring.settledAtInterruptReturn
+    bothStarted,
+    verdict: !bothStarted
       ? "invalid-control"
-      : ignoring.settledAtInterruptReturn
-        ? "awaited"
-        : "not-awaited",
+      : !honouring.settledAtInterruptReturn
+        ? "invalid-control"
+        : ignoring.settledAtInterruptReturn
+          ? "awaited"
+          : "not-awaited",
   }),
 );
 ```
@@ -641,6 +653,17 @@ const observed = await Effect.runPromise(
   }),
 );
 const shapeOf = (d) => d.shape;
+// Controls: the ordered line must show both reasons, the per-child line must
+// show both children, and the separate observation must carry both exits.
+const orderedControl = JSON.stringify(describe(ordered.cause)).includes("first")
+  && JSON.stringify(describe(ordered.cause)).includes("second");
+const perChildControl =
+  perChild.length === 2 &&
+  perChild.every((entry) => JSON.stringify(describe(entry.cause)).length > 0);
+const observedControl =
+  JSON.stringify(observed.body).includes("body-failed") &&
+  JSON.stringify(observed.finalizer).includes("finalizer-defect");
+const controlsHold = orderedControl && perChildControl && observedControl;
 console.log(
   JSON.stringify({
     probe: "P7",
@@ -649,8 +672,13 @@ console.log(
     perChild: perChild.map((e) => describe(e.cause)),
     ordered: describe(ordered.cause),
     observed,
-    verdict: `${shapeOf(describe(lifecycle.cause))}; separately-observable=${
-      JSON.stringify(observed.body).includes("body-failed") &&
+    orderedControl,
+    perChildControl,
+    observedControl,
+    verdict: !controlsHold
+      ? "invalid-control"
+      : `${shapeOf(describe(lifecycle.cause))}; separately-observable=${
+          JSON.stringify(observed.body).includes("body-failed") &&
       JSON.stringify(observed.finalizer).includes("finalizer-defect")
     }`,
   }),
@@ -805,6 +833,45 @@ A browser-target `Bun.build` of an entry importing only `effect/Cause`,
 `sideEffects` list names only the opt-in schema JIT entry, which this import
 set does not reach. This is a scratch measurement, not the E8 baseline, which
 task 1.3.1 records from the packed consumer.
+
+Those byte counts were recorded for an earlier entry that was not preserved, so
+they are evidence of the run, not a measurement the entry below reproduces. The
+entry is now stated here for auditability; re-running it requires the Effect
+4.0.5 scratch install, which is not retained in this repository. The
+reproducible claim is therefore the Dynamic-evaluation result, not the exact
+byte count.
+
+`bundle/entry.mjs` is the whole entry; the measurement is not reproducible
+without it, because the import set and the usage decide what tree shaking keeps:
+
+```js
+// bundle/entry.mjs: the exact import set the measurement claims to bundle.
+import * as Cause from "effect/Cause";
+import * as Deferred from "effect/Deferred";
+import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
+import * as Fiber from "effect/Fiber";
+import * as Scope from "effect/Scope";
+
+// Reach every namespace so the bundler cannot drop a requested module, and
+// touch the primitives the probe table marks as bundled.
+export const entry = {
+  Cause,
+  Deferred,
+  Effect,
+  Exit,
+  Fiber,
+  Scope,
+  catchCause: Effect.catchCause,
+  failCause: Effect.failCause,
+  uninterruptibleMask: Effect.uninterruptibleMask,
+  make: Scope.make,
+  addFinalizer: Scope.addFinalizer,
+  addFinalizerExit: Scope.addFinalizerExit,
+  close: Scope.close,
+  deferred: Deferred.make,
+};
+```
 
 ```js
 const result = await Bun.build({ entrypoints: ["./bundle/entry.mjs"], minify: true, target: "browser" });
