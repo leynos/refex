@@ -494,9 +494,13 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     exists, so no status line, roadmap box, or `## Outcomes & retrospective`
     entry may advance yet.
   - The tolerance breach escalated on 2026-10-27 is still awaiting direction.
-    Option 1 (raise the code tolerance to 270 lines and extend the file
-    allowlist to `tests/support/**`) is recommended, and `make all` passes
-    either way, but adopting it is the owner's call.
+    The 270-line ceiling proposed then is superseded: at head `886d5f1` the
+    suite pair totals 276 lines, and the complete diff is 28 files and 7,962
+    net lines, so both the 26-file and 3,000-line limits are exceeded
+    independently of the suite pair. A single head-specific exception request
+    covering those measurements and every non-allowlisted path is recorded in
+    the Decision log; submitting it and accepting it are the owner's call,
+    and `make all` passes either way.
   - Repaired: `make audit` failed on `markdown-it` 14.3.2, a transitive
     development dependency of `markdownlint-cli` 0.49.1. `bun audit fix` moved
     the lock entry to 14.3.3, the version both advisories are fixed in, and
@@ -1034,21 +1038,29 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     roadmap box, or outcome is advanced on the strength of this round.
   - Correction (2026-10-29). The 270-line figure proposed on 27 October was
     already too small when it was written, so it cannot be the ceiling. At
-    head `7db1a6b`, measured the same way as the breach, the pair totals 283
+    head `886d5f1`, measured the same way as the breach, the pair totals 276
     lines: `tests/documentation-contracts.test.mjs` is 186 lines and
-    `tests/makefile-contracts.test.mjs` has grown by 97 net lines against
-    `74af4dd^` (was 83 when the breach was raised). The exemption request must
-    therefore state the accepted head and its measured total rather than a
-    number chosen in advance, and it must name every non-documentation path in
-    the diff, not only `tests/support/**`. Beyond the two suites and the
-    support modules, the diff also touches `Makefile`, `.gitignore`,
-    `.markdownlintignore`, and `bun.lock`, and it renames
-    `tests/support/repository-contracts.mjs`. The lockfile change is the
-    `markdown-it` 14.3.3 advisory fix; documenting it is not owner
-    authorization for it. One exception request should cover the measured
-    line total, the file count, and every additional path, with the owner's
-    decision linked here. This correction records a measurement; it grants
-    nothing and changes no threshold.
+    `tests/makefile-contracts.test.mjs` has grown by 90 net lines (97 added,
+    7 removed) against `74af4dd^`, from 83 lines to 173. An earlier revision of
+    this entry said 283, which mistakenly used the 97 added lines as the net
+    growth. Both `acee0706` and `74af4dd^` give the same 276.
+
+    The complete diff against `acee0706` is 28 changed files and 7,962 net
+    added lines, which exceeds both the 26-file and 3,000-line limits in
+    Constraints independently of the suite pair. The exemption request must
+    state the accepted head and its measured totals rather than numbers chosen
+    in advance, and it must name every non-documentation path in the diff, not
+    only `tests/support/**`. Beyond the two suites and the support modules,
+    the diff touches `Makefile`, `.gitignore`, `.markdownlintignore`, and
+    `bun.lock`, renames `tests/support/repository-contracts.mjs`, and modifies
+    the suite callers `tests/dependency-contracts.test.mjs`,
+    `tests/generated-gate.test.mjs`, `tests/markdown-contracts.test.mjs`,
+    `tests/package-contracts.test.mjs`, and `tests/workflow-contracts.test.mjs`.
+    The lockfile change is the `markdown-it` 14.3.3 advisory fix; documenting
+    it is not owner authorization for it. One exception request should cover
+    the measured line totals, the file count, and every additional path, with
+    the owner's decision linked here. This correction records measurements; it
+    grants nothing and changes no threshold.
   - Date/Author: 2026-10-28, implementing agent.
 
 - Decision (2026-10-28, EP-M10 gate triage): repair the `make audit` failure

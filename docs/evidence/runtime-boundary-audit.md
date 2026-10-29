@@ -32,9 +32,16 @@ evidence that any refex contract holds; refex has no runtime code yet.
 ## Procedure
 
 Run from an empty directory outside the repository. The probe sources below are
-the exact files run; `cause.mjs` is a shared helper. Each probe prints one JSON
-line ending in a `verdict`; `invalid-control` means its control failed and the
-observation must not be used.
+the sources of record; `cause.mjs` is a shared helper. Each probe prints one
+JSON line ending in a `verdict`; `invalid-control` means its control failed and
+the observation must not be used.
+
+The transcripts in this record are historical: they were produced by an earlier
+revision of P5, P6, and P7, before the control checks were strengthened. The
+sources below therefore differ from the ones that produced those observations.
+The strength of each control follows from reading the source; the recorded
+outputs are not evidence that the revised controls have run, and a fresh run is
+required before VP-4 can be reported as reproducing them.
 
 ```sh
 export PATH="$HOME/.local/share/bun-versions/1.4.2/bin:$PATH"   # Bun 1.4.2
@@ -399,7 +406,7 @@ finalizer completes. refex owns the generation gate.
 Question: What does `runPromise` reject with for a mixed cause, compared with
 `runPromiseExit`? Control: `runPromiseExit` must expose both reasons.
 
-SHA-256 `3441dd8505dca0a82e58efb325114f7bfdfd254b40e1ff7e486dabef07816d53`.
+SHA-256 `dab5399d8c0e4254506a517a57aed16728b782e9b0635e00f6d12f8b1550c6e7`.
 
 ```js
 // P5 promise projection: what does runPromise reject with for a mixed cause?
@@ -500,7 +507,7 @@ Question: Does interruption wait for promise work that ignores its abort
 signal? Control: the variant that honours abort must have settled when
 interruption returns.
 
-SHA-256 `1d360cd2f40e418a2b849245de16637ae9221086e7ede6dee49d26ccbdc73f69`.
+SHA-256 `8e925b7afd2a7193ba0066b260a909b5a35a748372686c9078adf4a4557c4283`.
 
 ```js
 // P6 interrupting tryPromise whose work ignores (or honours) its abort signal.
@@ -602,7 +609,7 @@ Question: Does the cause keep order and parallel branches, and can an adapter
 observe body and finalizer exits separately? Control: an explicit `ensuring`
 order must be visible in the cause.
 
-SHA-256 `a720f22212ca5b052a87ee65343af9c1992c48c4e68307579fa46aa14558d619`.
+SHA-256 `9fdb01963999acf0be442a01b41b0ca8f43cbc28e78a985f56b12a82166d94e9`.
 
 ```js
 // P7 cause structure, and whether body and finalizer exits are separately observable.
@@ -655,11 +662,16 @@ const observed = await Effect.runPromise(
 const shapeOf = (d) => d.shape;
 // Controls: the ordered line must show both reasons, the per-child line must
 // show both children, and the separate observation must carry both exits.
-const orderedControl = JSON.stringify(describe(ordered.cause)).includes("first")
-  && JSON.stringify(describe(ordered.cause)).includes("second");
+const orderedText = JSON.stringify(describe(ordered.cause));
+const orderedControl =
+  orderedText.includes("first") &&
+  orderedText.includes("second") &&
+  orderedText.indexOf("first") < orderedText.indexOf("second");
+const childText = perChild.map((entry) => JSON.stringify(describe(entry.cause)));
 const perChildControl =
   perChild.length === 2 &&
-  perChild.every((entry) => JSON.stringify(describe(entry.cause)).length > 0);
+  childText[0].includes("Fail(left)") &&
+  childText[1].includes("Fail(right)");
 const observedControl =
   JSON.stringify(observed.body).includes("body-failed") &&
   JSON.stringify(observed.finalizer).includes("finalizer-defect");
@@ -837,9 +849,11 @@ task 1.3.1 records from the packed consumer.
 Those byte counts were recorded for an earlier entry that was not preserved, so
 they are evidence of the run, not a measurement the entry below reproduces. The
 entry is now stated here for auditability; re-running it requires the Effect
-4.0.5 scratch install, which is not retained in this repository. The
-reproducible claim is therefore the Dynamic-evaluation result, not the exact
-byte count.
+4.0.5 scratch install, which is not retained in this repository. The claim that
+the entry contains no `new Function` and no `eval(` is likewise a historical
+observation about the earlier, unpreserved entry. Tree shaking depends on the
+entry, so it is not established for the entry below until a fresh build and
+scan run.
 
 `bundle/entry.mjs` is the whole entry; the measurement is not reproducible
 without it, because the import set and the usage decide what tree shaking keeps:

@@ -123,8 +123,11 @@ Events: `AcquireRequested{caller}`, `AcquireSucceeded{generation}`,
 its `caller`, so the reducer itself decides authorization (INV-14) from the
 event and the generation's owner, rather than trusting the shell. Attempt
 numbers are scoped to a generation, so every settlement and bound event names
-its generation; a "current" event in the table below matches both the current
-generation and its in-flight attempt, and any other is stale (T-18).
+its generation. A "current" event in the table below matches the current
+generation and, for attempt settlements and bound events, that generation's
+in-flight attempt; any other is stale (T-18). Acquisition completions carry no
+attempt identifier, so for `AcquireSucceeded` and `AcquireFailed` "current"
+means the current generation with an unsettled `Acquiring` phase (T-1 to T-4).
 
 `AcquireFailed{generation, partial}` reports a failure after acquiring
 something: `partial: true` means resources now need release, so T-3 starts the
@@ -137,8 +140,9 @@ cheaper than a leaked resource.
 Both acquisition completions name the generation they settle, as the settlement
 and bound events already do. A completion whose generation is not current is
 stale: it must not publish, fail, or clean up a later acquisition, so T-1 to
-T-4 match only the current generation and T-18 records the rest. A delayed
-duplicate from an earlier generation therefore cannot retire a live successor.
+T-4 match only the current generation, and the rest are refused by T-24 under
+its late-or-already-settled-acquisition clause. A delayed duplicate from an
+earlier generation therefore cannot retire a live successor.
 
 Commands to the shell: `StartAcquisition{generation}`,
 `JoinAcquisition{caller, generation}`, `Publish`,
