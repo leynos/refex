@@ -96,11 +96,11 @@ supplies one, so a report cannot disagree with the state it describes, and T-11
 needs no command to populate the field it sets.
 
 A generation is *live* while it carries an obligation, that is, while its phase
-is neither `Released` nor `AcquisitionFailed` (INV-8). T-25's "no live
-generation" guard therefore means that every earlier generation has reached one
-of those two phases. A `Released` generation is retained in the registry,
-because T-21 needs it to admit a successor and T-17 to answer a close request,
-but it is no longer live, so a released predecessor does not block T-25.
+is neither `Released` nor `AcquisitionFailed` (INV-8). A `Released` generation
+is retained in the registry for T-21 and T-17, but is no longer live. T-25
+requires an unconsumed successor admission, an open predecessor gate, and no
+other live holder. Verified isolation can open that gate while the predecessor
+remains live.
 
 T-25 starts an initial generation when no predecessor exists for its identity,
 or a successor admitted by its predecessor when no other live generation holds
