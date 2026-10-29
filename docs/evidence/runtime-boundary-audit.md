@@ -470,6 +470,7 @@ Effect 4.0.5:
       "body-failed"
     ]
   },
+  "controlKeepsBoth": true,
   "verdict": "squashed"
 }
 ```
@@ -495,6 +496,7 @@ Effect 3.22.2:
       "Error: release-defect"
     ]
   },
+  "controlKeepsBoth": true,
   "verdict": "full"
 }
 ```
@@ -579,6 +581,7 @@ Effect 4.0.5:
     "settledAtInterruptReturn": true,
     "settledLater": true
   },
+  "bothStarted": true,
   "verdict": "not-awaited"
 }
 ```
@@ -598,6 +601,7 @@ Effect 3.22.2:
     "settledAtInterruptReturn": true,
     "settledLater": true
   },
+  "bothStarted": true,
   "verdict": "not-awaited"
 }
 ```
@@ -753,6 +757,9 @@ Effect 4.0.5:
       ]
     }
   },
+  "orderedControl": true,
+  "perChildControl": true,
+  "observedControl": true,
   "verdict": "flat; separately-observable=true"
 }
 ```
@@ -809,6 +816,9 @@ Effect 3.22.2:
       "tree": "Die(finalizer-defect)"
     }
   },
+  "orderedControl": true,
+  "perChildControl": true,
+  "observedControl": true,
   "verdict": "tree; separately-observable=true"
 }
 ```

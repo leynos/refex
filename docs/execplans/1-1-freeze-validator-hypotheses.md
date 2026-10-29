@@ -1107,14 +1107,20 @@ These are hard invariants. Violating one requires escalation, not a workaround.
     and P7 and for the bundle scan. The verdicts are unchanged, so no ADR
     text, status, roadmap box, or EP-M10 step moves on this entry. EP-M10's
     owner decisions were subsequently supplied on 29 October.
+  - Follow-up: the six transcript blocks were replaced with actual fresh
+    outputs after review identified that the earlier blocks had not been
+    updated. The source hashes and verdicts were unchanged.
   - Date/Author: implementing agent.
 
 - Decision (2026-10-29): the owner accepted ADRs 004 to 007 and the
-  tolerance breach escalated on 27 October in the current task instructions.
-  The exception covers the recorded suite growth, overall diff, and named
-  non-documentation paths; it does not authorize runtime implementation. ADR
-  004 is provisional for the bounded trial and ADRs 005 to 007 are candidates
-  pending their evidence gates.
+  tolerance breach escalated on 27 October in the task instructions in the
+  [Lody session](https://lody.ai/leynos/sessions/4c10984f-2c00-4e9b-9d17-f7a799adc218).
+  This direct owner instruction is accepted in place of C-11's review-comment
+  link. The reviewed scope at `c40a232` comprised 28 files, including the paths
+  named in the 27 October decision and its corrections. The exception covers
+  the recorded suite growth, overall diff, and named non-documentation paths;
+  it does not authorize runtime implementation. ADR 004 is provisional for the
+  bounded trial and ADRs 005 to 007 are candidates pending their evidence gates.
 
 ## Outcomes & retrospective
 
