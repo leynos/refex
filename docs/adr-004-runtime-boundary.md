@@ -191,11 +191,12 @@ become refex's own implementation work, tested by E3 and E9. The package gains
 a runtime dependency only in a reviewed, reversible step, and ADR 002 gains an
 amendment note only once this ADR becomes provisional.
 
-A security advisory affecting the pinned `effect` triggers the same re-audit
-before the pin moves. The tolerated window is seven days from publication,
-during which the advisory is recorded against the trial. If the advisory is
-exploitable through a refex path and the re-audit cannot finish in that window,
-the trial rolls back.
+A security advisory affecting the pinned `effect` with no fix immediately
+triggers rollback. Otherwise it triggers the same re-audit before the pin
+moves. The tolerated window is seven days from publication, during which the
+advisory is recorded against the trial. If the advisory is exploitable through
+a refex path and the re-audit cannot finish in that window, the trial rolls
+back.
 
 ## References
 
