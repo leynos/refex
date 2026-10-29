@@ -63,7 +63,7 @@ randomness still require the appropriate boundary.
 
 ### 2.2. Bootstrap compatibility
 
-Decision record: [ADR 004](adr-004-runtime-boundary.md), proposed, which
+Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional. It
 conditions ADR 002's dependency rule for a bounded trial.
 
 [ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
@@ -82,7 +82,7 @@ Use the ReScript 12 standard library rather than adding a replacement core.
 
 ### 2.3. Backend selection and execution boundary
 
-Decision record: [ADR 004](adr-004-runtime-boundary.md), proposed, with its
+Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional, with its
 [runtime-boundary audit](evidence/runtime-boundary-audit.md).
 
 Compare direct Effect FFI with [`@reventlessdev/rescript-effect`][bindings].
@@ -112,7 +112,7 @@ supported operation, or reject the backend. Do not silently weaken the contract.
 ### 2.4. Behaviour before primitives
 
 Decision record: [ADR 007](adr-007-shared-work-lifecycle-contract.md),
-proposed, answers these questions for the two-consumer slice.
+candidate, answers these questions for the two-consumer slice.
 
 Every resource-owning operation answers five questions in its existing design
 or evidence record before selecting a primitive:
@@ -161,7 +161,7 @@ an unbounded pure loop is not made interruptible by later returning an effect.
 ### 3.2. Requirements, construction, and observation timing
 
 Decision record: [ADR 005](adr-005-structural-dependency-environments.md),
-proposed, with its [type-level probes](evidence/type-level-probes.md).
+candidate, with its [type-level probes](evidence/type-level-probes.md).
 
 Prefer ordinary service records inside a structural outer environment. Each
 accessor requests its own capability and uses native error variants.
@@ -224,7 +224,7 @@ failed cleanup. Introduce helpers only as validators need them.
 
 ## 4. Expected failures, defects, interruption, and release failures
 
-Decision record: [ADR 006](adr-006-complete-outcomes.md), proposed. Effect 4's
+Decision record: [ADR 006](adr-006-complete-outcomes.md), candidate. Effect 4's
 flat cause needs no narrowing of §4.1: refex builds sequential and parallel
 structure at its own composition points.
 
@@ -330,7 +330,7 @@ unrestricted resource-to-IO conversion may silently discard ownership.
 ### 5.2. Joined closure and retained recovery
 
 Decision record: [ADR 007](adr-007-shared-work-lifecycle-contract.md),
-proposed, refines this lifecycle with acquisition, joiners, lease revocation,
+candidate, refines this lifecycle with acquisition, joiners, lease revocation,
 and a successor isolation path, and names its transitions and invariants.
 
 The proposed lifecycle is:

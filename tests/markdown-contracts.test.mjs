@@ -12,6 +12,7 @@ file owns only the values it feeds them.
 */
 
 import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   markdownLintContract,
@@ -24,7 +25,46 @@ const json = (path) => JSON.parse(readFileSync(path, "utf8"));
 const jsonc = (path) => JSON.parse(source(path).replace(/^\s*\/\/.*$/gm, ""));
 const pkg = json("package.json");
 
+/**
+ * Keeps local agent state out of commits and Markdown lint traversal.
+ * Private to this suite: these two files jointly own the scratch exclusion.
+ */
+const agentScratchIgnoreContract = (files) => {
+  for (const [path, pattern] of [
+    [".gitignore", "/.vtcode/"],
+    [".markdownlintignore", ".vtcode/"],
+  ]) {
+    assert.ok(
+      files[path].split("\n").includes(pattern),
+      `${path} must exclude local .vtcode state`,
+    );
+  }
+};
+
+const scratchIgnoreFiles = () => ({
+  ".gitignore": source(".gitignore"),
+  ".markdownlintignore": source(".markdownlintignore"),
+});
+
 describe("Markdown contracts", () => {
+  test("local agent state stays excluded from Git and Markdown linting", () => {
+    agentScratchIgnoreContract(scratchIgnoreFiles());
+  });
+
+  test.each([
+    [".gitignore", "/.vtcode/"],
+    [".markdownlintignore", ".vtcode/"],
+  ])("rejects removal of the scratch exclusion from %s", (path, pattern) => {
+    const files = scratchIgnoreFiles();
+    const mutated = files[path]
+      .split("\n")
+      .filter((line) => line !== pattern)
+      .join("\n");
+    expect(mutated).not.toBe(files[path]);
+    files[path] = mutated;
+    expect(() => agentScratchIgnoreContract(files)).toThrow();
+  });
+
   test("Markdown linting uses a braces-free toolchain", () => {
     markdownLintContract(pkg, source("Makefile"));
   });

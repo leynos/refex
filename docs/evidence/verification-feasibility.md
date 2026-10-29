@@ -169,12 +169,16 @@ The toy uses `@@warning("-4")` for catch-all match arms. Production code keeps
   when it is given none. The passes above ran the earlier versions, which
   checked both modules. Both versions are fail-closed, and no prover run was
   repeated, because the budget was spent.
-- The F9 probe's expected failure is now checked fail-closed by
-  `check-f9.sh`, which the runner calls. The probe must have failed, and failed
-  for the missing termination measure, so an unexpected pass or an unrelated
-  failure fails the run. The check was exercised on the recorded probe output
-  without a further prover run, and an output without the expected message was
-  rejected.
+- The F9 probe's expected failure is checked fail-closed by `check-f9.sh`,
+  which the runner calls. The exact expected result is exit 1, one missing
+  termination-measure error, one recursive-call precondition error, and a
+  summary of 4 verified obligations and 2 errors. The latter is a separate
+  unresolved obligation: recursive calls must satisfy `startsFrom`'s
+  closing-state and index-range preconditions. Neither error is counted as
+  verification success. The checker rejects any missing, duplicate, or
+  additional diagnostic, a changed summary, an unexpected pass, or a crash
+  status. It was tested on the recorded diagnostic set and deliberately altered
+  copies without another prover run; the original prover budget remains spent.
 - Review asked whether the F9 postcondition `result === 0` is vacuous,
   because the `closing` precondition makes the `Start` branch unreachable. It
   is not vacuous. The precondition is satisfiable, it mirrors L-4's antecedent
@@ -393,20 +397,28 @@ console.log(`fail-closed: ${Object.keys(MODULES).join(", ")} clean`);
 
 ### `check-f9.sh`
 
-SHA-256 `23f19db8df309e4e9f576898dfcf233d6a0adb524b570d204e50239cb8087a1f`.
+SHA-256 `0afb21cd22d8a82802f365ddc14cf2a0c02e190b704c410b8e2b1009c085cca3`.
 
 ```sh
 #!/usr/bin/env bash
-# Fail-closed check of the F9 probe: it must have run, failed, and failed for the expected reason (no termination
-# measure), so an unexpected pass or an unrelated failure fails the FX-1 run.
+# Fail-closed check of the recorded F9 failure: both unresolved obligations and the exact verifier summary must
+# match. A success, crash, missing diagnostic, duplicate diagnostic, or additional diagnostic fails this check.
 set -euo pipefail
 out=.verify/Fold/check.out
 status=$(cat .verify/Fold/check.status 2>/dev/null || echo missing)
 [[ -f "$out" ]] || { echo "F9: no probe output" >&2; exit 1; }
-[[ "$status" != 0 && "$status" != missing ]] || { echo "F9: probe status $status, expected a failure" >&2; exit 1; }
-grep -q 'cannot prove termination; try supplying a decreases clause' "$out" \
-  || { echo "F9: probe failed for an unexpected reason" >&2; exit 1; }
-echo "F9: expected failure confirmed (status $status, missing termination measure)"
+[[ "$status" == 1 ]] || { echo "F9: probe status $status, expected 1" >&2; exit 1; }
+expected=$(cat <<'EXPECTED'
+Dafny program verifier finished with 4 verified, 2 errors
+Error: a precondition for this call could not be proved
+Error: cannot prove termination; try supplying a decreases clause
+EXPECTED
+)
+# Dafny prefixes diagnostics with their source location. Preserve every diagnostic after removing that prefix.
+actual=$(grep -E 'Error:|Warning:|Dafny program verifier finished' "$out" \
+  | sed -E 's/^Fold.dfy\([0-9]+,[0-9]+\): //' | LC_ALL=C sort) || true
+[[ "$actual" == "$expected" ]] || { echo "F9: unexpected diagnostic set" >&2; exit 1; }
+echo "F9: expected failure confirmed (status 1, termination and precondition obligations)"
 ```
 
 ### `res2ls-bridge.mjs`

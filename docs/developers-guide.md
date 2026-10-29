@@ -342,6 +342,7 @@ Three status vocabularies coexist and must not be confused:
 | -------------------------- | --------------------------------------------- | --------------------------------- |
 | `proposed`                 | Proposed                                      | Proposed                          |
 | `provisional`, `candidate` | Proposed or Unvalidated until evidence exists | Proposed                          |
+| `accepted for bootstrap`   | Established once implemented and inspected    | Implemented when installable      |
 | `accepted`                 | Established once implemented and inspected    | Implemented only when installable |
 | (no ADR)                   | Deferred or Open                              | Deferred, Open, or Delegated      |
 

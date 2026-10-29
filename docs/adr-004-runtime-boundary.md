@@ -28,11 +28,11 @@ The [runtime-boundary audit](evidence/runtime-boundary-audit.md) established:
   `Cause` is a flat list of reasons.
 - Effect 3.22.2 keeps a sequential and parallel cause tree, but depends at
   runtime on `fast-check` and `@standard-schema/spec` through caret ranges.
-- On both lines, `mapError` drops a simultaneous release defect, a repeated
-  `Scope.close` does not join an in-flight finalizer, `FiberMap` replacement
-  does not await the old finalizer, and interrupting `tryPromise` does not wait
-  for work that ignores its abort signal. Effect 4.0.5's `runPromise` rejects
-  with the bare expected error.
+- On both lines, `mapError` drops a simultaneous release defect. A repeated
+  `Scope.close` does not join an in-flight finalizer. `FiberMap` replacement
+  does not await the old finalizer. Interrupting `tryPromise` does not wait for
+  work that ignores its abort signal. Effect 4.0.5's `runPromise` rejects with
+  the bare expected error.
 - On Effect 4.0.5, provision is lazy: supplying a service runs no environment
   access, and each execution of the provided computation runs afresh (probe P1).
 - The audit did not cover native variant representation or calling
@@ -113,7 +113,7 @@ allowlist of production dependency names: `@rescript/runtime` and `effect`.
   dependency contract above, and `.github/dependabot.yml` with its workflow
   contract test `tests/workflow-contracts.test.mjs`.
 - Not permitted: any change to `package.json` `exports` or `files` for
-  backend reasons, a workspace or second package, or an Effect type in a public
+  backend reasons, a workspace, a second package, or an Effect type in a public
   interface.
 - Dependency discovery: one root package and no workspace linker
   configuration, per ADR 002's workspace trigger.
@@ -129,7 +129,7 @@ allowlist of production dependency names: `@rescript/runtime` and `effect`.
 ### Obligations on task 1.3.1
 
 - A binding-surface smoke test that imports every bound Effect name and
-  asserts its runtime kind, because ReScript `external` declarations are not
+  asserts its runtime kind because ReScript `external` declarations are not
   checked against Effect's TypeScript declarations. It also round-trips each
   bound `Exit` and `Cause` shape and each binding's calling convention (arity,
   currying, and the `_tag` discriminant versus ReScript's `TAG`) through a

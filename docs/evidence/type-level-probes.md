@@ -10,11 +10,12 @@ Scratch ReScript projects test whether the type-level claims that ADR 005
 (structural dependency environments) and ADR 006 (complete outcomes) rely on
 hold under the pinned compiler, and whether each falsifier those ADRs name is
 observable. Every probe that tests visibility crosses at least one
-`.res`/`.resi` boundary, and none relies on inline annotations, which can unify
-a supposedly free type variable away. The probes use toy `Cause`, `IO`, and
-`Fx` modules shaped like the proposed representation, not refex source, so they
-establish what the compiler does with that shape and nothing about a refex
-implementation.
+`.res`/`.resi` boundary. R6b, R7, and R8 also use inline annotations, including
+`type wide`, `env: wide`, and `(whole: app)`. These runs establish the compiler
+results for those source forms; they do not establish what the results would be
+without the annotations. The probes use toy `Cause`, `IO`, and `Fx` modules
+shaped like the proposed representation, not refex source, so they establish
+what the compiler does with that shape and nothing about a refex implementation.
 
 One stated exception: `n1`, `n2`, and `n3` are internal encoding controls. They
 test whether a recursive encoding is inhabited, whether `let rec` is rejected
@@ -75,12 +76,12 @@ bun -e 'const m = await import("./src/Forge.res.mjs");
 ```
 
 Calibration: the first runs exposed probe defects rather than compiler facts.
-These were an array-based cause that cannot be covariant, which became probe
-`c1`; Warning 4 (fragile match) on a catch-all pattern; a missing `type rec`;
-and an abstract implementation without declared variance. Each was corrected in
-the probe, never by weakening an expectation. Two expected diagnostic strings
-were also tightened to the compiler's exact wording after the corresponding
-failure had been confirmed as the intended type error.
+One defect was an array-based cause that could not be covariant; it became probe
+`c1`. Other defects were Warning 4 (a fragile match) on a catch-all pattern, a
+missing `type rec`, and an abstract implementation without declared variance.
+Each was corrected in the probe, never by weakening an expectation. Two
+expected diagnostic strings were also tightened to the compiler's exact wording
+after the corresponding failure had been confirmed as the intended type error.
 
 ## Results
 
@@ -117,9 +118,10 @@ fails with its named diagnostic in its named file.
 
 ## Interpretation for ADR 005
 
-- Open rows accumulate across separately compiled modules only when every
-  open-row export is a function (`R1`, `R5`). A value export, whether an
-  accessor or a composed workflow, gets a weak row at the exporting binding.
+- `R1` demonstrates open-row accumulation across separately compiled modules
+  with function exports. `R5` demonstrates that the non-function accessor value
+  `Clock.now` gets a weak row at its exporting binding. A composed workflow
+  exported as a value was not tested.
 - With function exports, a missing field is rejected at the `provide` argument
   (`R3`), and a conflicting field type is rejected at the composition expression
   (`R4`). Field keys are a global, string-keyed namespace, so ownership of
@@ -156,7 +158,7 @@ fails with its named diagnostic in its named file.
 - Open polymorphic-variant errors compose across modules (`R9a`); closed ones
   do not (`R9b`).
 - A cause tree whose children are an `array` cannot be covariant in its error
-  type (`c1`) because ReScript arrays are invariant. With `list` children it
+  type (`c1`) because ReScript arrays are invariant. With `list` children, it
   can be covariant (`c2`). The choice of representation therefore trades error
   covariance against verifier support: the deductive-verification route
   supports arrays, not lists.

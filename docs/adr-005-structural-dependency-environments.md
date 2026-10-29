@@ -21,7 +21,7 @@ ReScript 12.3.1:
   (`R1`), and accept environments with extra fields (`R2`).
 - A missing field is rejected at the `provide` argument (`R3`); one key used
   with two service types is rejected at the composition expression (`R4`).
-- A non-function export, whether an accessor or a workflow, gets a weak row at
+- A non-function accessor export gets a weak row at
   the exporting binding (`R5`) because the requirement is contravariant and the
   relaxed value restriction cannot generalize it.
 - Closed rows reject extra fields unless a consumer writes `:>` (`R6`, `R6b`).

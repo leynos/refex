@@ -172,7 +172,8 @@ These statements are hypotheses about a future proof. None is verified.
 - LC-1: `mapError(f, c)` has the same node kinds, child counts, and child
   order as `c`. The production API is `mapError`; the FX-1 cause-tree toy named
   its equivalent `mapExpected`, and the evidence record and FX-C1 use that
-  name. Task 1.3.3 proves the production function under its own name.
+  name. The cause implementation in tasks 1.2.3 and 1.3.1 verifies the
+  production function under its own name.
 - LC-2: non-expected leaves, including `Provenance`, are unchanged.
 - LC-3: `f` maps every `Expected` leaf.
 - LC-4: `result` yields `Error(e)` only when the flattened cause is the single
@@ -187,9 +188,11 @@ The verification feasibility experiment
 ([FX-1](evidence/verification-feasibility.md)) verified a toy cause tree with
 array children and a record of functions as provenance: kind, child count, and
 child kinds were preserved one level deep, and defect and provenance leaves
-were unchanged, with every mutant killed. LC-1 to LC-4 are therefore selected
-for machine-checked proof against the compiled JavaScript of the pure cause
-module, with three conditions:
+were unchanged, with every mutant killed. LC-1 to LC-3 are selected for
+machine-checked proof against the compiled JavaScript of the pure cause module,
+with the conditions below. Task 1.2.3 exercises LC-4 in the recovery fixture,
+and task 1.3.1 tests the production `result` path for both single expected
+failures and mixed causes:
 
 - Recursive cause variants carry no `int` fields unless the bridge's int32
   typing predicate recurses through children (FX-1 feature F10).
@@ -243,6 +246,8 @@ infallibility and variance is named rather than hidden.
 
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md) and
   [type-level probes](evidence/type-level-probes.md).
-- [Technical design §§4 and 7](design.md#4-expected-failures-defects-interruption-and-release-failures).
+- Technical design
+  [§4](design.md#4-expected-failures-defects-interruption-and-release-failures)
+  and [§7](design.md#7-native-await-as-a-gated-experiment).
 - [ADR 004](adr-004-runtime-boundary.md) and
   [ADR 005](adr-005-structural-dependency-environments.md).

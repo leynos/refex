@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: COMPLETE
+Status: IN PROGRESS
 
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
@@ -488,7 +488,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - No finding was rejected as invalid, and none was a blocker. Each was
     either resolved in an ADR or is already recorded as an open decision (D1,
     D2, D8, D9, D10) whose handling the panel did not fault.
-- [x] (2026-10-29) EP-M10: the owner accepted ADRs 004 to 007 and the
+- [ ] (2026-10-29) EP-M10: the owner accepted ADRs 004 to 007 and the
   2026-10-27 tolerance breach in the task instructions. Statuses, ADR 002's
   conditional amendment, and roadmap boxes now reflect that decision. The
   earlier audit passed after the lockfile repair; final gates accompany the
@@ -970,7 +970,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   - Consequences:
     - The lifecycle reducer is selected for machine-checked proof in 1.3.3.
     - The trace forms of L-4 and L-6 stay unverified induction arguments.
-    - LC-1 to LC-4 are selected subject to three conditions recorded in
+    - LC-1 to LC-3 are selected subject to three conditions recorded in
       ADR 006.
   - This is the plan's `revise` branch, not an assurance downgrade, so EP-M8
     adds no new owner decision. EP-M10 still records the owner's acceptance
@@ -1127,6 +1127,20 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   generation; acquisition remains gated by release, acquisition failure, or
   verified isolation, and another live holder still blocks admission. This
   repairs the delayed-release replacement case without discarding ownership.
+
+- Decision (2026-10-30, lifecycle review): make registry-wide admission and
+  lease authorization decidable from the reducer inputs. The registry starts
+  empty, retains generation entries, and derives its live index. Event targets
+  select entries explicitly. Lease tokens name their generation, acquisition
+  records the holder, and cancellation or release checks that binding. These
+  are specification repairs; production implementation remains in task 1.3.3.
+
+- Decision (2026-10-30, formal review): repair the registry and lease model,
+  narrow evidence claims to observed probes, and make F9 reject unexpected
+  diagnostics. The F9 precondition failure is a separate unresolved obligation;
+  no additional prover run was spent. LC-4 is exercised through the recovery
+  fixture and production `result` path, not a pure mapping proof. Final
+  verification and review are pending.
 
 ## Outcomes & retrospective
 
@@ -1514,8 +1528,8 @@ VP-5: type-level probes (tasks 1.1.3 and 1.1.4).
   - R4 negative: conflicting field types, from two independently authored
     modules using the same key, are rejected at the composition
     expression.
-  - R5 negative: a value export of an accessor or workflow produces a weak
-    row at the exporting binding.
+  - R5 negative: the `Clock.now` accessor exported as a value produces a
+    weak row at its binding. A workflow value was not probed.
   - R6: a closed-row export rejects an extra field unless the consumer
     writes `:>`.
   - R7 positive: an explicit projection composes.
@@ -1681,8 +1695,9 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
       arguments over the verified per-step lemmas. They are recorded as
       unverified meta-arguments.
     - If F10, F11, or FX-C1 and FX-C2 fail, cause mapping is not selected
-      for proof. ADR 006 assigns LC-1 to LC-4 to bounded enumeration over
-      small trees and to property tests.
+      for proof. ADR 006 assigns LC-1 to LC-3 to bounded enumeration over
+      small trees and to property tests. LC-4 is checked through the recovery
+      fixture and production `result` path.
 - Rule for running the proof gate outside CI, for the 1.3.3 plan: a
   contributor must attach a fresh proof transcript to the PR whenever any of
   these change:
@@ -1710,20 +1725,30 @@ FX-1: tool-capability feasibility experiment (a prototyping milestone).
 These sketches go into ADRs 007 and 006, labelled "specified, unverified". They
 are hypotheses about the eventual proof structure.
 
-Lifecycle model, owned by ADR 007, for one producer identity:
+Lifecycle model, owned by ADR 007:
 
-- Configuration: `maxAttempt` (an `int`, at least 1).
+- Configuration: `maxAttempt` (an `int`, at least 1), the adapter's declared
+  `releasePredicate`, and its declared isolation `evidenceKinds`.
+- Registry state: an initially empty `generations` array. Every entry has a
+  producer `identity`, unique `generation`, and the fields below. Released and
+  acquisition-failed entries remain available for later requests. The
+  live-generation index is derived from the entries whose phase is neither
+  `Released` nor `AcquisitionFailed`; it pairs each identity with every live
+  generation holding it, including isolated predecessors. T-21, T-22, and T-25
+  inspect this index rather than trusting a shell-supplied answer.
 - Per-generation state:
   - `owner`;
   - `pendingTransfer`, an optional destination;
   - `phase`;
   - `lastStarted` and `lastSettledFailed`, the attempt history fields;
   - `history`, an append-only list of reports;
-  - `isolationVerified`, a boolean.
-- A producer-level `deferredSuccessors` list.
+  - `isolationVerified`, a boolean;
+  - `deferredSuccessors`, `admittedSuccessors`, and `startedSuccessors`, keyed
+    by successor identity. Consumed admissions remain recorded to refuse
+    duplicate requests.
 - Phases:
-  - `Acquiring{cancelRequested}`;
-  - `Open{leases}`;
+  - `Acquiring{cancelRequested, joiners}`;
+  - `Open{leases}`, where `leases` contains `{lease, holder}` bindings;
   - `Closing{attempt, joiners}`;
   - `UnresolvedPending{attempt, joiners, report}`;
   - `UnresolvedSettledFailed{attempt, report}`;
@@ -1735,22 +1760,37 @@ Lifecycle model, owned by ADR 007, for one producer identity:
   `UnresolvedPending` follows design §5.2. It is the owner-visible phase
   reached when the *owner's* observation bound elapses while an attempt is
   still in flight. Per-caller bounds deliver reports but never change the phase.
+- Event addressing: an envelope names `targetIdentity` and
+  `targetGeneration`. The reducer selects that entry and refuses mismatched or
+  unknown targets. Only initial `AcquireRequested` omits `targetGeneration`,
+  and it is accepted only when the requested identity has no predecessor.
+  Successor acquisition targets its admitting predecessor and names that
+  generation in the optional `admission` field. Initial acquisition and
+  re-entry carry no admission; re-entry must name the addressed entry's
+  identity. Unknown, mismatched, or consumed admissions are refused, keeping
+  the initial, successor, and re-entry forms disjoint.
 - Events:
-  - acquisition: `AcquireSucceeded{generation}`,
-    `AcquireFailed{generation, partial}`, and
+  - acquisition: `AcquireRequested{identity, caller, admission}`,
+    `AcquireSucceeded{generation}`, `AcquireFailed{generation, partial}`, and
     `AcquireCancelRequested{caller}`;
-  - leases: `LeaseAcquired{lease}`, `LeaseCancelled{lease}`, and
-    `LeaseReleased{lease}`;
+  - leases: `LeaseAcquired{lease, caller}`, `LeaseCancelled{lease, caller}`,
+    and `LeaseReleased{lease, caller}`. A lease is a generation-scoped token
+    `{generation, tokenId}`. Acquisition binds it to the named caller;
+    cancellation and release check the stored holder. All three events refuse
+    a token from another generation without changing the addressed entry;
   - close, bounds, and settlement: `CloseRequested{caller}`,
-    `WaitBoundElapsed{caller, attempt}`, `OwnerBoundElapsed{attempt}`,
-    `AttemptSucceeded{attempt, predicate}`, and
-    `AttemptFailed{attempt, issue}`;
+    `WaitBoundElapsed{generation, caller, attempt}`,
+    `OwnerBoundElapsed{generation, attempt}`,
+    `AttemptSucceeded{generation, attempt, predicate}`, and
+    `AttemptFailed{generation, attempt, issue}`;
   - recovery and transfer: `RecoverRequested{caller}`,
-    `TransferOffered{destination}`, and
+    `TransferOffered{caller, destination}`, and
     `TransferAcknowledged{destination}`;
   - succession: `SuccessorRequested{identity}` and
-    `IsolationVerified{generation, evidence}`.
+    `IsolationVerified{caller, generation, evidence}`.
 - Commands emitted to the shell:
+  - `StartAcquisition{generation}`;
+  - `JoinAcquisition{caller, generation}`;
   - `Publish{generation}`;
   - `StartAttempt{generation, attempt}`;
   - `JoinAttempt{caller, attempt}`;
@@ -1803,8 +1843,11 @@ bounds in every well-formed state:
   obligation.
 - INV-10, lease independence: in `Open`, cancelling or releasing a lease
   removes only that lease.
-- INV-11, leases only while open: the lease set exists only in `Open`.
-  `LeaseAcquired` in any other phase is refused, and the state is unchanged.
+- INV-11, leases only while open: lease bindings exist only in `Open`.
+  Every token names the entry's generation and has exactly one stored holder.
+  `LeaseAcquired` in any other phase, any stale-generation token, or a
+  cancellation or release by a caller other than the holder is refused without
+  changing leases, phase, or owner.
 - INV-12, ownership before publication: `Publish` is emitted only on
   `Acquiring` to `Open`. It is never emitted for an acquisition that was
   cancelled.
@@ -1814,7 +1857,8 @@ bounds in every well-formed state:
   first.
 - INV-14, authorization: only the owner, or the host acting for it, may
   close, recover, or offer a transfer. A leaseholder may release or cancel only
-  its own lease. Any other request is refused, and the state is unchanged.
+  a generation-matching token whose stored holder is that caller. Any other
+  request is refused, and the state is unchanged.
 
 Exact-effect and progress clauses. These are the guard against a specification
 that a "refuse everything" reducer would satisfy.
@@ -1832,7 +1876,8 @@ that a "refuse everything" reducer would satisfy.
   `StartAttempt`.
 - PR-5: `OwnerBoundElapsed` for the current attempt in `Closing` or
   `Recovering` moves to `UnresolvedPending`, keeping the same attempt.
-- PR-6: `LeaseAcquired` on `Open` adds the lease.
+- PR-6: `LeaseAcquired` on `Open` with a previously absent,
+  generation-matching token binds it to the named caller.
 - PR-7: an authorized close or recovery request (from the owner, or the host
   acting for it) while an attempt is in flight emits exactly one `JoinAttempt`
   for the current attempt, and nothing else. An unauthorized request is
@@ -1875,8 +1920,9 @@ compiled reducer under `bun test`:
 - Alphabet:
   - callers `c1` and `c2`, plus an unknown caller;
   - owners `o1` and `o2`, plus an unknown owner;
-  - two leases, plus an unknown lease;
-  - two generations;
+  - two leases, plus an unknown lease, with generation and holder bindings;
+  - two producer identities and two generations, including the empty registry,
+    mismatched event targets, stale lease tokens, and wrong-holder events;
   - attempts up to `maxAttempt = 3`, plus out-of-range attempt values.
 - Oracle: the INV and PR predicates, written from the E9 acceptance column
   independently of `wellFormed`.
@@ -1973,23 +2019,23 @@ The columns are:
 - *Later*: the milestone that discharges the claim.
 - *Gate*: any unresolved feasibility gate.
 
-| Contract                                          | Claim                                                                                                                                                                                                       | Premises                   | Boundary                       | Evidence type                                                                              | Now              | Later                       | Acceptance                                                      | Limitations                                    | Gate |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------ | ---------------- | --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- | ---- |
-| K-1 runtime boundary (ADR 004)                    | No backend type, tag, scope, or unchecked conversion in any public `.resi`; exact pins                                                                                                                      | AXIOM-4, AXIOM-6           | Public `.resi`, `package.json` | Review; dependency-name contract; binding-surface smoke test                               | VP-4 audit       | 1.3.1                       | Contract and smoke test pass; bundle has no `eval`              | Probes are version-specific                    | None |
-| K-2 trial bounds (ADR 004)                        | Trial touches only the named files and tasks; rollback triggers named                                                                                                                                       | none                       | Repository policy              | Review; package contract                                                                   | ADR text         | 1.3.1-1.3.5                 | Final D1 at close of 1.3.5                                      | Policy, not semantics                          | None |
-| K-3 visible requirements (ADR 005)                | Function exports accumulate open rows across modules; missing or conflicting fields fail at named sites                                                                                                     | AXIOM-8                    | Separate `.res`/`.resi`        | Compiler fixtures, positive and negative                                                   | VP-5 R1-R6       | 1.2.2 (E1)                  | Each negative fails with the named diagnostic                   | Type evidence only                             | None |
-| K-4 projection fallback (ADR 005)                 | Projection composes without casts; wrong-field projection fails                                                                                                                                             | AXIOM-8                    | `contramapEnvironment`         | Compiler fixtures                                                                          | VP-5 R7-R8       | 1.2.1, 1.2.2                | As K-3                                                          | As K-3                                         | None |
-| K-5 service contract split (ADR 005)              | Construction inputs, invocation requirements, lifetime owner, and snapshot-versus-live are declared per service                                                                                             | none                       | Service interfaces             | Review now; E6 behaviour later                                                             | ADR template     | 3.2.1 (E6)                  | Live provider change observed next operation                    | Observation timing tested, not proved          | None |
-| K-6 uninhabited channel (ADR 006)                 | No closed, terminating, cast-free term of `Never.t` outside `Never.res`; `absurd` total and loud                                                                                                            | AXIOM-6                    | `Never.resi`                   | Compiler fixtures; parametricity                                                           | VP-5 n1-n5       | 1.2.3                       | Forged values fail loudly                                       | Escapes listed in AXIOM-6                      | None |
-| K-7 recovery family (ADR 006)                     | `catchError`, `match`, `result`, and `Direct.result` never erase mixed causes or invent an error type                                                                                                       | LC-6                       | Recovery `.resi`               | Parametricity sketch; one fixture per combinator                                           | VP-5 f2-f4       | 1.2.3                       | Free-`'e2` variants rejected                                    | Model-level argument plus fixtures             | None |
-| K-8 cause mapping (ADR 006)                       | LC-1 to LC-4 over the refex cause tree                                                                                                                                                                      | AXIOM-2, AXIOM-3           | Pure cause module              | Proof if FX-1 F10 and F11 pass; otherwise enumeration over small trees plus property tests | FX-1 C1-C2       | 1.2.3, 1.3.1                | Per-obligation outcomes                                         | Pure mapping only                              | FX-1 |
-| K-9 cause structure (ADR 006)                     | Sequential and parallel order kept at refex composition points                                                                                                                                              | AXIOM-4, P7                | Adapter conversion             | Property tests of conversion; E9 mixed failure                                             | VP-4 P7          | 1.3.1                       | No reason or order lost                                         | Backend-specific                               | P7   |
-| K-10 promise and native-await boundary (ADR 006)  | `runExit` returns the complete outcome; lossy projection keeps the cause only as untyped provenance or a runner-held handle; foreign rejections become defects; `Direct.result` passes mixed causes through | AXIOM-1, AXIOM-4           | Runtime and Direct scope       | Behavioural tests with real promises                                                       | VP-4 P5, P6      | 1.3.1, 1.4.1-1.4.2 (E5, E9) | Mixed-failure scenarios keep all reasons                        | Scheduling outside proof                       | None |
-| K-11 release issue versus defect (ADR 006)        | Anticipated release inability is a release issue; unexpected cleanup exception is a defect with release context; neither drops simultaneous reasons                                                         | AXIOM-5                    | Adapter classification         | Behavioural tests                                                                          | ADR text         | 1.3.1, 1.3.3                | E9 failed-retry and mixed-failure rows                          | Adapter-specific                               | None |
-| K-12 lifecycle safety (ADR 007)                   | INV-1 to INV-14 and PR-1 to PR-13                                                                                                                                                                           | AXIOM-1, AXIOM-2, AXIOM-3  | Pure lifecycle reducer         | Gate: bounded enumeration plus mutants; proof of L-1 to L-6 if selected                    | FX-1 (tool only) | 1.3.3                       | All invariants and progress clauses hold; every mutant rejected | Safety and per-step progress; no liveness      | FX-1 |
-| K-13 joined close and retained recovery (ADR 007) | Concurrent closes join one attempt; a discarded diagnostic leaves a live owner                                                                                                                              | AXIOM-1, AXIOM-5, AXIOM-5b | Shell and registry             | Behavioural tests with readiness; fast-check scheduler; ablations                          | None             | 1.3.3-1.3.5 (E3, E9)        | Ablations fail as intended                                      | Only interleavings that the scheduler controls | None |
-| K-14 lease independence (ADR 007)                 | One reader cancels without affecting the other; the last lease triggers one close                                                                                                                           | AXIOM-1                    | Producer shell                 | Given/When/Then tests; model-based property tests                                          | None             | 1.3.4, 1.3.5                | E9 two-reader and last-lease rows                               | Real-boundary claims wait for adapters         | None |
-| K-15 host-exit limits (ADR 007)                   | After a bounded close report, the host retains and reports unresolved owners; nothing survives exit                                                                                                         | AXIOM-7                    | Runtime owner                  | Review; behavioural test of the report                                                     | ADR text         | 1.3.5                       | Report lists every unresolved generation                        | Documentation limit                            | None |
+| Contract                                          | Claim                                                                                                                                                                                                       | Premises                   | Boundary                       | Evidence type                                                                                                        | Now              | Later                       | Acceptance                                                      | Limitations                                    | Gate |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- | ---- |
+| K-1 runtime boundary (ADR 004)                    | No backend type, tag, scope, or unchecked conversion in any public `.resi`; exact pins                                                                                                                      | AXIOM-4, AXIOM-6           | Public `.resi`, `package.json` | Review; dependency-name contract; binding-surface smoke test                                                         | VP-4 audit       | 1.3.1                       | Contract and smoke test pass; bundle has no `eval`              | Probes are version-specific                    | None |
+| K-2 trial bounds (ADR 004)                        | Trial touches only the named files and tasks; rollback triggers named                                                                                                                                       | none                       | Repository policy              | Review; package contract                                                                                             | ADR text         | 1.3.1-1.3.5                 | Final D1 at close of 1.3.5                                      | Policy, not semantics                          | None |
+| K-3 visible requirements (ADR 005)                | Function exports accumulate open rows across modules; missing or conflicting fields fail at named sites                                                                                                     | AXIOM-8                    | Separate `.res`/`.resi`        | Compiler fixtures, positive and negative                                                                             | VP-5 R1-R6       | 1.2.2 (E1)                  | Each negative fails with the named diagnostic                   | Type evidence only                             | None |
+| K-4 projection fallback (ADR 005)                 | Projection composes without casts; wrong-field projection fails                                                                                                                                             | AXIOM-8                    | `contramapEnvironment`         | Compiler fixtures                                                                                                    | VP-5 R7-R8       | 1.2.1, 1.2.2                | As K-3                                                          | As K-3                                         | None |
+| K-5 service contract split (ADR 005)              | Construction inputs, invocation requirements, lifetime owner, and snapshot-versus-live are declared per service                                                                                             | none                       | Service interfaces             | Review now; E6 behaviour later                                                                                       | ADR template     | 3.2.1 (E6)                  | Live provider change observed next operation                    | Observation timing tested, not proved          | None |
+| K-6 uninhabited channel (ADR 006)                 | No closed, terminating, cast-free term of `Never.t` outside `Never.res`; `absurd` total and loud                                                                                                            | AXIOM-6                    | `Never.resi`                   | Compiler fixtures; parametricity                                                                                     | VP-5 n1-n5       | 1.2.3                       | Forged values fail loudly                                       | Escapes listed in AXIOM-6                      | None |
+| K-7 recovery family (ADR 006)                     | `catchError`, `match`, `result`, and `Direct.result` never erase mixed causes or invent an error type                                                                                                       | LC-6                       | Recovery `.resi`               | Parametricity sketch; one fixture per combinator                                                                     | VP-5 f2-f4       | 1.2.3                       | Free-`'e2` variants rejected                                    | Model-level argument plus fixtures             | None |
+| K-8 cause mapping (ADR 006)                       | LC-1 to LC-3 over the refex cause tree and LC-4 through `result`                                                                                                                                            | AXIOM-2, AXIOM-3           | Cause module and `result`      | Proof for mapping if FX-1 F10 and F11 pass; otherwise enumeration and property tests; behavioural tests for `result` | FX-1 C1-C2       | 1.2.3, 1.3.1                | Per-obligation outcomes                                         | Pure mapping only                              | FX-1 |
+| K-9 cause structure (ADR 006)                     | Sequential and parallel order kept at refex composition points                                                                                                                                              | AXIOM-4, P7                | Adapter conversion             | Property tests of conversion; E9 mixed failure                                                                       | VP-4 P7          | 1.3.1                       | No reason or order lost                                         | Backend-specific                               | P7   |
+| K-10 promise and native-await boundary (ADR 006)  | `runExit` returns the complete outcome; lossy projection keeps the cause only as untyped provenance or a runner-held handle; foreign rejections become defects; `Direct.result` passes mixed causes through | AXIOM-1, AXIOM-4           | Runtime and Direct scope       | Behavioural tests with real promises                                                                                 | VP-4 P5, P6      | 1.3.1, 1.4.1-1.4.2 (E5, E9) | Mixed-failure scenarios keep all reasons                        | Scheduling outside proof                       | None |
+| K-11 release issue versus defect (ADR 006)        | Anticipated release inability is a release issue; unexpected cleanup exception is a defect with release context; neither drops simultaneous reasons                                                         | AXIOM-5                    | Adapter classification         | Behavioural tests                                                                                                    | ADR text         | 1.3.1, 1.3.3                | E9 failed-retry and mixed-failure rows                          | Adapter-specific                               | None |
+| K-12 lifecycle safety (ADR 007)                   | INV-1 to INV-14 and PR-1 to PR-13                                                                                                                                                                           | AXIOM-1, AXIOM-2, AXIOM-3  | Pure lifecycle reducer         | Gate: bounded enumeration plus mutants; proof of L-1 to L-6 if selected                                              | FX-1 (tool only) | 1.3.3                       | All invariants and progress clauses hold; every mutant rejected | Safety and per-step progress; no liveness      | FX-1 |
+| K-13 joined close and retained recovery (ADR 007) | Concurrent closes join one attempt; a discarded diagnostic leaves a live owner                                                                                                                              | AXIOM-1, AXIOM-5, AXIOM-5b | Shell and registry             | Behavioural tests with readiness; fast-check scheduler; ablations                                                    | None             | 1.3.3-1.3.5 (E3, E9)        | Ablations fail as intended                                      | Only interleavings that the scheduler controls | None |
+| K-14 lease independence (ADR 007)                 | One reader cancels without affecting the other; the last lease triggers one close                                                                                                                           | AXIOM-1                    | Producer shell                 | Given/When/Then tests; model-based property tests                                                                    | None             | 1.3.4, 1.3.5                | E9 two-reader and last-lease rows                               | Real-boundary claims wait for adapters         | None |
+| K-15 host-exit limits (ADR 007)                   | After a bounded close report, the host retains and reports unresolved owners; nothing survives exit                                                                                                         | AXIOM-7                    | Runtime owner                  | Review; behavioural test of the report                                                                               | ADR text         | 1.3.5                       | Report lists every unresolved generation                        | Documentation limit                            | None |
 
 ### Test strategy applicability for this step
 
@@ -2286,7 +2332,8 @@ EP-M6: complete outcomes (task 1.1.4).
   - fixtures, in 1.2.3;
   - adapter conversion tests, in 1.3.1;
   - Direct experiments, in 1.4;
-  - proofs or enumeration of LC-1 to LC-4, depending on FX-1.
+  - proofs or enumeration of LC-1 to LC-3, depending on FX-1, and `result`
+    fixtures and production-path tests for LC-4.
 - Compatibility decision: none.
 
 EP-M7: shared work, closure, and recovery contract (task 1.1.5).

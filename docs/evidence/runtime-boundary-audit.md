@@ -320,7 +320,7 @@ Question: Does `FiberMap.run` wait for the replaced fibre's finalizer before
 starting the successor or returning? Control: the replaced fibre's finalizer
 must be observed entering.
 
-SHA-256 `297038d56c3d720fe82422ab6c0837c432ccaefab9cf88ac0340c7d468d94beb`.
+SHA-256 `95b3c87a81cce228d98760a5f5aa5b60f1df8cda9056872cbdc6e0c8f148f5ef`.
 
 ```js
 // P4 keyed replacement: does FiberMap.run await the replaced fibre's finalizer?
@@ -368,7 +368,7 @@ console.log(
     runReturnedBeforeFinalizerDone,
     verdict: !finalizerEntered
       ? "invalid-control"
-      : successorStartedBeforeFinalizerDone
+      : successorStartedBeforeFinalizerDone || runReturnedBeforeFinalizerDone
         ? "not-awaited"
         : "awaited",
   }),
@@ -402,7 +402,11 @@ Effect 3.22.2:
 ```
 
 Interpretation: Both lines start the successor, and return, before the old
-finalizer completes. refex owns the generation gate.
+finalizer completes. refex owns the generation gate. The verdict checks both
+early-behaviour flags; either one rejects joined replacement. On
+30 October 2026 the revised source was rerun under Bun 1.4.2 against both
+pinned versions. Both flags were `true` in each run, reproducing the
+transcripts above.
 
 ### P5: promise projection
 

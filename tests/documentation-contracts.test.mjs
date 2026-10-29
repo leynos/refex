@@ -98,18 +98,19 @@ describe("Documentation contracts", () => {
     adrIndexContract(readFileSync("docs/contents.md", "utf8"), adrs);
   });
 
-  test("the status token allows a qualifier after a colon", () => {
+  test.each([
+    [
+      "the status token allows a qualifier after a colon",
+      "provisional: authorizes a bounded trial.",
+    ],
+    [
+      "a superseded status naming its successor is accepted",
+      "superseded by ADR 012. Kept for history.",
+    ],
+  ])("%s", (_name, status) => {
     const adr = {
       path: "docs/adr-099-x.md",
-      text: "# ADR 099: x\n\nStatus: provisional: authorizes a bounded trial.\n",
-    };
-    adrIndexContract("[ADR 099](adr-099-x.md)", [adr]);
-  });
-
-  test("a superseded status naming its successor is accepted", () => {
-    const adr = {
-      path: "docs/adr-099-x.md",
-      text: "# ADR 099: x\n\nStatus: superseded by ADR 012. Kept for history.\n",
+      text: `# ADR 099: x\n\nStatus: ${status}\n`,
     };
     adrIndexContract("[ADR 099](adr-099-x.md)", [adr]);
   });
