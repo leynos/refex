@@ -37,11 +37,10 @@ const authoredSuites = () =>
     .map((name) => `./tests/${name.endsWith(".res") ? `${name}.mjs` : name}`)
     .sort();
 
-// Throws naming the first suite that the `test` recipe's `$(BUN) test` command
-// does not run. Only the joined command counts, up to any shell comment: a path
-// in a recipe comment, a trailing comment, or another command is not executed
-// by `bun test`.
-function testTargetListsEverySuite(makefile, suites) {
+// The joined `$(BUN) test` command of the `test` recipe, up to any shell
+// comment: a path in a recipe comment, a trailing comment, or another command
+// is not executed by `bun test`. Throws when the recipe or command is absent.
+function testCommand(makefile) {
   const recipe = makefile.match(/^test:.*\n((?:\t.*\n?)+)/m)?.[1];
   if (!recipe) throw new Error("Makefile has no test recipe");
   const command = recipe
@@ -51,11 +50,19 @@ function testTargetListsEverySuite(makefile, suites) {
     .find((line) => line.startsWith("$(BUN) test "))
     ?.replace(/\s#.*$/, "");
   if (!command) throw new Error("test recipe has no $(BUN) test command");
-  const named = new Set(
-    command.split(/\s+/).filter((arg) => arg.startsWith("./tests/")),
-  );
-  for (const suite of suites) {
-    if (!named.has(suite)) throw new Error(`make test does not run ${suite}`);
+  return command;
+}
+
+// The suite paths a command line names.
+const namedSuites = (command) =>
+  new Set(command.split(/\s+/).filter((arg) => arg.startsWith("./tests/")));
+
+// Throws naming the first suite that the `test` recipe does not run.
+function testTargetListsEverySuite(makefile, suites) {
+  const named = namedSuites(testCommand(makefile));
+  const missing = suites.filter((suite) => !named.has(suite));
+  if (missing.length > 0) {
+    throw new Error(`make test does not run ${missing[0]}`);
   }
 }
 

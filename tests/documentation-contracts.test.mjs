@@ -35,6 +35,50 @@ const adrFiles = () =>
       text: readFileSync(`docs/${name}`, "utf8"),
     }));
 
+// The status token is the text after `Status:` up to the first `.` or `:`, on
+// the first non-blank line after the title.
+const statusToken = (text) =>
+  text
+    .split("\n")
+    .filter((entry) => entry.trim())[1]
+    ?.match(/^Status: ([^.:]+)[.:]/)?.[1];
+
+// Whether a token is a vocabulary entry or a supersession naming ADR NNN.
+const isKnownStatus = (token) =>
+  Boolean(token) && (STATUSES.includes(token) || SUPERSEDED.test(token));
+
+// The error a fixture raises when its status line is altered: the suite names
+// the first ADR, so every negative control over an ADR's status expects this.
+const UNRECOGNIZED =
+  "adr-001-repository-bootstrap.md has no recognized status line";
+
+// Rewrites the text of the first fixture ADR, leaving the rest untouched.
+const rewriteFirstAdr = (adrs, rewrite) =>
+  adrs.map((adr, index) =>
+    index === 0 ? { ...adr, text: rewrite(adr.text) } : adr,
+  );
+
+// Throws naming the first index link whose ADR file does not exist.
+function assertLinksResolve(linked, present) {
+  for (const path of linked) {
+    if (!present.has(path)) {
+      throw new Error(`docs/contents.md links missing ${path}`);
+    }
+  }
+}
+
+// Throws naming the first ADR that is unindexed or lacks a known status.
+function assertAdrsIndexed(linked, adrs) {
+  for (const { path, text } of adrs) {
+    if (!linked.has(path)) {
+      throw new Error(`${path} is missing from docs/contents.md`);
+    }
+    if (!isKnownStatus(statusToken(text))) {
+      throw new Error(`${path} has no recognized status line`);
+    }
+  }
+}
+
 // Throws naming the first ADR that is unindexed, unstatused, or missing.
 function adrIndexContract(contents, adrs) {
   const linked = new Set(
@@ -43,22 +87,8 @@ function adrIndexContract(contents, adrs) {
     ),
   );
   const present = new Set(adrs.map((adr) => adr.path));
-  for (const path of linked) {
-    if (!present.has(path)) {
-      throw new Error(`docs/contents.md links missing ${path}`);
-    }
-  }
-  for (const { path, text } of adrs) {
-    if (!linked.has(path)) {
-      throw new Error(`${path} is missing from docs/contents.md`);
-    }
-    // The status line is the first non-blank line after the title.
-    const status = text.split("\n").filter((entry) => entry.trim())[1];
-    const token = status?.match(/^Status: ([^.:]+)[.:]/)?.[1];
-    if (!token || !(STATUSES.includes(token) || SUPERSEDED.test(token))) {
-      throw new Error(`${path} has no recognized status line`);
-    }
-  }
+  assertLinksResolve(linked, present);
+  assertAdrsIndexed(linked, adrs);
 }
 
 describe("Documentation contracts", () => {
@@ -113,49 +143,31 @@ describe("Documentation contracts", () => {
     ],
     [
       "an invented status",
-      "adr-001-repository-bootstrap.md has no recognized status line",
+      UNRECOGNIZED,
       (contents, adrs) => [
         contents,
-        adrs.map((adr, index) =>
-          index === 0
-            ? {
-                ...adr,
-                text: adr.text.replace(
-                  /Status: [^.]+\./,
-                  "Status: accepted-ish.",
-                ),
-              }
-            : adr,
+        rewriteFirstAdr(adrs, (text) =>
+          text.replace(/Status: [^.]+\./, "Status: accepted-ish."),
         ),
       ],
     ],
     [
       "a missing status line",
-      "adr-001-repository-bootstrap.md has no recognized status line",
+      UNRECOGNIZED,
       (contents, adrs) => [
         contents,
-        adrs.map((adr, index) =>
-          index === 0
-            ? { ...adr, text: adr.text.replace(/^Status: .*$/m, "Context.") }
-            : adr,
+        rewriteFirstAdr(adrs, (text) =>
+          text.replace(/^Status: .*$/m, "Context."),
         ),
       ],
     ],
     [
       "a status line that is not the first line after the title",
-      "adr-001-repository-bootstrap.md has no recognized status line",
+      UNRECOGNIZED,
       (contents, adrs) => [
         contents,
-        adrs.map((adr, index) =>
-          index === 0
-            ? {
-                ...adr,
-                text: adr.text.replace(
-                  /^(# .*\n)/,
-                  "$1\nA paragraph before the status.\n",
-                ),
-              }
-            : adr,
+        rewriteFirstAdr(adrs, (text) =>
+          text.replace(/^(# .*\n)/, "$1\nA paragraph before the status.\n"),
         ),
       ],
     ],
