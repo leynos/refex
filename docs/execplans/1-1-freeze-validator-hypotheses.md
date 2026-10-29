@@ -1122,6 +1122,12 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   it does not authorize runtime implementation. ADR 004 is provisional for the
   bounded trial and ADRs 005 to 007 are candidates pending their evidence gates.
 
+- Decision (2026-10-29, formal review): allow a same-identity successor
+  to be deferred behind its own live predecessor. Registration creates no
+  generation; acquisition remains gated by release, acquisition failure, or
+  verified isolation, and another live holder still blocks admission. This
+  repairs the delayed-release replacement case without discarding ownership.
+
 ## Outcomes & retrospective
 
 Roadmap 1.1 now has a design brief, four owner-accepted decisions, three
