@@ -138,7 +138,7 @@ the token's generation to match the addressed generation. Cancellation and
 release also require the caller to equal the stored holder. A token from
 another generation or a caller mismatch is refused by T-24, without changing
 leases, phase, owner, or attempt, and appends a refusal record to the validly
-selected entry's history. Thus a stale predecessor token cannot release a
+selected entry's history. Thus, a stale predecessor token cannot release a
 successor's lease even if their `tokenId` values coincide.
 
 Phases: `Acquiring{cancelRequested, joiners}`, `Open{leases}`,
@@ -174,8 +174,9 @@ reservation; it creates no generation. T-22 permits a request for the
 predecessor's own identity while it is live, but refuses an identity held by
 any other live generation. T-21 uses the same exclusion after the predecessor's
 gate opens. Isolation may leave the predecessor live, but its verified boundary
-prevents it affecting the admitted successor. Repeated requests remain refused,
-and repeat acquisition joins or reports the existing generation (T-26 and T-27).
+prevents it from affecting the admitted successor. Repeated requests remain
+refused, and repeat acquisition joins or reports the existing generation (T-26
+and T-27).
 
 Events: `AcquireRequested{identity, caller, admission}`,
 `AcquireSucceeded{generation}`, `AcquireFailed{generation, partial, cause}`,
@@ -230,9 +231,9 @@ Stale or duplicate settlements add no cause.
 
 Every report and history entry snapshots the complete stored cause after that
 transition's append, together with phase and attempt. Recovery can append a
-later cause but cannot change an earlier report's snapshot. Thus a body failure
-and one or several release failures remain observable together even when a
-later release succeeds. Adapter classification and shell delivery of the
+later cause but cannot change an earlier report's snapshot. Thus, a body
+failure and one or several release failures remain observable together even
+when a later release succeeds. Adapter classification and shell delivery of the
 separate body exit are conformance obligations in tasks 1.3.1 to 1.3.3; the
 reducer owns lossless composition and snapshotting.
 
