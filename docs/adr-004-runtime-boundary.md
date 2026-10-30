@@ -29,10 +29,10 @@ The [runtime-boundary audit](evidence/runtime-boundary-audit.md) established:
 - Effect 3.22.2 keeps a sequential and parallel cause tree, but depends at
   runtime on `fast-check` and `@standard-schema/spec` through caret ranges.
 - On both lines, `mapError` drops a simultaneous release defect. A repeated
-  `Scope.close` does not join an in-flight finalizer. `FiberMap` replacement
-  does not await the old finalizer. Interrupting `tryPromise` does not wait for
-  work that ignores its abort signal. Effect 4.0.5's `runPromise` rejects with
-  the bare expected error.
+  call to `Scope.close` does not join an in-flight finalizer. `FiberMap`
+  replacement does not await the old finalizer. Interrupting `tryPromise` does
+  not wait for work that ignores its abort signal. Effect 4.0.5's `runPromise`
+  rejects with the bare expected error.
 - On Effect 4.0.5, provision is lazy: supplying a service runs no environment
   access, and each execution of the provided computation runs afresh (probe P1).
 - The audit did not cover native variant representation or calling

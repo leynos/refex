@@ -1149,6 +1149,19 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   their requesting caller as a joiner so every acquisition request has a
   defined completion path. The transition oracles must check both cases.
 
+- Decision (2026-10-30, lifecycle review follow-up): make attempt joins name
+  their generation; allocate generation identifiers from a bounded registry
+  counter without reuse and refuse exhaustion before consuming admission.
+  Complete acquisition/body and release causes are composed sequentially and
+  snapshotted into reports without erasing simultaneous reasons; release issue
+  payload details remain D8. K-8 now states every ADR 006 proof precondition,
+  including generic payload coverage and the explicit fallback amendment.
+
+- Decision (2026-10-30, incremental review): specify bounded generation
+  allocation, generation-qualified joins, immutable complete-cause snapshots,
+  and refusal-history effects. K-8 now names every fail-closed proof condition.
+  These remain specified obligations for later implementation and verification.
+
 ## Outcomes & retrospective
 
 Roadmap 1.1 now has a design brief, four owner-accepted decisions, three
@@ -1734,20 +1747,31 @@ are hypotheses about the eventual proof structure.
 
 Lifecycle model, owned by ADR 007:
 
-- Configuration: `maxAttempt` (an `int`, at least 1), the adapter's declared
-  `releasePredicate`, and its declared isolation `evidenceKinds`.
-- Registry state: an initially empty `generations` array. Every entry has a
-  producer `identity`, unique `generation`, and the fields below. Released and
-  acquisition-failed entries remain available for later requests. The
-  live-generation index is derived from the entries whose phase is neither
-  `Released` nor `AcquisitionFailed`; it pairs each identity with every live
-  generation holding it, including isolated predecessors. T-21, T-22, and T-25
-  inspect this index rather than trusting a shell-supplied answer.
+- Configuration: `maxAttempt` (an `int`, at least 1), `maxGeneration` (between
+  1 and 2,147,483,647), the adapter's declared `releasePredicate`, and its
+  declared isolation `evidenceKinds`.
+- Registry state: an initially empty `generations` array and
+  `lastAllocatedGeneration = 0`. Every entry has a producer `identity`, unique
+  `generation`, and the fields below. Released and acquisition-failed entries
+  remain available for later requests. The live-generation index is derived
+  from the entries whose phase is neither `Released` nor `AcquisitionFailed`;
+  it pairs each identity with every live generation holding it, including
+  isolated predecessors. T-21, T-22, and T-25 inspect this index rather than
+  trusting a shell-supplied answer. T-25 uses the next counter value only below
+  `maxGeneration`, atomically advancing the counter and adding the entry.
+  Identifiers are never recycled. Exhaustion emits
+  `Refuse{generationSpaceExhausted}` without creating an entry, wrapping,
+  starting acquisition, or consuming an admission; selected-target history
+  rules still apply. The shell routes events only to their originating registry
+  and cannot reset its counter while events may still arrive. Well-formed state
+  requires `0 <= lastAllocatedGeneration <= maxGeneration`, unique entry
+  identifiers in that range, and retention of every allocated entry.
 - Per-generation state:
   - `owner`;
   - `pendingTransfer`, an optional destination;
   - `phase`;
   - `lastStarted` and `lastSettledFailed`, the attempt history fields;
+  - `cause`, initially absent, accumulating complete ADR 006 causes;
   - `history`, an append-only list of reports and valid-target refusals;
   - `isolationVerified`, a boolean;
   - `deferredSuccessors`, `admittedSuccessors`, and `startedSuccessors`, keyed
@@ -1782,8 +1806,8 @@ Lifecycle model, owned by ADR 007:
   disjoint.
 - Events:
   - acquisition: `AcquireRequested{identity, caller, admission}`,
-    `AcquireSucceeded{generation}`, `AcquireFailed{generation, partial}`, and
-    `AcquireCancelRequested{caller}`. T-25 starts initial and successor
+    `AcquireSucceeded{generation}`, `AcquireFailed{generation, partial, cause}`,
+    and `AcquireCancelRequested{caller}`. T-25 starts initial and successor
     acquisitions with the requesting caller as the sole joiner. T-1 or T-4
     reports to it; T-2 or T-3 carries it into the cleanup attempt for that
     attempt's report;
@@ -1791,8 +1815,10 @@ Lifecycle model, owned by ADR 007:
     and `LeaseReleased{lease, caller}`. A lease is a generation-scoped token
     `{generation, tokenId}`. Acquisition binds it to the named caller;
     cancellation and release check the stored holder. All three events refuse
-    a token from another generation without changing the addressed entry;
-  - close, bounds, and settlement: `CloseRequested{caller}`,
+    a token from another generation without changing its leases, phase,
+    owner, or attempt, and append a refusal record to the validly selected
+    entry's history;
+  - close, bounds, and settlement: `CloseRequested{caller, bodyCause}`,
     `WaitBoundElapsed{generation, caller, attempt}`,
     `OwnerBoundElapsed{generation, attempt}`,
     `AttemptSucceeded{generation, attempt, predicate}`, and
@@ -1807,12 +1833,30 @@ Lifecycle model, owned by ADR 007:
   - `JoinAcquisition{caller, generation}`;
   - `Publish{generation}`;
   - `StartAttempt{generation, attempt}`;
-  - `JoinAttempt{caller, attempt}`;
+  - `JoinAttempt{generation, caller, attempt}`;
   - `Report{caller, report}`;
   - `RevokeLease{lease}`;
   - `AdmitSuccessor{identity}`;
   - `DeferSuccessor{identity}`;
   - `Refuse{reason}`.
+
+Complete-cause propagation: T-3 and T-4 append the complete cause supplied by
+`AcquireFailed`. The first owner close in `Open` supplies optional `bodyCause`
+(absent for a plain close); T-9 appends it before cleanup. Other close requests
+must supply no body cause, preventing a joining or repeated close from
+replacing or duplicating the body exit. Consumer failures stay with their
+consumer when a lease-triggered close has no producer-body failure to add.
+
+`AttemptFailed.issue` is the complete release cause classified at the adapter
+boundary: anticipated inability is `Release`, unexpected cleanup exceptions are
+`Defect` with release context, and simultaneous reasons retain their structure.
+The precise release payload remains D8. T-14 appends the release cause after
+the stored cause as `Sequential`, or stores it directly if no prior cause
+exists. T-13 preserves accumulated body and failed-attempt causes even after
+successful release. Stale or duplicate settlements add no cause. Reports and
+history take immutable snapshots after each append, so recovery cannot rewrite
+earlier reports. Tasks 1.3.1 to 1.3.3 check adapter classification and separate
+body-exit delivery; the reducer owns lossless composition and snapshotting.
 
 Invariants. Each must hold in every reachable state, and within the enumeration
 bounds in every well-formed state:
@@ -1856,7 +1900,8 @@ bounds in every well-formed state:
 
   Discarding a diagnostic is not an event.
 - INV-9, history: `history` is append-only and keeps the original
-  obligation.
+  obligation with immutable cause snapshots. Failure appends to the accumulated
+  cause; release success and refused settlements never erase prior reasons.
 - INV-10, lease independence: in `Open`, cancelling or releasing a lease
   removes only that lease.
 - INV-11, leases only while open: lease bindings exist only in `Open`.
@@ -1896,10 +1941,11 @@ that a "refuse everything" reducer would satisfy.
   `Recovering` moves to `UnresolvedPending`, keeping the same attempt.
 - PR-6: `LeaseAcquired` on `Open` with a previously absent,
   generation-matching token binds it to the named caller.
-- PR-7: an authorized close or recovery request (from the owner, or the host
-  acting for it) while an attempt is in flight emits exactly one `JoinAttempt`
-  for the current attempt, and nothing else. An unauthorized request is
-  governed by INV-14 and refused with the state unchanged.
+- PR-7: an authorized close with no body cause, or recovery request (from the
+  owner, or the host acting for it), while an attempt is in flight emits
+  exactly one `JoinAttempt` for the current attempt, and nothing else. An
+  unauthorized request is governed by INV-14 and refused with the state
+  unchanged.
 - PR-8: in `Open`, removing the last lease emits exactly one
   `StartAttempt`.
 - PR-9: `TransferAcknowledged` from the offered destination changes the
@@ -1914,9 +1960,10 @@ that a "refuse everything" reducer would satisfy.
   `Closing` and emits exactly one `StartAttempt` and no `Publish`.
 - PR-13: `WaitBoundElapsed` for a joined caller and the current attempt
   emits exactly one `Report` to that caller and removes it from the joiners.
-- PR-14: T-25 creates a fresh generation, emits one `StartAcquisition`, and
-  records the requesting caller as its initial acquisition joiner. Its join
-  completes through T-1 or T-4, or through the cleanup attempt after T-2 or T-3.
+- PR-14: while allocation space remains, T-25 creates a fresh generation,
+  emits one `StartAcquisition`, and records the requesting caller as its
+  initial acquisition joiner. Its join completes through T-1 or T-4, or through
+  the cleanup attempt after T-2 or T-3.
 - PR-15: T-26 adds each newly joined caller once and emits one
   `JoinAcquisition`; a repeated join emits none.
 
@@ -1951,8 +1998,13 @@ compiled reducer under `bun test`:
   independently of `wellFormed`. Include oracle cases in which unknown or
   identity-mismatched targets emit one `Refuse`, leave the whole registry
   unchanged, and append no history; valid-target refusals append only to the
-  selected entry. Check that T-25's caller receives its completion report after
-  success, non-partial failure, and cancellation or partial-failure cleanup.
+  selected entry. With `maxGeneration = 2`, exhaustion refuses without counter
+  wrap, identifier reuse, acquisition start, or admission consumption.
+  Mixed-cause cases combine body `Expected` with release `Release` and
+  `Defect`, then successfully retry: every reason and earlier report snapshot
+  must survive, while a stale duplicate adds no cause. Check that T-25's caller
+  receives its completion report after success, non-partial failure, and
+  cancellation or partial-failure cleanup.
 - Inductiveness: every INV is also checked over *all* well-formed states
   within the bounds, not only reachable ones.
 - Reachability: every reachable state can reach either `Released`, or an
@@ -2046,23 +2098,23 @@ The columns are:
 - *Later*: the milestone that discharges the claim.
 - *Gate*: any unresolved feasibility gate.
 
-| Contract                                          | Claim                                                                                                                                                                                                       | Premises                   | Boundary                       | Evidence type                                                                                                        | Now              | Later                       | Acceptance                                                      | Limitations                                    | Gate |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- | ---- |
-| K-1 runtime boundary (ADR 004)                    | No backend type, tag, scope, or unchecked conversion in any public `.resi`; exact pins                                                                                                                      | AXIOM-4, AXIOM-6           | Public `.resi`, `package.json` | Review; dependency-name contract; binding-surface smoke test                                                         | VP-4 audit       | 1.3.1                       | Contract and smoke test pass; bundle has no `eval`              | Probes are version-specific                    | None |
-| K-2 trial bounds (ADR 004)                        | Trial touches only the named files and tasks; rollback triggers named                                                                                                                                       | none                       | Repository policy              | Review; package contract                                                                                             | ADR text         | 1.3.1-1.3.5                 | Final D1 at close of 1.3.5                                      | Policy, not semantics                          | None |
-| K-3 visible requirements (ADR 005)                | Function exports accumulate open rows across modules; missing or conflicting fields fail at named sites                                                                                                     | AXIOM-8                    | Separate `.res`/`.resi`        | Compiler fixtures, positive and negative                                                                             | VP-5 R1-R6       | 1.2.2 (E1)                  | Each negative fails with the named diagnostic                   | Type evidence only                             | None |
-| K-4 projection fallback (ADR 005)                 | Projection composes without casts; wrong-field projection fails                                                                                                                                             | AXIOM-8                    | `contramapEnvironment`         | Compiler fixtures                                                                                                    | VP-5 R7-R8       | 1.2.1, 1.2.2                | As K-3                                                          | As K-3                                         | None |
-| K-5 service contract split (ADR 005)              | Construction inputs, invocation requirements, lifetime owner, and snapshot-versus-live are declared per service                                                                                             | none                       | Service interfaces             | Review now; E6 behaviour later                                                                                       | ADR template     | 3.2.1 (E6)                  | Live provider change observed next operation                    | Observation timing tested, not proved          | None |
-| K-6 uninhabited channel (ADR 006)                 | No closed, terminating, cast-free term of `Never.t` outside `Never.res`; `absurd` total and loud                                                                                                            | AXIOM-6                    | `Never.resi`                   | Compiler fixtures; parametricity                                                                                     | VP-5 n1-n5       | 1.2.3                       | Forged values fail loudly                                       | Escapes listed in AXIOM-6                      | None |
-| K-7 recovery family (ADR 006)                     | `catchError`, `match`, `result`, and `Direct.result` never erase mixed causes or invent an error type                                                                                                       | LC-6                       | Recovery `.resi`               | Parametricity sketch; one fixture per combinator                                                                     | VP-5 f2-f4       | 1.2.3                       | Free-`'e2` variants rejected                                    | Model-level argument plus fixtures             | None |
-| K-8 cause mapping (ADR 006)                       | LC-1 to LC-3 over the refex cause tree and LC-4 through `result`                                                                                                                                            | AXIOM-2, AXIOM-3           | Cause module and `result`      | Proof for mapping if FX-1 F10 and F11 pass; otherwise enumeration and property tests; behavioural tests for `result` | FX-1 C1-C2       | 1.2.3, 1.3.1                | Per-obligation outcomes                                         | Pure mapping only                              | FX-1 |
-| K-9 cause structure (ADR 006)                     | Sequential and parallel order kept at refex composition points                                                                                                                                              | AXIOM-4, P7                | Adapter conversion             | Property tests of conversion; E9 mixed failure                                                                       | VP-4 P7          | 1.3.1                       | No reason or order lost                                         | Backend-specific                               | P7   |
-| K-10 promise and native-await boundary (ADR 006)  | `runExit` returns the complete outcome; lossy projection keeps the cause only as untyped provenance or a runner-held handle; foreign rejections become defects; `Direct.result` passes mixed causes through | AXIOM-1, AXIOM-4           | Runtime and Direct scope       | Behavioural tests with real promises                                                                                 | VP-4 P5, P6      | 1.3.1, 1.4.1-1.4.2 (E5, E9) | Mixed-failure scenarios keep all reasons                        | Scheduling outside proof                       | None |
-| K-11 release issue versus defect (ADR 006)        | Anticipated release inability is a release issue; unexpected cleanup exception is a defect with release context; neither drops simultaneous reasons                                                         | AXIOM-5                    | Adapter classification         | Behavioural tests                                                                                                    | ADR text         | 1.3.1, 1.3.3                | E9 failed-retry and mixed-failure rows                          | Adapter-specific                               | None |
-| K-12 lifecycle safety (ADR 007)                   | INV-1 to INV-14 and PR-1 to PR-13                                                                                                                                                                           | AXIOM-1, AXIOM-2, AXIOM-3  | Pure lifecycle reducer         | Gate: bounded enumeration plus mutants; proof of L-1 to L-6 if selected                                              | FX-1 (tool only) | 1.3.3                       | All invariants and progress clauses hold; every mutant rejected | Safety and per-step progress; no liveness      | FX-1 |
-| K-13 joined close and retained recovery (ADR 007) | Concurrent closes join one attempt; a discarded diagnostic leaves a live owner                                                                                                                              | AXIOM-1, AXIOM-5, AXIOM-5b | Shell and registry             | Behavioural tests with readiness; fast-check scheduler; ablations                                                    | None             | 1.3.3-1.3.5 (E3, E9)        | Ablations fail as intended                                      | Only interleavings that the scheduler controls | None |
-| K-14 lease independence (ADR 007)                 | One reader cancels without affecting the other; the last lease triggers one close                                                                                                                           | AXIOM-1                    | Producer shell                 | Given/When/Then tests; model-based property tests                                                                    | None             | 1.3.4, 1.3.5                | E9 two-reader and last-lease rows                               | Real-boundary claims wait for adapters         | None |
-| K-15 host-exit limits (ADR 007)                   | After a bounded close report, the host retains and reports unresolved owners; nothing survives exit                                                                                                         | AXIOM-7                    | Runtime owner                  | Review; behavioural test of the report                                                                               | ADR text         | 1.3.5                       | Report lists every unresolved generation                        | Documentation limit                            | None |
+| Contract                                          | Claim                                                                                                                                                                                                       | Premises                   | Boundary                       | Evidence type                                                                                                                                                                                                                              | Now              | Later                       | Acceptance                                                      | Limitations                                    | Gate |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- | ---- |
+| K-1 runtime boundary (ADR 004)                    | No backend type, tag, scope, or unchecked conversion in any public `.resi`; exact pins                                                                                                                      | AXIOM-4, AXIOM-6           | Public `.resi`, `package.json` | Review; dependency-name contract; binding-surface smoke test                                                                                                                                                                               | VP-4 audit       | 1.3.1                       | Contract and smoke test pass; bundle has no `eval`              | Probes are version-specific                    | None |
+| K-2 trial bounds (ADR 004)                        | Trial touches only the named files and tasks; rollback triggers named                                                                                                                                       | none                       | Repository policy              | Review; package contract                                                                                                                                                                                                                   | ADR text         | 1.3.1-1.3.5                 | Final D1 at close of 1.3.5                                      | Policy, not semantics                          | None |
+| K-3 visible requirements (ADR 005)                | Function exports accumulate open rows across modules; missing or conflicting fields fail at named sites                                                                                                     | AXIOM-8                    | Separate `.res`/`.resi`        | Compiler fixtures, positive and negative                                                                                                                                                                                                   | VP-5 R1-R6       | 1.2.2 (E1)                  | Each negative fails with the named diagnostic                   | Type evidence only                             | None |
+| K-4 projection fallback (ADR 005)                 | Projection composes without casts; wrong-field projection fails                                                                                                                                             | AXIOM-8                    | `contramapEnvironment`         | Compiler fixtures                                                                                                                                                                                                                          | VP-5 R7-R8       | 1.2.1, 1.2.2                | As K-3                                                          | As K-3                                         | None |
+| K-5 service contract split (ADR 005)              | Construction inputs, invocation requirements, lifetime owner, and snapshot-versus-live are declared per service                                                                                             | none                       | Service interfaces             | Review now; E6 behaviour later                                                                                                                                                                                                             | ADR template     | 3.2.1 (E6)                  | Live provider change observed next operation                    | Observation timing tested, not proved          | None |
+| K-6 uninhabited channel (ADR 006)                 | No closed, terminating, cast-free term of `Never.t` outside `Never.res`; `absurd` total and loud                                                                                                            | AXIOM-6                    | `Never.resi`                   | Compiler fixtures; parametricity                                                                                                                                                                                                           | VP-5 n1-n5       | 1.2.3                       | Forged values fail loudly                                       | Escapes listed in AXIOM-6                      | None |
+| K-7 recovery family (ADR 006)                     | `catchError`, `match`, `result`, and `Direct.result` never erase mixed causes or invent an error type                                                                                                       | LC-6                       | Recovery `.resi`               | Parametricity sketch; one fixture per combinator                                                                                                                                                                                           | VP-5 f2-f4       | 1.2.3                       | Free-`'e2` variants rejected                                    | Model-level argument plus fixtures             | None |
+| K-8 cause mapping (ADR 006)                       | LC-1 to LC-3 over the refex cause tree and LC-4 through `result`                                                                                                                                            | AXIOM-2, AXIOM-3           | Cause module and `result`      | Proof for mapping only with recursive typing, deep-shape preservation, and generic 'e payload coverage; missing generic coverage requires an explicit ADR 006 change before enumeration and property tests; behavioural tests for `result` | FX-1 C1-C2       | 1.2.3, 1.3.1                | Per-obligation outcomes                                         | Pure mapping only                              | FX-1 |
+| K-9 cause structure (ADR 006)                     | Sequential and parallel order kept at refex composition points                                                                                                                                              | AXIOM-4, P7                | Adapter conversion             | Property tests of conversion; E9 mixed failure                                                                                                                                                                                             | VP-4 P7          | 1.3.1                       | No reason or order lost                                         | Backend-specific                               | P7   |
+| K-10 promise and native-await boundary (ADR 006)  | `runExit` returns the complete outcome; lossy projection keeps the cause only as untyped provenance or a runner-held handle; foreign rejections become defects; `Direct.result` passes mixed causes through | AXIOM-1, AXIOM-4           | Runtime and Direct scope       | Behavioural tests with real promises                                                                                                                                                                                                       | VP-4 P5, P6      | 1.3.1, 1.4.1-1.4.2 (E5, E9) | Mixed-failure scenarios keep all reasons                        | Scheduling outside proof                       | None |
+| K-11 release issue versus defect (ADR 006)        | Anticipated release inability is a release issue; unexpected cleanup exception is a defect with release context; neither drops simultaneous reasons                                                         | AXIOM-5                    | Adapter classification         | Behavioural tests                                                                                                                                                                                                                          | ADR text         | 1.3.1, 1.3.3                | E9 failed-retry and mixed-failure rows                          | Adapter-specific                               | None |
+| K-12 lifecycle safety (ADR 007)                   | INV-1 to INV-14 and PR-1 to PR-13                                                                                                                                                                           | AXIOM-1, AXIOM-2, AXIOM-3  | Pure lifecycle reducer         | Gate: bounded enumeration plus mutants; proof of L-1 to L-6 if selected                                                                                                                                                                    | FX-1 (tool only) | 1.3.3                       | All invariants and progress clauses hold; every mutant rejected | Safety and per-step progress; no liveness      | FX-1 |
+| K-13 joined close and retained recovery (ADR 007) | Concurrent closes join one attempt; a discarded diagnostic leaves a live owner                                                                                                                              | AXIOM-1, AXIOM-5, AXIOM-5b | Shell and registry             | Behavioural tests with readiness; fast-check scheduler; ablations                                                                                                                                                                          | None             | 1.3.3-1.3.5 (E3, E9)        | Ablations fail as intended                                      | Only interleavings that the scheduler controls | None |
+| K-14 lease independence (ADR 007)                 | One reader cancels without affecting the other; the last lease triggers one close                                                                                                                           | AXIOM-1                    | Producer shell                 | Given/When/Then tests; model-based property tests                                                                                                                                                                                          | None             | 1.3.4, 1.3.5                | E9 two-reader and last-lease rows                               | Real-boundary claims wait for adapters         | None |
+| K-15 host-exit limits (ADR 007)                   | After a bounded close report, the host retains and reports unresolved owners; nothing survives exit                                                                                                         | AXIOM-7                    | Runtime owner                  | Review; behavioural test of the report                                                                                                                                                                                                     | ADR text         | 1.3.5                       | Report lists every unresolved generation                        | Documentation limit                            | None |
 
 ### Test strategy applicability for this step
 
