@@ -1,8 +1,8 @@
 # refex technical design
 
 Status: draft v0.2, proposed for experimental validation. Last substantive
-revision: 12 October 2026. Audience: implementers and reviewers of the library
-and its validators. Companions:
+revision: 12 October 2026; decision links added on 25 October 2026. Audience:
+implementers and reviewers of the library and its validators. Companions:
 [terms of reference](terms-of-reference.md), [context](context.md), [GIST roadmap](roadmap.md),
 and [bootstrap decisions](contents.md).
 
@@ -20,6 +20,10 @@ not compiled interfaces or existing exports. Draft acceptance neither selects a
 runtime dependency nor approves publication. Goals G1-G6 live in the
 [terms of reference](terms-of-reference.md); [context](context.md) owns
 vocabulary and source provenance; [roadmap](roadmap.md) owns delivery tasks.
+
+The [design brief](design-brief.md) summarizes the initial public abstractions,
+deferred capabilities, and the contract or delegate behind each validator
+capability; it is subordinate to this document.
 
 [Relude RIO][rio] motivates Reader around IO and environment projection.
 [Primavera][primavera] motivates structural capability requirements. Neither
@@ -59,6 +63,9 @@ randomness still require the appropriate boundary.
 
 ### 2.2. Bootstrap compatibility
 
+Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional. It
+conditions ADR 002's dependency rule for a bounded trial.
+
 [ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
 ReScript runtime as a production dependency. This revision changes no package,
 dependency, generated source, or public-module allowlist.
@@ -74,6 +81,9 @@ dependency boundary. React and Bun remain planned seams, not empty packages.
 Use the ReScript 12 standard library rather than adding a replacement core.
 
 ### 2.3. Backend selection and execution boundary
+
+Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional, with its
+[runtime-boundary audit](evidence/runtime-boundary-audit.md).
 
 Compare direct Effect FFI with [`@reventlessdev/rescript-effect`][bindings].
 Audit the selected archive, resolved runtime, licence, and actual semantics.
@@ -100,6 +110,9 @@ contracts. If upstream behaviour disagrees, repair the adapter, narrow the
 supported operation, or reject the backend. Do not silently weaken the contract.
 
 ### 2.4. Behaviour before primitives
+
+Decision record: [ADR 007](adr-007-shared-work-lifecycle-contract.md),
+candidate, answers these questions for the two-consumer slice.
 
 Every resource-owning operation answers five questions in its existing design
 or evidence record before selecting a primitive:
@@ -146,6 +159,9 @@ E2 tests IO and Reader chains separately. Cooperative yields remain necessary;
 an unbounded pure loop is not made interruptible by later returning an effect.
 
 ### 3.2. Requirements, construction, and observation timing
+
+Decision record: [ADR 005](adr-005-structural-dependency-environments.md),
+candidate, with its [type-level probes](evidence/type-level-probes.md).
 
 Prefer ordinary service records inside a structural outer environment. Each
 accessor requests its own capability and uses native error variants.
@@ -207,6 +223,10 @@ Validation accumulation collects expected errors, not defects, interruption, or
 failed cleanup. Introduce helpers only as validators need them.
 
 ## 4. Expected failures, defects, interruption, and release failures
+
+Decision record: [ADR 006](adr-006-complete-outcomes.md), candidate. Effect 4's
+flat cause needs no narrowing of §4.1: refex builds sequential and parallel
+structure at its own composition points.
 
 ### 4.1. Complete outcomes
 
@@ -308,6 +328,10 @@ after closure, but cannot revoke arbitrary captured third-party values. No
 unrestricted resource-to-IO conversion may silently discard ownership.
 
 ### 5.2. Joined closure and retained recovery
+
+Decision record: [ADR 007](adr-007-shared-work-lifecycle-contract.md),
+candidate, refines this lifecycle with acquisition, joiners, lease revocation,
+and a successor isolation path, and names its transitions and invariants.
 
 The proposed lifecycle is:
 
@@ -480,6 +504,9 @@ where relevant. Measurements can justify keeping pure hot paths outside
 effects, but not unmanaged background work.
 
 ## 7. Native await as a gated experiment
+
+Decision record: [ADR 006](adr-006-complete-outcomes.md) fixes the error
+boundary of `Direct.result`; the bridge itself stays experimental (D3).
 
 [Native ReScript await requires promises][await]. The typed bridge is a
 proposal, not transparent `await Fx.t` or a source transformation:
@@ -789,8 +816,14 @@ declared platform coverage, not only merged kernels or passing document checks.
 ## 12. Open decisions and adoption
 
 - **D1, backend:** select direct FFI or audited bindings after E1-E3/E9 and
-  explicitly revise dependency policy before installation.
+  explicitly revise dependency policy before installation. *Provisional:*
+  [ADR 004](adr-004-runtime-boundary.md) selects `effect` 4.0.5 behind
+  refex-owned bindings for a bounded trial; final selection at the end of task
+  1.3.5.
 - **D2, requirements:** validate open rows or choose explicit projection.
+  *Decided pending E1:*
+  [ADR 005](adr-005-structural-dependency-environments.md) chooses open rows
+  with function exports and explicit projection as the fallback.
 - **D3, direct style:** accept, restrict, or omit it from E5; later validators
   must remain independent of that outcome.
 - **D4, schemas:** resolve package/API, browser policy, and deployment caveats.
@@ -801,13 +834,19 @@ declared platform coverage, not only merged kernels or passing document checks.
   request caches, a native runtime, or syntax transformation.
 - **D8, complete outcomes:** settle release-issue representation and
   conservative recovery types through compiler fixtures plus E3/E9, before
-  exposing `.resi`.
+  exposing `.resi`. *Partially decided:*
+  [ADR 006](adr-006-complete-outcomes.md) fixes the cause model and recovery
+  types; the release-issue payload stays open.
 - **D9, recovery owner:** choose a core owner or higher-level supervisor seam;
   prove retention after discarded errors, joined close/recovery attempts, and
   explicit host shutdown limits. Do not create a general process manager.
+  *Partially decided:* [ADR 007](adr-007-shared-work-lifecycle-contract.md)
+  chooses a core owner registry and defers the supervisor seam.
 - **D10, admission/publication:** decide which operations need FIFO, re-entry,
   generation exclusion, or atomic publication. Require adapter-level evidence
-  instead of asserting universal guarantees from primitive names.
+  instead of asserting universal guarantees from primitive names. *Partially
+  decided:* [ADR 007](adr-007-shared-work-lifecycle-contract.md) promises no
+  FIFO and publishes only after ownership is registered.
 
 Owners remain unassigned; the repository owner accepts scope and ADRs.
 Experiments may accept, revise, narrow, or reject proposals. No implementation,

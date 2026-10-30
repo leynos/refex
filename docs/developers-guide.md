@@ -91,16 +91,30 @@ repository contract suites. This prevents a green run that never executes the
 ReScript smoke. Contract tests cover package and compiler boundaries, workflow
 permissions and pins, privileged metadata-only operations, `make -j` gate
 order, the Dependabot configuration, the Markdown rule policy and its ignore
-paths, and the Bun coverage exclusion. Controlled bad fixtures must fail the
-same invariant checks that accept the repository; every contract helper has at
-least one paired negative control.
+paths, the Bun coverage exclusion, registration of every authored suite in the
+`test` target, and the ADR index and status vocabulary. Controlled bad fixtures
+must fail the same invariant checks that accept the repository; every contract
+helper has at least one paired negative control.
+
+Bun does not discover `.test.res.mjs` output, so a new suite runs only once the
+`test` target names it. `makefile-contracts` fails when any `tests/*.test.mjs`
+or `tests/*.test.res` suite is missing from that list, so add the path to the
+`Makefile` in the same change as the suite.
 
 The contract tests are split one concern per file — `package-contracts`,
 `dependency-contracts`, `markdown-contracts`, `workflow-contracts`,
-`generated-gate`, and `makefile-contracts` — so each stays within the authored
-file size limit. They share `tests/support/repository-contracts.mjs`, which
-belongs to these suites alone. Add a new contract to the file that owns its
-subject rather than reopening a general-purpose test file.
+`generated-gate`, `makefile-contracts`, and `documentation-contracts` — so each
+stays within the authored file size limit. Assertions are shared through two
+modules that belong to these suites alone:
+`tests/support/package-dependency-contracts.mjs` serves `package-contracts` and
+`dependency-contracts`, and `tests/support/toolchain-workflow-contracts.mjs`
+serves `markdown-contracts`, `workflow-contracts`, and `makefile-contracts`.
+`generated-gate` and `documentation-contracts` use neither. When a support
+module approaches the size limit, split it along the same subject boundary
+rather than growing a general-purpose test file. Helpers that only one suite
+needs stay private to that suite: the suite-registration check in
+`makefile-contracts` and the ADR index check in `documentation-contracts` do.
+Add a new contract to the file that owns its subject.
 
 `scripts/check-generated.mjs` cannot be tested as a helper, because it is a
 script that reads Git state. The suite therefore builds throwaway Git
@@ -283,7 +297,10 @@ weaken the contract to hide it: `workflowContract` still asserts
 
 Platform adapters must have real platform-specific source and tests, own their
 runtime dependencies, and depend inward on core. Core must not depend on them.
-Do not create `refex-bun` or `refex-react` as empty name reservations.
+[ADR 004](adr-004-runtime-boundary.md) authorizes one exception for a bounded
+trial: the portable execution adapter that backs refex's computation types is
+part of core and may depend on its backend. Do not create `refex-bun` or
+`refex-react` as empty name reservations.
 
 Convert to a ReScript 12 monorepo when a second package has real source, tests,
 independent dependency boundaries, and a plausible publication lifecycle. Bun
@@ -295,3 +312,51 @@ No effect model, compatibility promise, release workflow, benchmarks, mutation
 testing, or formal proof infrastructure belongs in the bootstrap. Act remains a
 deferred validation option. Hosted GitHub Actions establish the actual PR check
 results.
+
+## Decisions, evidence, and plans
+
+ADRs live at `docs/adr-NNN-kebab-title.md`, numbered sequentially and never
+renumbered. Each opens with `# ADR NNN: title` and a status line, and product
+ADRs open their decision with a one-sentence Y-statement that names the
+rejected alternatives and the accepted downside. The `documentation-contracts`
+suite requires every ADR to be linked from `docs/contents.md` and to declare
+one of these statuses, matched as the text after `Status:` up to the first `.`
+or `:`:
+
+| Status                   | Meaning                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| `accepted for bootstrap` | A bootstrap decision in force.                                                |
+| `proposed`               | Written and under review; not yet accepted.                                   |
+| `provisional`            | Accepted for a bounded trial only; a qualifier after a colon names the bound. |
+| `candidate`              | An accepted contract awaiting the evidence that would confirm it.             |
+| `accepted`               | In force.                                                                     |
+| `superseded by ADR NNN`  | Replaced; kept for history.                                                   |
+
+Change an accepted ADR's decision only through a new ADR. Record a conditional
+change to an accepted ADR, once the conditioning ADR is accepted, in an
+`## Amendments` section of the amended ADR, never in its status line.
+
+Three status vocabularies coexist and must not be confused:
+
+| ADR status                 | Context evidence label (context §1)           | Design-brief capability status    |
+| -------------------------- | --------------------------------------------- | --------------------------------- |
+| `proposed`                 | Proposed                                      | Proposed                          |
+| `provisional`, `candidate` | Proposed or Unvalidated until evidence exists | Proposed                          |
+| `accepted for bootstrap`   | Established once implemented and inspected    | Implemented when installable      |
+| `accepted`                 | Established once implemented and inspected    | Implemented only when installable |
+| (no ADR)                   | Deferred or Open                              | Deferred, Open, or Delegated      |
+
+Evidence records live in `docs/evidence/`. Each records a claim, pins and
+environment, the exact procedure from an empty directory, observations with
+negative controls, limits, and a decision, as design §10 requires. They are
+source or tool evidence: probes of upstream packages, scratch compiler probes,
+or tool-feasibility experiments. They are never refex conformance results, and
+their probe sources are embedded rather than committed as executable scripts.
+
+Execution plans live in `docs/execplans/`, named after the branch, and are
+living documents maintained throughout their work.
+
+Proof tooling is evaluated by scratch feasibility experiments, recorded as
+evidence, until an approved plan adds a committed gate. The first such gate is
+planned for roadmap task 1.3.3 and is described in
+[ADR 007](adr-007-shared-work-lifecycle-contract.md).

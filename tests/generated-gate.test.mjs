@@ -8,8 +8,8 @@ absent entirely — and asserts the gate's exit status. Without these, a gate th
 always exited `0` would pass the real repository too.
 */
 
-import assert from "node:assert/strict";
 import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

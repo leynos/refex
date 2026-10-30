@@ -16,12 +16,13 @@ reimplementation of leynos/css-view against the pinned oracle. Pure domain work
 remains pure; each slice introduces only the abstractions its behaviour
 requires.
 
-All boxes remain unchecked: specifying a contract, implementing it, exercising
-a consumer, and verifying an interpreter/platform are separate facts. Accepted
-bootstrap ADRs remain authoritative in scope; pending decisions live in
-design.md §12 and become ADRs only through review. This roadmap materializes
-and extends the edited plan, not an earlier conversational draft. References
-below resolve through [the source register](context.md#7-source-register).
+A checked specification task records its completion, not implementation or
+verification. Specifying a contract, implementing it, exercising a consumer,
+and verifying an interpreter/platform are separate facts. Accepted bootstrap
+ADRs remain authoritative in scope; pending decisions live in design.md §12 and
+become ADRs only through review. This roadmap materializes and extends the
+edited plan, not an earlier conversational draft. References below resolve
+through [the source register](context.md#7-source-register).
 
 ## 1. Prove the refex type and lifecycle model across ReScript boundaries
 
@@ -39,50 +40,50 @@ external work honestly before React or a real process adapter depends on it.
 Which promises can the library defend, and what evidence would reject them? The
 answers constrain API and adapter decisions. See design.md §§1-2, 12.
 
-- [ ] 1.1.1. Add a concise refex design brief defining the initial public
+- [x] 1.1.1. Add a concise refex design brief defining the initial public
   abstractions and non-goals.
   - See design.md §§1-3.
-  - [ ] Define Fx, Layer, resources, fibres, schedules, deterministic time, and
+  - [x] Define Fx, Layer, resources, fibres, schedules, deterministic time, and
     React ownership; keep rescript-schema as the codec starting point.
-  - [ ] Keep streams, STM, caches, native scheduling, and transparent await
+  - [x] Keep streams, STM, caches, native scheduling, and transparent await
     deferred.
   - Success: Every validator capability maps to a named contract or delegated
     library, with proposed and implemented status distinct.
 
-- [ ] 1.1.2. Record a provisional ADR for the initial runtime boundary.
+- [x] 1.1.2. Record a provisional ADR for the initial runtime boundary.
   - See design.md §§2.2-2.3.
-  - [ ] Compare direct FFI with audited @reventlessdev/rescript-effect, pin the
+  - [x] Compare direct FFI with audited @reventlessdev/rescript-effect, pin the
     selected package, and explicitly address bootstrap dependency policy.
-  - [ ] Audit provision, mixed-cause mapping, close, replacement, and promise
+  - [x] Audit provision, mixed-cause mapping, close, replacement, and promise
     projection rather than assume names preserve semantics.
   - Success: The ADR authorizes a bounded trial without exposed backend types;
     production adoption remains conditional on E1-E3/E9, avoiding a circular
     requirement to prove an adapter before authorizing its experiment.
 
-- [ ] 1.1.3. Record an ADR for structural dependency environments.
+- [x] 1.1.3. Record an ADR for structural dependency environments.
   - See design.md §3.2.
-  - [ ] Prefer Primavera-style capability objects with explicit projection as a
+  - [x] Prefer Primavera-style capability objects with explicit projection as a
     sound fallback.
-  - [ ] Separate construction inputs, invocation requirements, lifetime owner,
+  - [x] Separate construction inputs, invocation requirements, lifetime owner,
     and snapshot-versus-live observation.
   - Success: The ADR states which separate-module failure rejects automatic
     requirement accumulation.
 
-- [ ] 1.1.4. Record an ADR for expected failures, defects, interruption, and
+- [x] 1.1.4. Record an ADR for expected failures, defects, interruption, and
   release failures.
   - See design.md §4.
-  - [ ] Use ordinary variants and a genuinely uninhabited infallible channel.
-  - [ ] Retain complete causes through mapping, result conversion, native await,
+  - [x] Use ordinary variants and a genuinely uninhabited infallible channel.
+  - [x] Retain complete causes through mapping, result conversion, native await,
     and promise boundaries; do not classify every release failure as a defect.
   - Success: No conversion erases simultaneous lifecycle reasons or casts an
     unrelated error type to satisfy its signature.
 
-- [ ] 1.1.5. Record the behavioural contract for shared work, closure, and
+- [x] 1.1.5. Record the behavioural contract for shared work, closure, and
   recovery.
   - See design.md §§2.4, 5-6.
-  - [ ] Answer trigger, owner, cancellation, handoff, and recovery for the
+  - [x] Answer trigger, owner, cancellation, handoff, and recovery for the
     two-consumer slice.
-  - [ ] Define joined close attempts, release receipts, unresolved generations,
+  - [x] Define joined close attempts, release receipts, unresolved generations,
     and a live recovery owner independent of discarded diagnostics.
   - Success: An ADR candidate names observable transitions and host-exit limits
     without importing platform APIs or a general supervisor framework.

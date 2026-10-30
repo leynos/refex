@@ -6,6 +6,7 @@
 *.tgz
 /.uv-cache/
 /.uv-tools/
+/.vtcode/
 /.typos-oxendict-base.json
 /.typos-oxendict-base.toml
 .DS_Store

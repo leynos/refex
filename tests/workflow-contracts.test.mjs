@@ -8,15 +8,15 @@ controls supply a floating action, a persisted credential, a widened token, an
 unfrozen install, and an unprotected live merge, so a contract that accepts
 every workflow fails its own fixtures.
 
-Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them.
+Shared assertions live in `support/toolchain-workflow-contracts.mjs`; this
+file owns only the values it feeds them.
 */
 
-import assert from "node:assert/strict";
 import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseDocument } from "yaml";
-import { workflowContract } from "./support/repository-contracts.mjs";
+import { workflowContract } from "./support/toolchain-workflow-contracts.mjs";
 
 // Private to this suite: reads the repository's own files, not a generic model.
 const source = (path) => readFileSync(path, "utf8");

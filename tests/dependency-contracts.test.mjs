@@ -7,18 +7,18 @@ that would let a ReScript major arrive as an ordinary grouped update. The
 coverage contract keeps generated test bodies out of coverage and untracked, so
 a weakened exclusion fails rather than silently inflating the report.
 
-Shared assertions live in `support/repository-contracts.mjs`; this file owns
-only the values it feeds them.
+Shared assertions live in `support/package-dependency-contracts.mjs`; this
+file owns only the values it feeds them.
 */
 
-import assert from "node:assert/strict";
 import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseDocument } from "yaml";
 import {
   coverageConfigContract,
   dependabotContract,
-} from "./support/repository-contracts.mjs";
+} from "./support/package-dependency-contracts.mjs";
 
 // Private to this suite: reads the repository's own files, not a generic model.
 const source = (path) => readFileSync(path, "utf8");
