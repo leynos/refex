@@ -204,7 +204,7 @@ something: `partial: true` means resources now need release, so T-3 starts the
 cleanup attempt, while `partial: false` means nothing was acquired, so T-4 is
 terminal. The classification is the adapter's, on the same footing as AXIOM-5b,
 and task 1.3.2 carries it as a conformance obligation. A failure the adapter
-cannot classify is reported as partial, because a spurious cleanup attempt is
+cannot classify is reported as partial because a spurious cleanup attempt is
 cheaper than a leaked resource.
 
 The optional stored `cause` uses ADR 006's complete cause tree. `None` means no

@@ -1162,6 +1162,12 @@ These are hard invariants. Violating one requires escalation, not a workaround.
   and refusal-history effects. K-8 now names every fail-closed proof condition.
   These remain specified obligations for later implementation and verification.
 
+- Decision (2026-10-30, recipe review): exercise the actual `make test`
+  recipe in an isolated subprocess with build and Bun stubs. Compare the
+  received arguments with the authored-suite inventory, including generated
+  ReScript test output. PR-7 also distinguishes refusal-history updates from
+  unchanged operational state.
+
 ## Outcomes & retrospective
 
 Roadmap 1.1 now has a design brief, four owner-accepted decisions, three
@@ -1944,8 +1950,9 @@ that a "refuse everything" reducer would satisfy.
 - PR-7: an authorized close with no body cause, or recovery request (from the
   owner, or the host acting for it), while an attempt is in flight emits
   exactly one `JoinAttempt` for a newly joined caller and none for an already
-  joined caller. An unauthorized request is governed by INV-14 and refused with
-  the state unchanged.
+  joined caller. An unauthorized request against a valid entry is refused with
+  its refusal appended to that entry's history; owner, phase, and attempt
+  remain unchanged. An invalid target leaves the registry unchanged.
 - PR-8: in `Open`, removing the last lease emits exactly one
   `StartAttempt`.
 - PR-9: `TransferAcknowledged` from the offered destination changes the

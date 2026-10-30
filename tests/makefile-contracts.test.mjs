@@ -133,6 +133,52 @@ describe("Makefile contracts", () => {
     testTargetListsEverySuite(source("Makefile"), suites);
   });
 
+  test("make test passes every authored suite to Bun after the build", () => {
+    const directory = mkdtempSync(join(tmpdir(), "refex-test-boundary-"));
+    try {
+      const build = join(directory, "build.sh");
+      const bun = join(directory, "bun.sh");
+      const log = join(directory, "boundary.log");
+      const args = join(directory, "bun.args");
+      // Copy the real Makefile rather than reconstructing a recipe from the
+      // parser under test. Stubs preserve the command boundary without
+      // compiling the project or recursively running this test suite.
+      writeFileSync(join(directory, "Makefile"), source("Makefile"));
+      writeFileSync(
+        build,
+        '#!/bin/bash\nprintf "build\\n" >> "$BOUNDARY_LOG"\n[ "$#" -eq 1 ] && [ "$1" = build ]\n',
+        { mode: 0o755 },
+      );
+      writeFileSync(
+        bun,
+        '#!/bin/bash\nprintf "bun\\n" >> "$BOUNDARY_LOG"\nprintf "%s\\0" "$@" > "$BUN_ARGS"\n',
+        { mode: 0o755 },
+      );
+      const result = Bun.spawnSync(
+        ["make", "test", `MAKE=${build}`, `BUN=${bun}`],
+        {
+          cwd: directory,
+          env: { ...process.env, BOUNDARY_LOG: log, BUN_ARGS: args },
+        },
+      );
+      expect(result.exitCode).toBe(0);
+      expect(readFileSync(log, "utf8").trim().split("\n")).toEqual([
+        "build",
+        "bun",
+      ]);
+      const received = readFileSync(args, "utf8").split("\0").slice(0, -1);
+      expect(received[0]).toBe("test");
+      // The filesystem inventory is independent of Make's recipe and the
+      // recipe parser. The explicit generated path also guards the mapping
+      // from an authored ReScript suite to the JavaScript Bun executes.
+      const expected = authoredSuites();
+      expect(expected).toContain("./tests/Bootstrap.test.res.mjs");
+      expect(received.slice(1).sort()).toEqual(expected);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   test.each([
     [
       "an unlisted suite",
