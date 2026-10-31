@@ -215,12 +215,13 @@ The audit reaches a clean report through dependency replacements, not
 suppression. Every advisory below is a development-only transitive dependency;
 none reaches the portable runtime or the packed consumer.
 
-| Dependency      | Finding                                                                  | Disposition                                                                           |
-| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| KaTeX 0.16.47   | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                               |
-| smol-toml 1.8.0 | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                |
-| js-yaml 5.2.3   | [GHSA-r3ph-w7gj-g6xm](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm) | Pin override to stable 5.4.3 and verify Markdown lint.                                |
-| braces 3.0.3    | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Replace markdownlint-cli2 with markdownlint-cli and verify the identical rule policy. |
+| Dependency       | Finding                                                                  | Disposition                                                                           |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| KaTeX 0.16.47    | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                               |
+| smol-toml 1.8.0  | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                |
+| js-yaml 5.2.3    | [GHSA-r3ph-w7gj-g6xm](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm) | Pin override to stable 5.4.3 and verify Markdown lint.                                |
+| minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) | Pin override to stable 11.0.1 and verify Markdown lint.                               |
+| braces 3.0.3     | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Replace markdownlint-cli2 with markdownlint-cli and verify the identical rule policy. |
 
 `braces` had no patched registry release and the upstream maintainer disputes
 the advisory, so no upstream fix is pending. Every `markdownlint-cli2` release
