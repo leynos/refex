@@ -236,11 +236,12 @@ Do not manufacture an audit pass with a severity cutoff or ignore list. If a
 future advisory has no replacement path, record it here and keep `make audit`
 failing rather than silencing it.
 
-Dependabot groups minor/patch Bun and action updates, applies ecosystem labels,
-uses cooldowns, and caps each ecosystem at five open PRs. Major updates require
-separate review. Grouping is not a proof of compatibility: version-match and
-behavioural gates still apply. Exact tool pins in Make and action inputs need
-deliberate maintenance; Dependabot cannot discover every external-tool pin.
+Dependabot checks the Bun and github-actions ecosystems daily, groups
+minor/patch updates, applies ecosystem labels, uses cooldowns, and caps each
+ecosystem at five open PRs. Major updates require separate review. Grouping is
+not a proof of compatibility: version-match and behavioural gates still apply.
+Exact tool pins in Make and action inputs need deliberate maintenance;
+Dependabot cannot discover every external-tool pin.
 
 The privileged `pull_request_target` caller reads Dependabot metadata only. It
 never checks out or runs PR code. The pinned reusable workflow locates and
