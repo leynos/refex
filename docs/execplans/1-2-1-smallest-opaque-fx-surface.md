@@ -205,6 +205,9 @@ regenerated `typos.toml` are excluded from every count below.
   verification rigour, repository policy and delivery, and alternatives with a
   pre-mortem. Verdict: revise. Findings folded into this revision (see
   `Revision note`).
+- [x] (2026-10-31) Owner accepted the plan's recommendations (D-13): ADR 008
+  as the amendment route, `Bootstrap` retirement, `fast-check` now, and the
+  raised tolerances. The plan itself remains under review.
 - [ ] Owner approval of this plan.
 - [ ] EP-M0: baseline, namespace-visibility evidence, and ADR 008 (proposed).
 - [ ] Owner acceptance of ADR 008.
@@ -342,6 +345,13 @@ regenerated `typos.toml` are excluded from every count below.
   ADR 004's trial bound on private modules). It also records the weak-type
   consequence of ADR 006's invariant `'e` (R-8). The owner's acceptance gates
   EP-M1.
+- D-13 (2026-10-31): the owner accepted the recommendations put forward with
+  this plan: drafting ADR 008 (D-12) as the route for changing ADR 001's
+  decision; retiring `Bootstrap` in EP-M5 (D-8), so its veto branch no longer
+  applies; adding `fast-check` 4.10.2 now (D-6); and the raised tolerances of
+  85 files and 3,800 lines. This acceptance does not approve the plan, which
+  remains under review, and does not accept ADR 008 itself, which does not yet
+  exist. Implementation stays unauthorized until the owner approves the plan.
 
 ## Outcomes & retrospective
 
@@ -1622,3 +1632,8 @@ timeouts, a copy-list contract); moved documentation into each milestone and
 listed every enforcement point for retiring `Bootstrap`; embedded the probe
 script; and raised the tolerances to the inventoried footprint. Remaining work
 is unchanged in scope: owner approval, then EP-M0.
+
+2026-10-31, revision 3: recorded the owner's acceptance of the plan's
+recommendations as D-13 and in `Progress`. No scope, interface, verification,
+or milestone content changed. The plan stays `DRAFT` and under review; EP-M0
+still waits for plan approval, and EP-M1 for acceptance of ADR 008.
