@@ -96,7 +96,7 @@ export function packageContract(metadata, rescript) {
 export function dependabotContract(configuration) {
   // Dependabot grouping is an advisory convenience, not a compatibility proof,
   // so the contract pins the shape an update must keep: bounded open PRs, a
-  // weekly schedule, minor/patch grouping, a cooldown before adoption, and an
+  // daily schedule, minor/patch grouping, a cooldown before adoption, and an
   // explicit ReScript 13 exclusion. A dropped exclusion would let a compiler
   // major arrive as an ordinary grouped update, bypassing the migration
   // decision recorded in ADR 001.
@@ -110,11 +110,7 @@ export function dependabotContract(configuration) {
   for (const update of configuration.updates) {
     const where = update["package-ecosystem"];
     assert.equal(update.directory, "/", `${where}: repository root only`);
-    assert.equal(
-      update.schedule.interval,
-      "weekly",
-      `${where}: weekly cadence`,
-    );
+    assert.equal(update.schedule.interval, "daily", `${where}: daily cadence`);
     assert.ok(
       update["open-pull-requests-limit"] > 0 &&
         update["open-pull-requests-limit"] <= 5,

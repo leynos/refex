@@ -64,6 +64,12 @@ describe("dependency contracts", () => {
       },
     ],
     [
+      "a weekly cadence",
+      (configuration) => {
+        configuration.updates[1].schedule.interval = "weekly";
+      },
+    ],
+    [
       "a lost ecosystem",
       (configuration) => {
         configuration.updates.pop();
