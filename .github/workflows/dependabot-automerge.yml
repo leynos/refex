@@ -42,7 +42,7 @@ jobs:
       statuses: read
       # The callee reads its own immutable workflow identity from OIDC.
       id-token: write
-    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@ff1dd759dfffc0db3459e30e833f52437ee62b57 # reviewed baseline
+    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@872f59f53717b5bebe8e24b2f4a7496b089a939a # reviewed baseline
     with:
       pull-request-number: ${{ github.event.pull_request.number }}
       merge-method: squash
@@ -68,7 +68,7 @@ jobs:
       checks: read
       statuses: read
       id-token: write
-    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@ff1dd759dfffc0db3459e30e833f52437ee62b57 # reviewed baseline
+    uses: leynos/shared-actions/.github/workflows/dependabot-automerge.yml@872f59f53717b5bebe8e24b2f4a7496b089a939a # reviewed baseline
     with:
       pull-request-number: ${{ inputs.pull-request-number }}
       merge-method: squash
