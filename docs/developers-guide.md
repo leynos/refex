@@ -87,15 +87,16 @@ make coverage
 
 The test target compiles first and explicitly selects
 `tests/Bootstrap.test.res.mjs`, `tests/IO.test.res.mjs`,
-`tests/Fx.test.res.mjs`, the authored JavaScript consumer, and the repository
-contract suites. This prevents a green run that never executes the ReScript
-smoke. Contract tests cover package and compiler boundaries, workflow
-permissions and pins, privileged metadata-only operations, `make -j` gate
-order, the Dependabot configuration, the Markdown rule policy and its ignore
-paths, the Bun coverage exclusion, registration of every authored suite in the
-`test` target, and the ADR index and status vocabulary. Controlled bad fixtures
-must fail the same invariant checks that accept the repository; every contract
-helper has at least one paired negative control.
+`tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`, the
+authored JavaScript consumer, and the repository contract suites. This prevents
+a green run that never executes the ReScript smoke. Contract tests cover
+package and compiler boundaries, workflow permissions and pins, privileged
+metadata-only operations, `make -j` gate order, the Dependabot configuration,
+the Markdown rule policy and its ignore paths, the Bun coverage exclusion,
+registration of every authored suite in the `test` target, and the ADR index
+and status vocabulary. Controlled bad fixtures must fail the same invariant
+checks that accept the repository; every contract helper has at least one
+paired negative control.
 
 Bun does not discover `.test.res.mjs` output, so a new suite runs only once the
 `test` target names it. `makefile-contracts` fails when any `tests/*.test.mjs`
@@ -237,7 +238,7 @@ integration detail.
 Production `src/` contains no `external`, cast, or `%raw`. Tests currently have
 one documented exception. `tests/IoEvaluation.res` binds
 `tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
-representation recorded by decision D-2 in the 1.2.1 ExecPlan; road map task
+representation recorded by decision D-2 in the 1.2.1 ExecPlan; roadmap task
 1.3.1 replaces it with the private runtime entry. EP-M4 of task 1.2.1 adds the
 second exception, `tests/FastCheck.res`, which binds the property-test library.
 

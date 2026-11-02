@@ -280,8 +280,15 @@ regenerated `typos.toml` are excluded from every count below.
     line. ADR 008 claimed the archive already contained only the semantic
     modules; it now states that `Bootstrap` remains until EP-M5. The
     wrong-reason control now requires a syntax diagnostic for `Case.res` line
-    2 before checking that the type-error matcher rejects it. Re-review
-    pending.
+    2 before checking that the type-error matcher rejects it.
+  - [x] Review round 19: three findings, two distinct defects, both valid. The
+    developer guide split "roadmap" into "road map", unlike every other
+    document. `tests/Fx.test.res` had reached 393 lines, past the plan's
+    350-line split tolerance; its construction, sequencing, and error cases
+    are now `tests/FxSequencing.test.res`, and its environment, projection,
+    and live-observation cases are `tests/FxEnvironment.test.res`. Both are
+    registered in `test` and `coverage`, and the layout, guide, and plan name
+    them. Re-review pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
@@ -629,14 +636,16 @@ Trace chains:
 G1, A2 -> design §3.2, ADR 005 (open rows, function exports) -> 1.2.1
   -> EP-M2, EP-M3 -> base fixture fx-surface, fx-value-export -> K-5
 G1 -> design §3.2, ADR 005 (contramapEnvironment) -> 1.2.1
-  -> EP-M2, EP-M3, EP-M4 -> Fx.test.res projection cases, base Projection
+  -> EP-M2, EP-M3, EP-M4 -> FxEnvironment.test.res projection cases,
+     base Projection
      module, FxLaws projection laws -> K-6, K-9
 G2, G4 -> design §§3.3, 4.1, ADR 006 (ordinary variants, invariant 'e)
   -> 1.2.1 -> EP-M1, EP-M3 -> base AppError injection, fx-error-widening
      and its control -> K-7
 G4 -> design §3.1 (laziness, fresh execution), §3.2 (live observation)
   -> 1.2.1 success criterion -> EP-M1, EP-M2, EP-M4 -> IO.test.res,
-     Fx.test.res deferral cases, inertness property -> K-1, K-2, K-3, K-12
+     FxSequencing.test.res deferral cases, inertness property
+     -> K-1, K-2, K-3, K-12
 G1 -> ADR 004 (no exposed backend), design §2.3 -> 1.2.1 success criterion
   -> EP-M0, EP-M1, EP-M3 -> ADR 008, export-set and module contracts,
      opacity fixtures, escape scan -> K-4, K-8
@@ -734,11 +743,12 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
 - OB-1, inertness. Building any description, and applying it to an
   environment (which `provide` does), invokes no user callback. Boundary:
   `IO.resi`, `Fx.resi`, `Fx.provide`. Method: per-operation named examples in
-  `tests/IO.test.res` and `tests/Fx.test.res` that assert an empty trace after
-  construction and after `provide`, then a non-empty trace after evaluation;
-  and an inertness property over generated descriptions in
-  `tests/FxLaws.test.res`. Non-vacuity: the post-evaluation assertion is the
-  witness; ablations A-2 and A-5 must fail it.
+  `tests/IO.test.res`, `tests/FxSequencing.test.res`, and
+  `tests/FxEnvironment.test.res` that assert an empty trace after construction
+  and after `provide`, then a non-empty trace after evaluation; and an
+  inertness property over generated descriptions in `tests/FxLaws.test.res`.
+  Non-vacuity: the post-evaluation assertion is the witness; ablations A-2 and
+  A-5 must fail it.
 - OB-2, fresh execution. Evaluating the same `IO.t` twice invokes each
   callback twice and yields equal outcomes; nothing is memoized, including
   across a success followed by a failure. Method: named examples, including one
@@ -980,9 +990,10 @@ and `IO.mapError` cannot call its mapper on success.
 ### Test strategy applicability
 
 - Unit and behavioural tests: applicable. `tests/IO.test.res` and
-  `tests/Fx.test.res` use `describe` and `test` from `RescriptBun.Test`, opened
-  locally, with Given/When/Then test names. No Gherkin requirement exists, so
-  no second runner is added.
+  `tests/FxSequencing.test.res` and `tests/FxEnvironment.test.res` use
+  `describe` and `test` from `RescriptBun.Test`, opened locally, with
+  Given/When/Then test names. No Gherkin requirement exists, so no second
+  runner is added.
 - Snapshot tests: not applicable. No stable diagnostic, trace format, or
   serialization is part of this task's contract. Compiler diagnostics are
   matched by fragment, file, and line, not snapshotted.
@@ -1150,7 +1161,8 @@ commits separate (AGENTS.md).
   observation, and semantics.
 - Requirements: C-6, C-13; OB-1 to OB-5 for Fx; D-4, D-5.
 - Red:
-  1. Create `tests/Fx.test.res` with Given/When/Then cases for every
+  1. Create `tests/FxSequencing.test.res` and `tests/FxEnvironment.test.res`
+     with Given/When/Then cases for every
      operation in the roadmap list: `succeed`, `fail`, `suspend`, `map`,
      `flatMap`, `tap` (keeps the original value; runs once and in order; a
      failing tap fails the description), `mapError`, `access` (once per
@@ -1160,7 +1172,8 @@ commits separate (AGENTS.md).
      trace after construction (empty), after `provide` (empty), and after
      evaluation (exact). Add the OB-5 live-observation cases, using an
      environment record with one `mutable` field.
-  2. Add `./tests/Fx.test.res.mjs` to the `test` and `coverage` recipes.
+  2. Add `./tests/FxSequencing.test.res.mjs` and
+     `./tests/FxEnvironment.test.res.mjs` to the `test` and `coverage` recipes.
   3. Run `make test`; it must fail with "The module or file Fx can't be
      found."
 - Green:
@@ -1380,8 +1393,10 @@ commits separate (AGENTS.md).
      and `exports`, `packageContract`, the interface-contract table, the
      `test` and `coverage` recipes, and the package-check allowlist.
   3. Update `tests/makefile-contracts.test.mjs:175` to name
-     `./tests/Fx.test.res.mjs`; `tests/package-contracts.test.mjs:51` to
-     `package/src/Fx.res.mjs`; the negative-control string at
+     `./tests/FxSequencing.test.res.mjs` and
+     `./tests/FxEnvironment.test.res.mjs`; the entry in
+     `tests/package-contracts.test.mjs:51` to `package/src/Fx.res.mjs`; the
+     negative-control string at
      `tests/package-contracts.test.mjs:126` to a non-Bootstrap suite path;
      and `tests/consumer.test.mjs` to import `refex/src/Fx.res.mjs` and
      `refex/src/IO.res.mjs`.
@@ -1443,7 +1458,7 @@ Focused runs during red and green stages, after `make build`:
 
 ```bash
 bun test ./tests/IO.test.res.mjs
-bun test ./tests/Fx.test.res.mjs
+bun test ./tests/FxSequencing.test.res.mjs ./tests/FxEnvironment.test.res.mjs
 bun test ./tests/IoLaws.test.res.mjs ./tests/FxLaws.test.res.mjs
 bun test ./tests/compiler-fixture-matching.test.mjs ./tests/compiler-fixtures.test.mjs
 bun test ./tests/interface-contracts.test.mjs
@@ -1482,7 +1497,8 @@ The task is accepted when all of the following hold:
 
 1. `make all` passes on the final commit; `make coverage` and `make audit`
    pass separately.
-2. `make test` executes `tests/IO.test.res.mjs`, `tests/Fx.test.res.mjs`,
+2. `make test` executes `tests/IO.test.res.mjs`,
+   `tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`,
    `tests/IoLaws.test.res.mjs`, `tests/FxLaws.test.res.mjs`,
    `tests/interface-contracts.test.mjs`,
    `tests/compiler-fixture-matching.test.mjs`, and
