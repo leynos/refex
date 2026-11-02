@@ -320,8 +320,11 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Documentation updated: `docs/context.md` C18, the developers' guide's
     test registration and law-suite section, and the repository-layout rows.
     `AGENTS.md` now records both test-only foreign function interfaces.
-  - [ ] Commit 2, "Check the IO and Fx laws and model agreement on generated
-    descriptions": gate and review pending.
+  - [x] Commit 2, "Check the IO and Fx laws and model agreement on generated
+    descriptions": `make all` passed at `4816f77` with 195 tests in 18 files,
+    and `make coverage` passed with 71 tests and 100 per cent function and
+    line coverage of the three production modules. `make audit` initially
+    failed on `minimatch@10.2.6`, repaired under D-16. Review pending.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
@@ -521,6 +524,15 @@ regenerated `typos.toml` are excluded from every count below.
   reached 497 lines against the 350-line split tolerance.
   `tests/LawHarness.res` gains `traced` so both suites record callback order
   through one helper.
+- D-16 (2026-11-02): EP-M4's gate run made `make audit` red on
+  `minimatch@10.2.6` (GHSA-g3hv-75wg-m249), reached through
+  `markdownlint-cli@0.49.1`. Both the current and the newer `0.50.0` pin
+  `~10.2.6`, so upgrading the CLI does not clear the advisory. The existing
+  `overrides` block pins `minimatch` to `11.0.4`, following the same
+  remediation already used for `smol-toml`; `make markdownlint` passes against
+  the overridden major. `make audit` is a required EP-M6 acceptance gate, so
+  the repair lands before the milestone review rather than as an accepted
+  advisory.
 
 ## Outcomes & retrospective
 
