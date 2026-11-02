@@ -218,8 +218,25 @@ for f in "$REPO"/node_modules/* "$REPO"/node_modules/.bin "$REPO"/node_modules/@
   ln -sfn "$f" $con/node_modules/
 done
 build() {
-  (cd "$1" && bun run --bun rescript build 2>&1 \
-    | grep -E "error|Error|bug|can't|cannot|not a|subtype|variances|expected|Compiled" | head -6)
+  local output status
+  output=$(cd "$1" && bun run --bun rescript build 2>&1)
+  status=$?
+  printf '%s\n' "$output" \
+    | grep -E "error|Error|bug|can't|cannot|not a|subtype|variances|expected|Compiled" \
+    | head -6
+  return $status
+}
+expect_build() {
+  local expected=$1 status=0
+  build "$2" || status=$?
+  if [[ $expected == ok && $status -ne 0 ]]; then
+    echo "probe build failed unexpectedly: $2" >&2
+    exit 1
+  fi
+  if [[ $expected == fail && $status -eq 0 ]]; then
+    echo "probe build succeeded unexpectedly: $2" >&2
+    exit 1
+  fi
 }
 SPECS='"package-specs":{"module":"esmodule","in-source":true},"suffix":".res.mjs"'
 WARN='"warnings":{"number":"+A","error":"+A"}'
@@ -243,19 +260,19 @@ printf 'let evaluate: IO.t<int, string> => int\n' > $lib/src/Kernel.resi
 printf 'let evaluate = (_: IO.t<int, string>) => 42\n' > $lib/src/Kernel.res
 echo 'let io: Refex.IO.t<int, string> = Refex.IO.succeed(1)' > $con/src/Main.res
 echo "== ns1/ns2: Kernel absent from public, consumer calls Refex.Kernel"
-libcfg "" '["IO"]'; build $lib; install
-echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; build $con
+libcfg "" '["IO"]'; expect_build ok $lib; install
+echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build ok $con
 (cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("ran:", leaked)' > run.mjs && bun run.mjs)
 echo "== ns6: bare IO (listed in public) from consumer"
-echo 'let x: IO.t<int, string> = Main.io' > $con/src/Escape.res; build $con
+echo 'let x: IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build fail $con
 echo "== ns7: nonsense public value accepted"
-libcfg "" '"bogus-value-should-be-rejected"'; build $lib
+libcfg "" '"bogus-value-should-be-rejected"'; expect_build ok $lib
 echo "== ns8: namespace-entry hides Kernel"
 libcfg '"namespace-entry":"Refex",' '["IO"]'
 printf 'module IO = IO\n' > $lib/src/Refex.res; printf 'module IO = IO\n' > $lib/src/Refex.resi
-build $lib; install
-echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; build $con
-echo 'let ok: Refex.IO.t<int, string> = Main.io' > $con/src/Escape.res; build $con
+expect_build ok $lib; install
+echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build fail $con
+echo 'let ok: Refex.IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build ok $con
 rm -rf "$P"
 ```
 
