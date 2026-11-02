@@ -36,6 +36,48 @@ const expectedSurface = {
       "let mapError: (t<'a, 'e1>, 'e1 => 'e2) => t<'a, 'e2>",
     ],
   ],
+  "src/Fx.resi": [
+    ["t", "type", "type t<+'a, 'e, -'r>"],
+    ["succeed", "value", "let succeed: 'a => t<'a, 'e, 'r>"],
+    ["fail", "value", "let fail: 'e => t<'a, 'e, 'r>"],
+    [
+      "suspend",
+      "value",
+      "let suspend: (unit => t<'a, 'e, 'r>) => t<'a, 'e, 'r>",
+    ],
+    ["map", "value", "let map: (t<'a, 'e, 'r>, 'a => 'b) => t<'b, 'e, 'r>"],
+    [
+      "flatMap",
+      "value",
+      "let flatMap: (t<'a, 'e, 'r>, 'a => t<'b, 'e, 'r>) => t<'b, 'e, 'r>",
+    ],
+    [
+      "tap",
+      "value",
+      "let tap: (t<'a, 'e, 'r>, 'a => t<'b, 'e, 'r>) => t<'a, 'e, 'r>",
+    ],
+    [
+      "mapError",
+      "value",
+      "let mapError: (t<'a, 'e1, 'r>, 'e1 => 'e2) => t<'a, 'e2, 'r>",
+    ],
+    ["access", "value", "let access: ('r => 'a) => t<'a, 'e, 'r>"],
+    [
+      "accessEffect",
+      "value",
+      "let accessEffect: ('r => t<'a, 'e, 'r>) => t<'a, 'e, 'r>",
+    ],
+    [
+      "provide",
+      "value",
+      "let provide: (t<'a, 'e, 'r>, 'r) => Refex.IO.t<'a, 'e>",
+    ],
+    [
+      "contramapEnvironment",
+      "value",
+      "let contramapEnvironment: (t<'a, 'e, 'small>, 'large => 'small) => t<'a, 'e, 'large>",
+    ],
+  ],
 };
 
 // Compares the exported name, kind, and signature of every item. Throws

@@ -43,7 +43,7 @@ export function packageContract(metadata, rescript) {
   assert.ok(!rescript.dependencies.includes("rescript-bun"));
   assert.deepEqual(
     rescript.sources.find((entry) => entry.dir === "src").public,
-    ["Bootstrap", "IO"],
+    ["Bootstrap", "IO", "Fx"],
   );
   assert.equal(
     rescript.sources.find((entry) => entry.dir === "tests").type,
@@ -70,6 +70,7 @@ export function packageContract(metadata, rescript) {
   assert.deepEqual(Object.keys(metadata.exports).sort(), [
     "./package.json",
     "./src/Bootstrap.res.mjs",
+    "./src/Fx.res.mjs",
     "./src/IO.res.mjs",
   ]);
   assert.equal(
@@ -77,6 +78,7 @@ export function packageContract(metadata, rescript) {
     "./src/Bootstrap.res.mjs",
   );
   assert.equal(metadata.exports["./src/IO.res.mjs"], "./src/IO.res.mjs");
+  assert.equal(metadata.exports["./src/Fx.res.mjs"], "./src/Fx.res.mjs");
   assert.deepEqual(
     [...metadata.files].sort(),
     [
@@ -89,6 +91,9 @@ export function packageContract(metadata, rescript) {
       "src/IO.res",
       "src/IO.res.mjs",
       "src/IO.resi",
+      "src/Fx.res",
+      "src/Fx.res.mjs",
+      "src/Fx.resi",
     ].sort(),
   );
 }

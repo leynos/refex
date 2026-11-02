@@ -52,6 +52,9 @@ try {
     "package/src/IO.res",
     "package/src/IO.resi",
     "package/src/IO.res.mjs",
+    "package/src/Fx.res",
+    "package/src/Fx.resi",
+    "package/src/Fx.res.mjs",
   ].sort();
   const contents = run(["tar", "-tzf", archive]).trim().split("\n").sort();
   assert.deepEqual(

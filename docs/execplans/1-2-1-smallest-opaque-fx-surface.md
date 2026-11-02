@@ -229,7 +229,12 @@ regenerated `typos.toml` are excluded from every count below.
   probe script installed only a copied package while the prose claimed a
   symbolic-link case too. The script now builds `ns1` over a symlink and `ns2`
   over a copy, and the observations record both runs.
-- [ ] EP-M2: `Fx` test-first.
+- [x] (2026-11-02) EP-M1 review round 7: `make all` green and the CodeRabbit
+  CLI reported 0 findings over all 28 changed files at `d3a5dd3`; EP-M1 is
+  complete.
+- [x] (2026-11-02) EP-M2: `Fx` test-first, with every roadmap operation
+  except `accessIO` (D-5); red output, ablations, and pass counts recorded
+  below.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
@@ -1617,6 +1622,29 @@ and `scrutineer` log paths are appended here during implementation.
   made the fresh-execution case return the cached success; two failures.
 - A-13: adding `IO.unsafeRun` made the interface contract report the extra
   signature; one failure.
+- EP-M2 red, 2026-11-02: `make test` failed with "The module or file Fx
+  can't be found." at `tests/Fx.test.res:22`
+  (`/tmp/test-red-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- EP-M2 green, 2026-11-02: `tests/Fx.test.res.mjs` passes 21 cases; the full
+  suite passes 115 tests in 12 files with 176 `expect()` calls
+  (`/tmp/test-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- A-2: reading the environment outside `IO.suspend` in `Fx.access` made the
+  built-and-provided and once-per-evaluation cases fail; two failures
+  (`/tmp/ablation-a2-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- A-3b: evaluating `first` twice in `Fx.flatMap` made the ordering,
+  fresh-execution, and live-observation cases fail; three failures
+  (`/tmp/ablation-a3b-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- A-5: applying the projection outside `IO.suspend` in
+  `Fx.contramapEnvironment` made the built-and-provided and once-per-evaluation
+  cases fail; two failures
+  (`/tmp/ablation-a5-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- A-7: ignoring the work argument in `Fx.tap` made the work-ordering, failing
+  tap, and live-observation cases fail; three failures
+  (`/tmp/ablation-a7-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- A-9: declaring `+'r` in `Fx.resi` made `rescript build` fail with "Their
+  variances do not agree."
+  (`/tmp/ablation-a9-refex-1-2-1-smallest-opaque-fx-surface.out`); restored
+  sources are checksum-identical to the pre-ablation copies.
 - EP-M0, 2026-11-02: baseline `make all` green through `scrutineer`,
   `MAKE_ALL_EXIT=0`, 78 passing tests in 9 files, package-check verifying 7
   files and both isolated consumers

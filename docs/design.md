@@ -183,6 +183,11 @@ contramapEnvironment: (Fx<A,E,Small>, Large -> Small) -> Fx<A,E,Large>
 `accessEffect` suspends its callback and executes its result in the same
 environment, without a runner. `accessIO` serves bound-service methods.
 
+Task 1.2.1 implements every operation listed above except `accessIO`, over the
+thunk reference representation of §3.1. `accessIO` arrives with the first task
+that has bound service methods (decision D-5 of the 1.2.1 plan). Section 3.1's
+runtime, interruption, and stack-safety claims remain task 1.3.1's.
+
 A common `R` accumulates requirements only if open types survive exported
 interfaces. E1 covers independent services, extra fields, and conflicts. Use
 explicit projections and named environments if inference fails. Never erase

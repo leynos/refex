@@ -24,6 +24,9 @@
     "src/Bootstrap.res",
     "src/Bootstrap.resi",
     "src/Bootstrap.res.mjs",
+    "src/Fx.res",
+    "src/Fx.resi",
+    "src/Fx.res.mjs",
     "src/IO.res",
     "src/IO.resi",
     "src/IO.res.mjs"
@@ -31,6 +34,7 @@
   "exports": {
     "./src/Bootstrap.res.mjs": "./src/Bootstrap.res.mjs",
     "./src/IO.res.mjs": "./src/IO.res.mjs",
+    "./src/Fx.res.mjs": "./src/Fx.res.mjs",
     "./package.json": "./package.json"
   },
   "dependencies": {
