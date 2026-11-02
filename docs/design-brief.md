@@ -3,8 +3,8 @@
 Status: draft brief for roadmap task 1.1.1. Date: 17 October 2026. Authority:
 subordinate to the [technical design](design.md) and accepted ADRs. This brief
 defines and maps; it introduces no mechanism the design does not already state.
-Nothing it describes is installable: the only implemented module is the
-disposable `Bootstrap` probe described in the [user guide](users-guide.md).
+Only the opaque `IO` and `Fx` descriptions in the [user guide](users-guide.md)
+are implemented; every abstraction below remains proposed.
 
 ## Purpose and non-goals
 

@@ -32,7 +32,6 @@
   (`tests/package-contracts.test.mjs`, `tests/interface-contracts.test.mjs`)
   satisfied; see ADR 008.
 - Use the ReScript 12 standard library. Do not add `@rescript/core`.
-- Treat `Bootstrap` as disposable tooling evidence, not a product API.
 - Change and format ReScript source, then rebuild and commit production
   `.res.mjs` output. Never hand-edit or reformat compiler output. Keep
   generated test JavaScript untracked.

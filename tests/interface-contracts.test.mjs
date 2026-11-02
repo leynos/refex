@@ -17,9 +17,6 @@ import { readdirSync } from "node:fs";
 
 // One entry per interface, in declaration order.
 const expectedSurface = {
-  "src/Bootstrap.resi": [
-    ["identity", "value", "let identity: string => string"],
-  ],
   "src/IO.resi": [
     ["t", "type", "type t<+'a, 'e>"],
     ["succeed", "value", "let succeed: 'a => t<'a, 'e>"],

@@ -7,9 +7,9 @@ resources without exposing a backend runtime's API to application code. React
 is the primary application target; the core remains portable ReScript.
 
 **Status: development bootstrap only.** The private `0.0.0` package exports an
-early opaque `IO` and `Fx` API with no runner, plus one disposable toolchain
-probe. Nothing here is a stable library. The [technical design](docs/design.md)
-describes proposals to validate, not features that can already be imported.
+early opaque `IO` and `Fx` API with no runner. Nothing here is a stable
+library. The [technical design](docs/design.md) describes proposals to
+validate, not features that can already be imported.
 
 ______________________________________________________________________
 
@@ -44,25 +44,26 @@ make build
 
 ### Basic usage
 
-Run the existing compiled bootstrap probe from the repository root:
+Build a description from the repository root and evaluate the thunk directly:
 
 ```bash
-bun -e 'import { identity } from "./src/Bootstrap.res.mjs"; console.log(identity("Hello, refex."))'
+bun -e 'import { succeed } from "./src/IO.res.mjs"; console.log(succeed("Hello, refex.")()._0)'
 ```
 
-It prints `Hello, refex.`. This verifies the current import path; it does not
-exercise effects, dependencies, fibres, or cleanup. `Bootstrap.identity` will
-be removed or replaced when real library code exists.
+It prints `Hello, refex.`. This verifies the import path and the deferred
+representation; calling the generated thunk stands in for the runtime that
+roadmap task 1.3.1 adds. It does not exercise effects, dependencies, fibres, or
+cleanup.
 
-For package consumers, the concrete export is `refex/src/Bootstrap.res.mjs`,
-not bare `refex`. The [user guide](docs/users-guide.md) explains local
-consumption and current limits.
+For package consumers, the concrete exports are `refex/src/IO.res.mjs` and
+`refex/src/Fx.res.mjs`, not bare `refex`. The [user guide](docs/users-guide.md)
+explains local consumption and current limits.
 
 ______________________________________________________________________
 
 ## Features
 
-Available today: a pinned ReScript 12.3.1 bootstrap, explicit interfaces, opaque
+Available today: a pinned ReScript 12.3.1 toolchain, explicit interfaces, opaque
 `IO` and `Fx` descriptions with no runner, committed generated production
 JavaScript, a consumer smoke test, and sequential Make gates. Bun runs
 development tools and tests; it is not a core dependency. Core source must not

@@ -69,10 +69,10 @@ conditions ADR 002's dependency rule for a bounded trial.
 [ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
 ReScript runtime as a production dependency.
 [ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) amends the
-bootstrap baseline: the opaque `IO` and `Fx` modules join `Bootstrap` as public
-modules and archive contents, `public` is a declaration checked by contracts
-rather than a visibility boundary, and EP-M5 retires the probe. Roadmap task
-1.2.1 implements that surface and the retirement.
+bootstrap baseline: the opaque `IO` and `Fx` modules are the public modules and
+archive contents, `public` is a declaration checked by contracts rather than a
+visibility boundary, and the disposable probe has been retired. Roadmap task
+1.2.1 implemented that surface and the retirement.
 
 The preferred experiment uses a private Effect execution adapter. Before
 adoption, an ADR must address the bootstrap dependency restriction, adapter

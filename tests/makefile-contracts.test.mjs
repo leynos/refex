@@ -196,7 +196,8 @@ describe("Makefile contracts", () => {
       // recipe parser. The explicit generated path also guards the mapping
       // from an authored ReScript suite to the JavaScript Bun executes.
       const expected = authoredSuites();
-      expect(expected).toContain("./tests/Bootstrap.test.res.mjs");
+      expect(expected).toContain("./tests/FxSequencing.test.res.mjs");
+      expect(expected).toContain("./tests/FxEnvironment.test.res.mjs");
       expect(received.slice(1).sort()).toEqual(expected);
     } finally {
       rmSync(directory, { recursive: true, force: true });

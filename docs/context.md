@@ -1,20 +1,22 @@
 # refex context
 
-Status: draft v0.2 vocabulary and provenance record. Last substantive revision:
-12 October 2026. Audience: contributors, reviewers, and agents working on
+Status: draft v0.3 vocabulary and provenance record. Last substantive revision:
+2 November 2026. Audience: contributors, reviewers, and agents working on
 refex. Companions:
 [terms of reference](terms-of-reference.md), [technical design](design.md), [roadmap](roadmap.md),
 and [contents](contents.md).
 
 ## 1. Status and document authority
 
-The inspected implementation baseline is
-`aa3c0f71816b84da95765616589f38a075b2f26c`. It contains a private `0.0.0`
-package and disposable `Bootstrap.identity`, not an effects API. Draft PR #7 at
-`569f1b0f1d3d93983df71dd0f00951dbd4e8230a` adds product documents but no
-semantic implementation. [Package metadata](../package.json), the
-[source interface](../src/Bootstrap.resi), and [user guide](users-guide.md)
-describe the implemented state.
+The implementation baseline is roadmap task 1.2.1 on the
+`1-2-1-smallest-opaque-fx-surface` branch. It contains a private `0.0.0`
+package with opaque `IO` and `Fx` descriptions and no runner; the disposable
+bootstrap probe has been retired. [Package metadata](../package.json), the
+[`Fx` interface](../src/Fx.resi), and the [user guide](users-guide.md) describe
+the implemented state. Earlier inspected baselines, including
+`aa3c0f71816b84da95765616589f38a075b2f26c` and draft PR #7 at
+`569f1b0f1d3d93983df71dd0f00951dbd4e8230a`, remain provenance for the bootstrap
+record rather than descriptions of the current surface.
 
 Use these evidence labels:
 

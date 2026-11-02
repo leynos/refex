@@ -37,8 +37,9 @@ evidence, not refex conformance results.
   contract for shared work, joined closure, unresolved generations, retained
   recovery, and host-exit limits.
 - [ADR 008](adr-008-first-semantic-modules-and-module-visibility.md): accepted
-  decision that `IO` and `Fx` replace `Bootstrap` as the public modules, and
-  that `public` is a declaration enforced by module and export-set contracts.
+  decision that `IO` and `Fx` are the package's public modules, replacing the
+  retired bootstrap probe, and that `public` is a declaration enforced by
+  module and export-set contracts.
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
   probes and the static binding audit behind ADR 004; source evidence only.
 - [Verification feasibility](evidence/verification-feasibility.md): the FX-1

@@ -53,7 +53,7 @@ describe("package and compiler contracts", () => {
       expect(inspected.exitCode).toBe(0);
       const files = inspected.stdout.toString().trim().split("\n");
       expect(files).toContain("package/LICENSE");
-      expect(files).toContain("package/src/Bootstrap.res.mjs");
+      expect(files).toContain("package/src/Fx.res.mjs");
       expect(files.some((path) => path.startsWith("package/tests/"))).toBe(
         false,
       );
@@ -143,7 +143,7 @@ describe("package and compiler contracts", () => {
     [
       "test output in package",
       (metadata) => {
-        metadata.files.push("tests/Bootstrap.test.res.mjs");
+        metadata.files.push("tests/FxSequencing.test.res.mjs");
       },
     ],
     [

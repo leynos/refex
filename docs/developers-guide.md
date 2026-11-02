@@ -73,10 +73,10 @@ existing equivalent and document ownership before extracting a new helper.
 
 ReScript 12.3.1 does not copy doc comments from `.res`/`.resi` source into
 generated JavaScript. Neither a leading `/** ... */` module comment nor a
-`@doc` attribute survives the build, so `src/Bootstrap.res.mjs` carries no
-docstrings by design. Document the ReScript source and its interface; do not
-hand-edit the output to add comments, and do not read the absence of docstrings
-there as missing documentation.
+`@doc` attribute survives the build, so the generated `src/*.res.mjs` files
+carry no docstrings by design. Document the ReScript source and its interface;
+do not hand-edit the output to add comments, and do not read the absence of
+docstrings there as missing documentation.
 
 ## Tests and coverage
 
@@ -85,8 +85,7 @@ make test
 make coverage
 ```
 
-The test target compiles first and explicitly selects
-`tests/Bootstrap.test.res.mjs`, `tests/IO.test.res.mjs`,
+The test target compiles first and explicitly selects `tests/IO.test.res.mjs`,
 `tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`,
 `tests/IoLaws.test.res.mjs`, `tests/FxLaws.test.res.mjs`,
 `tests/FxEnvironmentLaws.test.res.mjs`, the authored JavaScript consumer, and
@@ -129,10 +128,11 @@ would pass the real repository and fail these.
 
 Coverage uses Bun's text and LCOV reporters for the behavioural, law, and
 consumer tests. It measures generated JavaScript under ReScript 12, not perfect
-ReScript source-line attribution. Repository-contract and gate implementation
-coverage is not product coverage. CI uploads `coverage/lcov.info` for 14 days.
-There is no threshold, ratchet, or external publication service. Introduce a
-meaningful baseline only once product code exists.
+ReScript source-line attribution. Task 1.2.1 establishes the product baseline:
+every generated function and line under `src/` runs in those suites.
+Repository-contract and gate implementation coverage is not product coverage.
+CI uploads `coverage/lcov.info` for 14 days. There is no threshold, ratchet, or
+external publication service; introduce one only through a recorded decision.
 
 `bunfig.toml` excludes `tests/**` from both coverage reports because Bun's
 default test patterns do not recognize the compiler's `.test.res.mjs` output.
@@ -243,10 +243,10 @@ make package-check
 
 This gate cleans and rebuilds, checks generated synchronization, creates a real
 archive with `bun pm pack --ignore-scripts`, and compares its contents against
-an independent explicit thirteen-file allowlist. The archive contains README,
-`LICENSE`, package metadata, ReScript configuration, and the `Bootstrap`, `IO`,
-and `Fx` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
-editor state, and unrelated documents must never enter it.
+an independent explicit ten-file allowlist. The archive contains README,
+`LICENSE`, package metadata, ReScript configuration, and the `IO` and `Fx`
+sources, interfaces, and generated ESM. Tests, dev scripts, coverage, editor
+state, and unrelated documents must never enter it.
 
 A temporary clean consumer installs the archive with the matching compiler,
 then checks frozen installation, imports the packed `IO` and `Fx` ESM and
@@ -257,11 +257,10 @@ executes `Main.res.mjs`, which runs the composed workflow and the projection. No
 archive and fixture on success or failure. System tar only inspects the locally
 produced archive; no publishing command exists.
 
-The module exports are `refex/src/Bootstrap.res.mjs`, `refex/src/IO.res.mjs`,
-and `refex/src/Fx.res.mjs`. ReScript consumers emit those concrete package
-paths automatically, so an alias-only export would compile but fail at
-execution. The archive checker executes the compiled consumer to verify this
-integration detail.
+The module exports are `refex/src/IO.res.mjs` and `refex/src/Fx.res.mjs`.
+ReScript consumers emit those concrete package paths automatically, so an
+alias-only export would compile but fail at execution. The archive checker
+executes the compiled consumer to verify this integration detail.
 
 ## Test-only foreign function interfaces
 
