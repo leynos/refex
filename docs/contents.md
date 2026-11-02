@@ -50,7 +50,7 @@ evidence, not refex conformance results.
 - [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):
   the completed plan for freezing the validator hypotheses.
 - [Execution plan for roadmap task 1.2.1](execplans/1-2-1-smallest-opaque-fx-surface.md):
-  the in-progress plan for the smallest opaque `Fx` surface.
+  the completed plan for the smallest opaque `Fx` surface.
 
 ## Implemented bootstrap and contribution
 

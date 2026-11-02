@@ -94,11 +94,11 @@ Does the model work at real consumer interfaces rather than only in one
 inference unit? Results select structural inference or explicit adaptation. See
 design.md §§3-4, 10.1.
 
-- [ ] 1.2.1. Implement the smallest opaque Fx surface needed to compile
+- [x] 1.2.1. Implement the smallest opaque Fx surface needed to compile
   multi-module workflows.
   - Requires steps 1.1.
   - See design.md §3.
-  - [ ] Include succeed, fail, suspend, map, flatMap, tap, mapError, access,
+  - [x] Include succeed, fail, suspend, map, flatMap, tap, mapError, access,
     accessEffect, provide, and explicit environment projection.
   - Success: Positive consumers need no application-level cast or backend type;
     execution and environment access remain deferred.

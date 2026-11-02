@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 Plan identifier: `EP-1.2.1`. Branch: `1-2-1-smallest-opaque-fx-surface`.
 Roadmap task:
@@ -581,6 +581,11 @@ regenerated `typos.toml` are excluded from every count below.
   `smol-toml`; `make markdownlint` passes against the overridden major.
   `make audit` is a required EP-M6 acceptance gate, so the repair lands before
   the milestone review rather than as an accepted advisory.
+- D-17 (2026-11-02): EP-M6's reconciliation found no new mechanical deviation.
+  The repository-state snapshot and conformance record now describe the
+  delivered IO/Fx tree; the deviations already approved under D-2 (thunk
+  representation), D-5 (`accessIO` omitted), D-8 (`Bootstrap` retirement), and
+  D-16 (`minimatch` override) remain the complete list.
 
 ## Outcomes & retrospective
 
@@ -598,8 +603,68 @@ against Git's index, so a new generated `.res.mjs` must be committed with its
 source before the gate can pass, and the interface contract depends on
 `rescript-tools doc` output remaining stable.
 
-Later milestones still complete this section: EP-M2 to EP-M6 outcomes,
-acceptance evidence, deviations, and lessons for 1.2.2, 1.2.3, and 1.3.1.
+### After EP-M2 (2026-11-02)
+
+Delivered: the opaque `Fx` module and its interface, built test-first, with
+`succeed`, `fail`, `access`, `accessEffect`, `provide`, `map`, `flatMap`, `tap`,
+`mapError`, and `contramapEnvironment`. `accessIO` is omitted under D-5
+because it exposes the thunk outside the composition surface. Evidence: the red
+run failed on the missing `Fx` module, the green run passed 115 tests in 12
+files with 176 `expect()` calls, and ablations A-2, A-3b, A-5, A-7, and A-9
+failed as designed. Deviations: the milestone review found that `provide`
+applied the description at construction time; the repair suspends the
+application and adds a 50,000-layer deep-chain case. Lessons: a `provide`
+implementation must defer all traversal, and the variance declaration is
+checked against the interface at compile time.
+
+### After EP-M3 (2026-11-02)
+
+Delivered: the compiler-fixture runner and diagnostic matcher, thirteen base,
+error, projection, opacity, and escape cases, and a packed-archive consumer
+that compiles two service modules and a composition module. Evidence:
+`make all` passed at `a5d162d` with 156 tests in 14 files, the packed consumer
+gate passed at `3a343d2`, and ablations A-10, A-11, and A-12 failed as
+designed. Deviations: `tests/Fx.test.res` crossed the 350-line split tolerance
+during review, so its cases moved to `tests/FxSequencing.test.res` and
+`tests/FxEnvironment.test.res`; the matcher now requires a diagnostic `kind`
+after review found that matching fragments alone accepted errors raised for the
+wrong reason. Lessons: fixture sources must be formatter-stable, and a
+diagnostic assertion must constrain the kind as well as the text.
+
+### After EP-M4 (2026-11-02)
+
+Delivered: `fast-check` 4.10.2 as an exact development dependency, a narrow
+binding, the defunctionalized `Fx` model, a double-observation harness, and 37
+law tests plus model agreement, inertness, and classification. Evidence:
+`make all` passed at `4816f77` with 195 tests in 18 files; `make coverage`
+reported 71 tests and 100 per cent function and line coverage; `make audit` was
+repaired under D-16; and ablations A-3b, A-4, and A-7 each failed model
+agreement. Deviations: the first review found that `fxTerm` and `ioTerm`
+hard-coded an empty trace, making every `resultsOnly=false` law vacuous; terms
+now carry the array their callbacks write to. Lessons: a law that compares
+observed traces must prove the traces can differ, and an unweighted `oneof`
+over constructor alternatives skews depth-four generation.
+
+### After EP-M5 (2026-11-02)
+
+Delivered: `Bootstrap` retired from source, tests, the public allowlist, the
+package archive, the export map, and the documented surface. `IO` and `Fx` are
+the only public modules, and the archive contains ten files. Evidence:
+`make all` passed through `scrutineer` with 193 tests in 17 files and a
+verified ten-file package; the JavaScript and multi-module ReScript consumers
+both passed; and review round 29 returned no findings over 82 files.
+Deviations: none from the approved scope. Lessons: a probe retirement reaches
+manifest, archive-allowlist, Makefile, dependency-contract, and documentation
+owners at once, and generated docstring paths must not name a deleted module.
+
+### After EP-M6 (2026-11-02)
+
+Delivered: the reconciliation record below, the `Unreleased` changelog entries,
+the contents index, the checked roadmap task, and this plan's completion.
+Evidence: `make all`, `make coverage`, and `make audit` pass at the completion
+commit, and roadmap item 1.2.1 is checked. Deviations: none. Lessons: the
+conformance basis is a snapshot of upstream artefacts, so reconciliation must
+distinguish deliberate downstream change from a stale description.
 
 ## Context and orientation
 
@@ -609,12 +674,12 @@ The repository is a single private package named `refex`, version `0.0.0`,
 built with ReScript 12.3.1 and tested with Bun 1.4.2. Key files:
 
 - `rescript.json`: `namespace: true`, so consumers see modules as
-  `Refex.Fx`; `sources` lists `src` (with `"public": ["Bootstrap"]`) and
-  `tests` as a non-recursive dev source; warnings `+A` are all errors;
-  `package-specs` emits in-source ESM with suffix `.res.mjs`.
-- `package.json`: exact pins; `description` says "toolchain bootstrap only";
-  `files` lists seven archive entries; `exports` lists
-  `./src/Bootstrap.res.mjs` and `./package.json`.
+  `Refex.Fx`; `sources` lists `src` (with `"public": ["IO", "Fx"]`) and `tests`
+  as a non-recursive dev source; warnings `+A` are all errors; `package-specs`
+  emits in-source ESM with suffix `.res.mjs`.
+- `package.json`: exact pins; `description` names the opaque `IO` and `Fx`
+  descriptions and the absence of a runner; `files` lists ten archive entries;
+  `exports` lists `./src/IO.res.mjs`, `./src/Fx.res.mjs`, and `./package.json`.
 - `Makefile`: uses `SHELL := bash` without `globstar`, so `**` in a recipe
   behaves like `*`. `make test` builds, then passes every suite to `bun test`
   explicitly; Bun does not discover `*.test.res.mjs` on its own.
@@ -626,23 +691,21 @@ built with ReScript 12.3.1 and tested with Bun 1.4.2. Key files:
   on-disk inventory and runs `git diff --exit-code` against the index, so new
   output must be staged and deleted output removed with `git rm`.
 - `scripts/package-check.mjs`: packs the archive, compares its listing with a
-  hard-coded allowlist (lines 44 to 52), installs it into a clean fixture, and
-  runs a JavaScript consumer (line 88) and a ReScript consumer (lines 106 and
-  114).
+  hard-coded ten-entry allowlist, installs it into a clean fixture, and runs a
+  JavaScript consumer and a multi-module ReScript consumer.
 - `tests/makefile-contracts.test.mjs`: requires every top-level
-  `tests/*.test.mjs` and `tests/*.test.res` suite in `make test` (lines 34 to
-  54), and hard-codes `./tests/Bootstrap.test.res.mjs` at line 175. It does not
-  check the format or coverage recipes. Suites in subdirectories are invisible
-  to its inventory, so keep suites at the top level of `tests/`.
+  `tests/*.test.mjs` and `tests/*.test.res` suite in `make test`, including
+  `./tests/FxSequencing.test.res.mjs` and `./tests/FxEnvironment.test.res.mjs`.
+  It does not check the format or coverage recipes. Suites in subdirectories
+  are invisible to its inventory, so keep suites at the top level of `tests/`.
 - `tests/support/package-dependency-contracts.mjs`: `packageContract`
-  asserts the `public` list (lines 43 to 46), the `exports` keys (69 to 76), the
-  `files` list (77 to 87), and exact-version pins (27 to 32). It is pure; its
-  callers pass parsed metadata.
-- `tests/package-contracts.test.mjs`: archive listing check (line 51), a
-  negative-control string naming `tests/Bootstrap.test.res` (line 126), and the
-  compiler boundary fixture showing that production source cannot open
-  `RescriptBun` (lines 150 to 196, with a 60-second budget).
-- `tests/consumer.test.mjs`: imports `refex/src/Bootstrap.res.mjs`.
+  asserts the `public` list, the `exports` keys, the `files` list, and
+  exact-version pins. It is pure; its callers pass parsed metadata.
+- `tests/package-contracts.test.mjs`: archive listing check, a negative-control
+  string naming `tests/FxSequencing.test.res.mjs`, and the compiler boundary
+  fixture showing that production source cannot open `RescriptBun`.
+- `tests/consumer.test.mjs`: imports `refex/src/Fx.res.mjs` and
+  `refex/src/IO.res.mjs` and checks construction-time deferral.
 - `.github/workflows/ci.yml`: one 15-minute job running
   `bun install --frozen-lockfile`, `make all`, `make coverage`, and
   `make audit`. A workflow contract restricts CI run steps to exactly those
@@ -750,6 +813,17 @@ This plan invents no new upstream identifiers. Plan-local identifiers are `C-n`
 (verification obligations), `P-n` (premises), `AXIOM-n` (axioms), `A-n`
 (ablations), and `K-n` (matrix rows). ADR 008 is a new artefact that this plan
 drafted; the repository owner accepted it on 2 November 2026.
+
+EP-M6 reconciliation (2026-11-02): each artefact above was checked against the
+delivered tree at `5889311`. The manifest's public allowlist is `["IO", "Fx"]`;
+the archive contains ten entries, with no `Bootstrap` source, test, or export;
+the Makefile registers `FxSequencing` and `FxEnvironment`; the dependency
+contract asserts the same allowlist, export keys, file list, and pins; and the
+packed consumers import `Fx` and `IO` only. The upstream artefacts at `826202b`
+remain the historical basis; the downstream retirement of the probe is the
+approved D-8 change and is not a conformance gap. The other recorded deviations
+are D-2 (thunk representation), D-5 (`accessIO` omitted), and D-16 (`minimatch`
+override).
 
 Trace chains:
 
