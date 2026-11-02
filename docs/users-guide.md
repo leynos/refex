@@ -3,9 +3,9 @@
 ## What this guide covers
 
 This guide describes what is actually installable and importable from this
-repository today. It is short because almost nothing is: Refex is an
-experimental structured-effects library with no effect-system API yet. The only
-published symbol is a disposable toolchain probe.
+repository today. Refex is an experimental structured-effects library. The
+package exports an opaque `IO` description type with no runner, plus a
+disposable toolchain probe. Neither surface has a stability promise.
 
 `Effect`, `Exit`, `Cause`, `Fiber`, `Scope`, `Context`, `Layer`, and `Schedule`
 do not exist here. See [ADR 001](adr-001-repository-bootstrap.md) for the
@@ -87,9 +87,10 @@ That representation is an implementation detail with no compatibility promise;
 task 1.3.1 may replace it.
 
 This release provides **no runner**. Roadmap task 1.3.1 adds the runtime entry
-point that evaluates a description; until then the repository's tests are the
-only code that does so. `Bootstrap` remains in the package until task 1.2.1
-retires it in its final milestone, and `Fx` follows in the same task.
+point that evaluates a description. Until then nothing in the package evaluates
+one: only the repository's tests, and a JavaScript consumer that calls the
+generated thunk directly, do so. `Bootstrap` remains in the package until task
+1.2.1 retires it in its final milestone, and `Fx` follows in the same task.
 
 ## Generated output
 
@@ -107,5 +108,6 @@ interface are the documentation of record.
 - [Repository layout](repository-layout.md) for path ownership.
 - [Documentation index](contents.md) for the full document list.
 
-Because no public API exists yet, there is no support or compatibility policy
-to state. Open an issue on the repository for bootstrap problems.
+There is no support or compatibility policy. `IO` is an early, unsupported
+surface with no runner, and `Bootstrap` is a disposable probe. Open an issue on
+the repository for bootstrap problems.

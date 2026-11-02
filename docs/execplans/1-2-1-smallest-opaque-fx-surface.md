@@ -682,8 +682,11 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
   environments yields each environment's value. Method: named examples.
   Non-vacuity: ablation A-2 (read at environment application) fails the first
   example.
-- OB-6, IO laws, tested in `tests/IoLaws.test.res`:
-  - left identity `IO.flatMap(IO.succeed(a), k) ≈t k(a)`;
+- OB-6, IO laws, tested in `tests/IoLaws.test.res`. A right-hand side that
+  would build a callback outside a thunk is wrapped in `IO.suspend`, so both
+  sides defer `k` and the trace comparison measures evaluation rather than test
+  construction:
+  - left identity `IO.flatMap(IO.succeed(a), k) ≈t IO.suspend(() => k(a))`;
   - right identity `IO.flatMap(m, IO.succeed) ≈t m`;
   - associativity `IO.flatMap(IO.flatMap(m, k1), k2) ≈t
     IO.flatMap(m, a => IO.flatMap(k1(a), k2))`;
