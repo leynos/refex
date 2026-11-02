@@ -1,5 +1,5 @@
 /**
-Exact public-interface contracts for the packaged `src/*.resi` files.
+@file Exact public-interface contracts for the packaged `src/*.resi` files.
 
 `src/` is reachable by consumers whatever `public` says (ADR 008), so the
 exported item set is the real boundary. This suite runs `rescript-tools doc`

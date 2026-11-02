@@ -1,5 +1,5 @@
 /**
-Test-only evaluation of an `IO.t` description.
+@file Test-only evaluation of an `IO.t` description.
 
 `IO.t` is opaque to consumers, so the suites cannot call it directly. This
 helper is the single place that relies on the representation recorded in

@@ -158,5 +158,6 @@ variants, or to explicit injection through `mapError`.
   [ADR 006](adr-006-complete-outcomes.md).
 - [ADR 005](adr-005-structural-dependency-environments.md) for the `IO.t` and
   Reader signatures that fix `provide`.
-- [Technical design §2.3 and §3](design.md#3-dependency-environments-as-typed-readers).
+- [Technical design §2.3](design.md#23-backend-selection-and-execution-boundary)
+  and [§3](design.md#3-io-requirements-and-pipelines).
 - [Roadmap task 1.2.1](roadmap.md#12-prove-dependency-and-error-composition-through-separate-modules).
