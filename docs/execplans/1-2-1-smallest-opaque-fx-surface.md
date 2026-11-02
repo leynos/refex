@@ -236,6 +236,11 @@ regenerated `typos.toml` are excluded from every count below.
 - [x] (2026-11-02) EP-M2: `Fx` test-first, with every roadmap operation
   except `accessIO` (D-5); red output, ablations, and pass counts recorded
   below.
+- [x] (2026-11-02) EP-M2 review round 12: `make all` was green at `fb4b6c3`,
+  and the CLI review found that provision traversed the description eagerly and
+  that this plan's validation block lacked `pipefail`. The combinators now
+  suspend application, a deep-chain case covers provision, and the validation
+  block fails on a piped error. Re-review is pending.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
@@ -281,6 +286,13 @@ regenerated `typos.toml` are excluded from every count below.
   elision, caching, and timing, which are well-typed.
 - Observation (review probe): the compiler ignores `NO_COLOR`; diagnostics
   still contain ANSI escape sequences, which the runner must strip.
+- Observation (review round 12): `Fx.provide` and the mapping combinators
+  applied the environment eagerly. A 50,000-deep `Fx.map` chain overflowed the
+  stack while `provide` built the `IO.t`, before any backend could evaluate it.
+  Design §3.1 requires the Reader wrapper to suspend that application, as
+  `Fx.flatMap` already did. Impact: every applying combinator now returns
+  `IO.suspend`; provision is one thunk and does not traverse the chain, while
+  evaluating the chain keeps R-4's accepted recursion.
 
 ## Decision log
 
@@ -1352,6 +1364,7 @@ commits separate (AGENTS.md).
 Run every command from the repository root. Capture long output with `tee`.
 
 ```bash
+set -o pipefail
 BRANCH=$(git branch --show-current)
 make all 2>&1 | tee "/tmp/all-refex-${BRANCH}.out"
 make check-fmt 2>&1 | tee "/tmp/check-fmt-refex-${BRANCH}.out"
@@ -1648,6 +1661,12 @@ and `scrutineer` log paths are appended here during implementation.
   variances do not agree."
   (`/tmp/ablation-a9-refex-1-2-1-smallest-opaque-fx-surface.out`); restored
   sources are checksum-identical to the pre-ablation copies.
+- EP-M2 review round 12, 2026-11-02: `bun -e` built a 50,000-layer `Fx.map`
+  chain against the pre-fix `src/Fx.res.mjs` and reproduced
+  `RangeError: Maximum call stack size exceeded` in `Fx.provide`; after the fix
+  the same script printed `provided function`, and `tests/Fx.test.res.mjs`
+  passes 22 cases including the deep-chain case. The repair's full-gate and
+  re-review evidence is recorded with EP-M3.
 - EP-M0, 2026-11-02: baseline `make all` green through `scrutineer`,
   `MAKE_ALL_EXIT=0`, 78 passing tests in 9 files, package-check verifying 7
   files and both isolated consumers
