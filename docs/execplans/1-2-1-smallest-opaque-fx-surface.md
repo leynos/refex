@@ -20,9 +20,10 @@ the first task of step 1.2. The repository owner approved this plan on
 refex is an experimental ReScript 12 library for lazy computations with typed
 requirements and typed failures. The repository now contains opaque `IO` and
 `Fx` modules with behavioural suites; the disposable `src/Bootstrap.res` probe
-remains until its retirement milestone. EP-M1 and EP-M2 are complete. EP-M3
-adds compiler fixtures and a packed multi-module consumer, EP-M4 property-based
-laws, EP-M5 retires `Bootstrap`, and EP-M6 reconciles the record.
+remains until its retirement milestone. EP-M1 to EP-M4 are complete: the opaque
+modules, the compiler fixtures and packed consumer, and the property-based law
+suites all pass their gates and milestone reviews. EP-M5 retires `Bootstrap`,
+and EP-M6 reconciles the record.
 
 Roadmap task 1.2.1 asks for the smallest opaque `Fx` surface that lets
 separately compiled modules build workflows. `Fx.t<'a, 'e, 'r>` describes a
@@ -297,12 +298,12 @@ regenerated `typos.toml` are excluded from every count below.
     now says `IO` and `Fx` join it until EP-M5 retires `Bootstrap`.
   - [x] Review round 21: re-review of `9a006b2` returned no findings. EP-M3 is
     review-complete.
-  - [x] Review round 22, raised by the EP-M4 milestone review: one minor
+  - [x] Review round 23, raised by the EP-M4 milestone review: one minor
     finding, valid. `build()` in `tests/compiler-fixtures.test.mjs` ran
     `Bun.spawnSync` without a process timeout, so the per-case test timeout
     could not interrupt a blocking compiler process. The spawn now carries a
     60-second timeout.
-- [ ] EP-M4: law and model-agreement property tests.
+- [x] EP-M4: law and model-agreement property tests.
   - [x] Commit 1, "Add fast-check as an exact development dependency":
     `fast-check` 4.10.2 in `devDependencies`, with `bun.lock` recording the
     planned integrity hash. `dependencies` and `rescript.json` unchanged.
@@ -334,7 +335,14 @@ regenerated `typos.toml` are excluded from every count below.
     every `resultsOnly=false` law compared empty arrays and the `≈t` claims
     were vacuous. Terms now carry the array their callbacks write to, the
     unused `make` argument is gone, and all 37 laws pass with real traces.
-    Re-review pending.
+  - [x] Review round 22: three findings, all valid and fixed. The trace
+    finding above was the substantive one; the other two were stale
+    permitted-caller lists in `tests/FastCheck.res` and `tests/FxLawModel.res`.
+  - [x] Review round 23: re-review of `be587dc` found one minor defect in the
+    EP-M3 fixture runner, fixed under that milestone's progress.
+  - [x] Review round 24: re-review of `215cfd6` returned no findings. EP-M4 is
+    review-complete. Gates at `215cfd6`: `make all` 195 tests in 18 files,
+    `make coverage` 71 tests at 100 per cent, `make audit` clean.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
