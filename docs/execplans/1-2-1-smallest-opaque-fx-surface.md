@@ -245,7 +245,7 @@ regenerated `typos.toml` are excluded from every count below.
   remaining concern about the provision repair; two minor package-check
   observations were folded into EP-M3 commit 2, where the JavaScript consumer
   now evaluates a description instead of only checking exports.
-- [ ] EP-M3: compiler fixtures and the packed consumer.
+- [x] EP-M3: compiler fixtures and the packed consumer.
   - [x] Commit 1, "Add a compiler-fixture runner for consumer boundaries":
     matcher and its unit suite, runner, fixture base, thirteen cases, Makefile
     registration, and developer-guide and layout updates. `make all` green at
@@ -288,15 +288,19 @@ regenerated `typos.toml` are excluded from every count below.
     are now `tests/FxSequencing.test.res`, and its environment, projection,
     and live-observation cases are `tests/FxEnvironment.test.res`. Both are
     registered in `test` and `coverage`, and the layout, guide, and plan name
-    them. Re-review pending.
+    them. Re-review raised the round-20 findings below.
   - [x] Review round 20: two findings, both valid, both documentation defects.
     The alternatives table cited probe `ns4`, which the linked evidence record
     does not contain; the citation is dropped, and the reason stands on the
     leaked kernel name. The archive wording in ADR 008, the ADR 001 amendment,
     and `docs/design.md` implied `Bootstrap` had already left the archive; each
-    now says `IO` and `Fx` join it until EP-M5 retires `Bootstrap`. Re-review
-    pending.
+    now says `IO` and `Fx` join it until EP-M5 retires `Bootstrap`.
+  - [x] Review round 21: re-review of `9a006b2` returned no findings. EP-M3 is
+    review-complete.
 - [ ] EP-M4: law and model-agreement property tests.
+  - [x] Commit 1, "Add fast-check as an exact development dependency":
+    `fast-check` 4.10.2 in `devDependencies`, with `bun.lock` recording the
+    planned integrity hash. `dependencies` and `rescript.json` unchanged.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
