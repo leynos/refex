@@ -8,8 +8,8 @@ first event sequence exactly.
 
 The step generator supplies continuations built from production operations, so
 the laws exercise the same constructors as ordinary callers. Permitted callers:
-`tests/IoLaws.test.res`, `tests/FxLaws.test.res`, and
-`tests/FxEnvironmentLaws.test.res`.
+`tests/IoLaws.test.res`, `tests/FxLaws.test.res`,
+`tests/FxAgreement.test.res`, and `tests/FxEnvironmentLaws.test.res`.
 */
 type fxTerm<'r> = {
   description: Fx.t<int, string, 'r>,

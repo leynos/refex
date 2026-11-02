@@ -151,19 +151,21 @@ executable model. `tests/LawHarness.res` owns observation: each term carries
 the array its callbacks write to, each side is evaluated twice, and traces are
 compared only at the strength a law claims. `tests/LawSuite.res` owns the
 shared run count and timeout. `tests/IoLaws.test.res` checks OB-6,
-`tests/FxLaws.test.res` checks inertness and model agreement, and
-`tests/FxEnvironmentLaws.test.res` checks OB-7 and OB-8. The environment laws
-are a separate file only to keep both suites inside the authored-size
-tolerance. Constructor payloads are positional rather than inlined records,
-because ReScript 12.3.1 rejects an inlined record payload when a constructor is
-used inside a generated lambda.
+`tests/FxLaws.test.res` checks OB-7, `tests/FxAgreement.test.res` checks
+inertness, model agreement, and classification (OB-1 and OB-9), and
+`tests/FxEnvironmentLaws.test.res` checks OB-7 and OB-8. The Fx suites are
+split across files only to keep each inside the authored-size tolerance.
+Constructor payloads are positional rather than inlined records, because
+ReScript 12.3.1 rejects an inlined record payload when a constructor is used
+inside a generated lambda.
 
 Each law runs 200 generated cases. A failure reports the fast-check `seed` and
 shrink `path`; replay it by passing the same `seed` and `path` to `assert`.
 Development and ablation counterexamples are kept as named `examples` beside
 the agreement property, so a reintroduced defect fails immediately rather than
-waiting for the generator. The classification test pins a seed and asserts
-success, failure, depth-four, and per-constructor coverage. Constructor
+waiting for the generator. The classification test pins a seed, asserts
+success, failure, depth-four, and per-constructor coverage, and enforces the
+generator's depth-four upper bound as well as its reachability. Constructor
 alternatives are weighted three-to-one against leaves: an unweighted generator
 left four constructors below the 30 per cent presence threshold.
 

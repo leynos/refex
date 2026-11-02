@@ -9,8 +9,9 @@ ReScript 12.3.1 rejects inlined record payloads when the constructor is used in
 a generated lambda, reporting that the anonymous type would escape.
 
 Permitted callers: `tests/LawHarness.res`, `tests/IoLaws.test.res`,
-`tests/FxLaws.test.res`, and `tests/FxEnvironmentLaws.test.res`. This is test
-code only; nothing here is packaged.
+`tests/FxLaws.test.res`, `tests/FxAgreement.test.res`, and
+`tests/FxEnvironmentLaws.test.res`. This is test code only; nothing here is
+packaged.
 */
 type environment = {base: int, token: string}
 
@@ -138,10 +139,15 @@ let denote = (expr, environment): (outcome, array<string>) => {
   (outcome, trace)
 }
 
-/** The largest number of nested expression layers in a description. */
+/**
+The largest number of nested expression constructors in a description.
+
+A leaf has depth zero, so the four constructor layers produced by `exprAt(4)`
+give a maximum depth of four.
+*/
 let rec exprDepth = expr =>
   switch expr {
-  | Succeed(_) | Fail(_) | Access(_, _) => 1
+  | Succeed(_) | Fail(_) | Access(_, _) => 0
   | Suspend(inner) | Map(inner, _, _) | MapError(inner, _, _) | Project(inner, _, _) =>
     1 + exprDepth(inner)
   | FlatMap(inner, next) => 1 + largest(exprDepth(inner), contDepth(next))

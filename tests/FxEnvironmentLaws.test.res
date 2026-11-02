@@ -5,9 +5,9 @@ Every law is one property with 200 runs. Each side is observed twice, so state
 that leaks between evaluations fails the law. Fast-check reports the seed and
 shrink path of a counterexample; replay with the same `seed` and `path`.
 Projection laws state whether the projection is pure, because a traced
-projection would run a different number of times on each side. This suite is
-split from `FxLaws.test.res` to keep both files inside the authored-size
-tolerance.
+projection would run a different number of times on each side. The law,
+agreement, and environment suites are split across files so each stays inside
+the authored-size tolerance.
 */
 open RescriptBun.Test
 

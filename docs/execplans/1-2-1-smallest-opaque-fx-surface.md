@@ -312,13 +312,14 @@ regenerated `typos.toml` are excluded from every count below.
     defunctionalized syntax, depth-four arbitraries, `build`, and `denote`;
     `tests/LawHarness.res` observes each side twice; `tests/LawSuite.res` owns
     the 200-run, 30-second law registration. `tests/IoLaws.test.res` has ten
-    laws (OB-6); `tests/FxLaws.test.res` has fifteen Fx laws, inertness, model
-    agreement, and classification; `tests/FxEnvironmentLaws.test.res` has ten
-    environment laws (OB-7 and OB-8), split out for the authored-size
+    laws (OB-6); `tests/FxLaws.test.res` has fourteen Fx laws (OB-7);
+    `tests/FxAgreement.test.res` has inertness, model agreement, and
+    classification; `tests/FxEnvironmentLaws.test.res` has ten environment laws
+    (OB-7 and OB-8). The Fx suites are split across files for the authored-size
     tolerance. All 37 law tests pass.
   - [x] Classification at `seed: 20261102` over 1,000 samples:
-    579 success, 421 failure, 601 at depth four; constructor presence 327 to
-    469, so every threshold in EP-M4 step 5 holds.
+    579 success, 421 failure, 337 at depth four with no sample deeper than four;
+    constructor presence 327 to 469, so every threshold in EP-M4 step 5 holds.
   - [x] Ablations A-3b, A-4, and A-7 each fail model agreement; the
     counterexamples are recorded in `Artefacts and notes` and kept as named
     examples beside the agreement property. A-7 also fails on its named
@@ -386,6 +387,10 @@ regenerated `typos.toml` are excluded from every count below.
     review-complete. Gates at `2088234`: `make all` passed with 193 tests in 17
     files and a verified ten-file package, `make coverage` passed 70 tests at
     100 per cent, and `make audit` found no vulnerabilities.
+  - [ ] Hosted ExecPlan assessment at `32dd6b4` (comment `6573128603`) found
+    three plan-conformance gaps and no production defect. The law-suite split
+    and depth-bound convention are repaired under D-18; reconfirmation is
+    pending, and the scope-tolerance escalation awaits the owner's decision.
 
 ## Surprises & discoveries
 
@@ -597,6 +602,21 @@ regenerated `typos.toml` are excluded from every count below.
   delivered IO/Fx tree; the deviations already approved under D-2 (thunk
   representation), D-5 (`accessIO` omitted), D-8 (`Bootstrap` retirement), and
   D-16 (`minimatch` override) remain the complete list.
+- D-18 (2026-11-02): the hosted ExecPlan assessment at `32dd6b4` found three
+  plan-conformance gaps and no production correctness defect. (a)
+  `tests/FxLaws.test.res` had reached 394 lines, past the 350-line split
+  tolerance, and the comment in `tests/FxEnvironmentLaws.test.res` claimed both
+  files complied. Inertness, model agreement, and classification now live in
+  `tests/FxAgreement.test.res`; both files are below 350 lines and both are
+  registered in `test` and `coverage`. (b) `exprDepth` counted a leaf as one
+  while `exprAt(4)` produced four constructor layers, so the generator could
+  reach depth five. `exprDepth` now counts constructor layers, and the
+  classification test asserts reachability and a depth-four upper bound; at the
+  pinned seed the 1,000 samples reach depth four 337 times and none go deeper.
+  (c) The branch adds 3,941 net lines across 78 counted files against the
+  3,800-line escalation threshold. The count cannot be reduced without deleting
+  verification or documentation, so the escalation stays open for the owner's
+  decision; it is a delivery-governance item, not a runtime defect.
 
 ## Outcomes & retrospective
 
@@ -652,9 +672,14 @@ reported 71 tests and 100 per cent function and line coverage; `make audit` was
 repaired under D-16; and ablations A-3b, A-4, and A-7 each failed model
 agreement. Deviations: the first review found that `fxTerm` and `ioTerm`
 hard-coded an empty trace, making every `resultsOnly=false` law vacuous; terms
-now carry the array their callbacks write to. Lessons: a law that compares
-observed traces must prove the traces can differ, and an unweighted `oneof`
-over constructor alternatives skews depth-four generation.
+now carry the array their callbacks write to. The later hosted assessment found
+that `tests/FxLaws.test.res` had crossed the 350-line split tolerance and that
+the depth metric and generator disagreed at the bound. The agreement properties
+now live in `tests/FxAgreement.test.res`, `exprDepth` counts constructor
+layers, and the classification test enforces the upper bound as well as
+reachability (D-18). Lessons: a law that compares observed traces must prove
+the traces can differ, and an unweighted `oneof` over constructor alternatives
+skews depth-four generation.
 
 ### After EP-M5 (2026-11-02)
 
@@ -871,11 +896,12 @@ Downstream obligations this plan hands on:
   invariant, and updates the export-set contract deliberately.
 - 1.3.1 replaces the thunk representation behind `IO.resi` with the Effect
   adapter; replaces `tests/IoEvaluation.res` with the private runtime entry and
-  extends its `outcome` type; reruns `IoLaws.test.res`, `FxLaws.test.res`, and
-  the model-agreement property against it; adds a throwing-callback test for
-  every operation (relying on C-13); adds the E2 stress workload; decides how
-  to hide adapter modules (`namespace-entry` or single-unit encapsulation, D-9,
-  R-9); and re-establishes trust in `IO.t`'s declared variance.
+  extends its `outcome` type; reruns `IoLaws.test.res`, `FxLaws.test.res`,
+  `FxAgreement.test.res`, and the model-agreement property against it; adds a
+  throwing-callback test for every operation (relying on C-13); adds the E2
+  stress workload; decides how to hide adapter modules (`namespace-entry` or
+  single-unit encapsulation, D-9, R-9); and re-establishes trust in `IO.t`'s
+  declared variance.
 
 ## Verification plan
 
@@ -955,9 +981,9 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
   `tests/IO.test.res`, `tests/FxSequencing.test.res`, and
   `tests/FxEnvironment.test.res` that assert an empty trace after construction
   and after `provide`, then a non-empty trace after evaluation; and an
-  inertness property over generated descriptions in `tests/FxLaws.test.res`.
-  Non-vacuity: the post-evaluation assertion is the witness; ablations A-2 and
-  A-5 must fail it.
+  inertness property over generated descriptions in
+  `tests/FxAgreement.test.res`. Non-vacuity: the post-evaluation assertion is
+  the witness; ablations A-2 and A-5 must fail it.
 - OB-2, fresh execution. Evaluating the same `IO.t` twice invokes each
   callback twice and yields equal outcomes; nothing is memoized, including
   across a success followed by a failure. Method: named examples, including one
@@ -1003,7 +1029,7 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
   `Fx` (same strengths), plus `map(m, f) ≈t flatMap(m, a => succeed(f(a)))`,
   `map` identity and composition (`≈t`), `Fx.suspend(() => m) ≈t m`, and
   `tap(m, k) ≈t flatMap(m, a => map(k(a), _ => a))`.
-- OB-8, environment laws, tested in `tests/FxLaws.test.res`:
+- OB-8, environment laws, tested in `tests/FxEnvironmentLaws.test.res`:
   - `provide(access(h), r) ≈t IO.suspend(() => IO.succeed(h(r)))`;
   - `provide(accessEffect(h), r) ≈r provide(h(r), r)` (results-only: the
     right side calls `h` while the test builds the term);
@@ -1030,7 +1056,7 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
 - OB-9, model agreement. For every generated description `e` in the
   test-side syntax and every environment, evaluating the production description
   `build(e)` agrees with the executable model `denote(e, env)` in outcome and
-  trace (`≈t`). Method: a property in `tests/FxLaws.test.res`. This is the
+  trace (`≈t`). Method: a property in `tests/FxAgreement.test.res`. This is the
   "tested agreement" half of the proof sketch's correspondence claim.
   Non-vacuity: ablations A-3b, A-4, and A-7 must produce counterexamples; the
   laws alone compare production with production and would pass a consistently
@@ -1668,7 +1694,7 @@ Focused runs during red and green stages, after `make build`:
 ```bash
 bun test ./tests/IO.test.res.mjs
 bun test ./tests/FxSequencing.test.res.mjs ./tests/FxEnvironment.test.res.mjs
-bun test ./tests/IoLaws.test.res.mjs ./tests/FxLaws.test.res.mjs
+bun test ./tests/IoLaws.test.res.mjs ./tests/FxLaws.test.res.mjs ./tests/FxAgreement.test.res.mjs
 bun test ./tests/compiler-fixture-matching.test.mjs ./tests/compiler-fixtures.test.mjs
 bun test ./tests/interface-contracts.test.mjs
 ```
@@ -1709,7 +1735,7 @@ The task is accepted when all of the following hold:
 2. `make test` executes `tests/IO.test.res.mjs`,
    `tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`,
    `tests/IoLaws.test.res.mjs`, `tests/FxLaws.test.res.mjs`,
-   `tests/interface-contracts.test.mjs`,
+   `tests/FxAgreement.test.res.mjs`, `tests/interface-contracts.test.mjs`,
    `tests/compiler-fixture-matching.test.mjs`, and
    `tests/compiler-fixtures.test.mjs`; their pass counts are recorded; the
    makefile contracts confirm the `test` and `coverage` inventories.
@@ -1994,12 +2020,13 @@ and `scrutineer` log paths are appended here during implementation.
   (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface.out`). The probe re-run
   reproduced `ns1`, `ns2`, `ns6`, `ns7`, and `ns8`; its console transcript is in
   `docs/evidence/type-level-probes.md`.
-- EP-M4 green, 2026-11-02: the three law suites pass 37 tests (ten IO laws;
-  fifteen Fx laws plus inertness, agreement, and classification; ten
-  environment laws). Classification at `seed: 20261102` over 1,000 samples
-  gives 579 success, 421 failure, and 601 at depth four, with constructor
-  presence Succeed 436, Fail 469, Suspend 364, Map 352, FlatMap 343, Tap 339,
-  MapError 353, Access 377, AccessEffect 352, and Project 327.
+- EP-M4 green, 2026-11-02: the four law suites pass 37 tests (ten IO laws;
+  fourteen Fx laws; inertness, agreement, and classification; ten environment
+  laws). Classification at `seed: 20261102` over 1,000 samples gives 579
+  success, 421 failure, and 337 at depth four under the constructor-layer
+  convention, with none deeper than four and constructor presence Succeed 436,
+  Fail 469, Suspend 364, Map 352, FlatMap 343, Tap 339, MapError 353, Access
+  377, AccessEffect 352, and Project 327.
 - A-3b against OB-9, 2026-11-02: evaluating `first` twice in `Fx.flatMap`
   failed model agreement after 35 tests (`/tmp/ablation-a3b-refex.out`):
 
@@ -2163,3 +2190,9 @@ ADR 008 as `accepted`, and the amendments to ADR 001, ADR 004, and ADR 006.
 state, recorded the milestone outcomes and D-17, updated the changelog and
 contents index, and checked roadmap task 1.2.1 and its sub-item. Status is
 `COMPLETE`.
+
+2026-11-02, revision 6: recorded the hosted ExecPlan assessment and D-18. The
+Fx agreement properties moved to `tests/FxAgreement.test.res`, the depth metric
+now counts constructor layers, and the classification test enforces the
+depth-four upper bound. The scope-tolerance escalation remains open for the
+owner's decision. Status stays `COMPLETE` for the implementation.

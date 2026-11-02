@@ -5,9 +5,9 @@ timeout, so a regression in one suite cannot be hidden by a different budget in
 another. The helper is split from the model and harness so the environment law
 suite can live in its own file without copying this policy.
 
-Permitted callers: `tests/IoLaws.test.res`, `tests/FxLaws.test.res`, and
-`tests/FxEnvironmentLaws.test.res`. This is test code only; nothing here is
-packaged.
+Permitted callers: `tests/IoLaws.test.res`, `tests/FxLaws.test.res`,
+`tests/FxAgreement.test.res`, and `tests/FxEnvironmentLaws.test.res`. This is
+test code only; nothing here is packaged.
 */
 let law = (~examples=?, name, makeProperty) =>
   RescriptBun.Test.test(
