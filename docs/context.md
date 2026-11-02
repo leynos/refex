@@ -359,8 +359,12 @@ Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
   TypeScript 5.9.3 and bignumber.js 11.1.5; exercised by the
   [verification feasibility](evidence/verification-feasibility.md) experiment
   on toy modules only.
-- **C18:** [fast-check][fast-check] 4.10.2, the planned development dependency
-  for property and scheduler tests in roadmap tasks 1.3.x; not installed.
+- **C18:** [fast-check][fast-check] 4.10.2, MIT, no runtime dependencies,
+  integrity
+  `sha512-iK2f+YrcmoeGqk6fA0ea2bptcu/itMIm4NfEozq6N25+aG6h7s5HZbB/k1aV7b5w5sFLMCbbtRUsTVR+BgC3xw==`;
+  an exact development dependency since roadmap task 1.2.1, used by the IO and
+  Fx law suites. It is not a runtime dependency and roadmap tasks 1.3.x may
+  revisit the binding.
 
 Sources inspected on 2 November 2026, for roadmap task 1.2.1:
 

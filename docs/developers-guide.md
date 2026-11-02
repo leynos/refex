@@ -87,16 +87,17 @@ make coverage
 
 The test target compiles first and explicitly selects
 `tests/Bootstrap.test.res.mjs`, `tests/IO.test.res.mjs`,
-`tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`, the
-authored JavaScript consumer, and the repository contract suites. This prevents
-a green run that never executes the ReScript smoke. Contract tests cover
-package and compiler boundaries, workflow permissions and pins, privileged
-metadata-only operations, `make -j` gate order, the Dependabot configuration,
-the Markdown rule policy and its ignore paths, the Bun coverage exclusion,
-registration of every authored suite in the `test` target, and the ADR index
-and status vocabulary. Controlled bad fixtures must fail the same invariant
-checks that accept the repository; every contract helper has at least one
-paired negative control.
+`tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`,
+`tests/IoLaws.test.res.mjs`, `tests/FxLaws.test.res.mjs`,
+`tests/FxEnvironmentLaws.test.res.mjs`, the authored JavaScript consumer, and
+the repository contract suites. This prevents a green run that never executes
+the ReScript smoke. Contract tests cover package and compiler boundaries,
+workflow permissions and pins, privileged metadata-only operations, `make -j`
+gate order, the Dependabot configuration, the Markdown rule policy and its
+ignore paths, the Bun coverage exclusion, registration of every authored suite
+in the `test` target, and the ADR index and status vocabulary. Controlled bad
+fixtures must fail the same invariant checks that accept the repository; every
+contract helper has at least one paired negative control.
 
 Bun does not discover `.test.res.mjs` output, so a new suite runs only once the
 `test` target names it. `makefile-contracts` fails when any `tests/*.test.mjs`
@@ -126,16 +127,44 @@ matching output, stale output, missing output, untracked output, and a
 repository with no committed production output. A gate that always exited `0`
 would pass the real repository and fail these.
 
-Coverage uses Bun's text and LCOV reporters for the behavioural and consumer
-tests. It measures generated JavaScript under ReScript 12, not perfect ReScript
-source-line attribution. Repository-contract and gate implementation coverage
-is not product coverage. CI uploads `coverage/lcov.info` for 14 days. There is
-no threshold, ratchet, or external publication service. Introduce a meaningful
-baseline only once product code exists.
+Coverage uses Bun's text and LCOV reporters for the behavioural, law, and
+consumer tests. It measures generated JavaScript under ReScript 12, not perfect
+ReScript source-line attribution. Repository-contract and gate implementation
+coverage is not product coverage. CI uploads `coverage/lcov.info` for 14 days.
+There is no threshold, ratchet, or external publication service. Introduce a
+meaningful baseline only once product code exists.
 
 `bunfig.toml` excludes `tests/**` from both coverage reports because Bun's
 default test patterns do not recognize the compiler's `.test.res.mjs` output.
 This corrects current coverage, not speculative workspace configuration.
+
+### Law and property suites
+
+`tests/FastCheck.res` binds fast-check 4.10.2 through a narrow set of concrete
+externals; `rescript-fast-check` predates ReScript 12 and is unmaintained. The
+binding and the model are test code only and never enter the package.
+
+`tests/FxLawModel.res` owns the defunctionalized description syntax, its
+arbitraries bounded at depth four, `build`, which maps every constructor onto
+the production operations with traced callbacks, and `denote`, an independent
+executable model. `tests/LawHarness.res` owns observation: each side is
+evaluated twice, and traces are compared only at the strength a law claims.
+`tests/LawSuite.res` owns the shared run count and timeout.
+`tests/IoLaws.test.res` checks OB-6, `tests/FxLaws.test.res` checks inertness
+and model agreement, and `tests/FxEnvironmentLaws.test.res` checks OB-7 and
+OB-8. The environment laws are a separate file only to keep both suites inside
+the authored-size tolerance. Constructor payloads are positional rather than
+inlined records, because ReScript 12.3.1 rejects an inlined record payload when
+a constructor is used inside a generated lambda.
+
+Each law runs 200 generated cases. A failure reports the fast-check `seed` and
+shrink `path`; replay it by passing the same `seed` and `path` to `assert`.
+Development and ablation counterexamples are kept as named `examples` beside
+the agreement property, so a reintroduced defect fails immediately rather than
+waiting for the generator. The classification test pins a seed and asserts
+success, failure, depth-four, and per-constructor coverage. Constructor
+alternatives are weighted three-to-one against leaves: an unweighted generator
+left four constructors below the 30 per cent presence threshold.
 
 ### Compiler fixtures
 
@@ -235,12 +264,13 @@ integration detail.
 
 ## Test-only foreign function interfaces
 
-Production `src/` contains no `external`, cast, or `%raw`. Tests currently have
-one documented exception. `tests/IoEvaluation.res` binds
+Production `src/` contains no `external`, cast, or `%raw`. Tests have exactly
+two documented exceptions. `tests/IoEvaluation.res` binds
 `tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
 representation recorded by decision D-2 in the 1.2.1 ExecPlan; roadmap task
-1.3.1 replaces it with the private runtime entry. EP-M4 of task 1.2.1 adds the
-second exception, `tests/FastCheck.res`, which binds the property-test library.
+1.3.1 replaces it with the private runtime entry. `tests/FastCheck.res` binds
+fast-check 4.10.2 for the law and property suites. Neither exception may grow
+into a general platform escape.
 
 ## Surface contracts
 

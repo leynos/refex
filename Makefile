@@ -73,6 +73,8 @@ test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	+$(MAKE) build
 	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/FxSequencing.test.res.mjs \
 		./tests/FxEnvironment.test.res.mjs ./tests/IO.test.res.mjs \
+		./tests/IoLaws.test.res.mjs ./tests/FxLaws.test.res.mjs \
+		./tests/FxEnvironmentLaws.test.res.mjs \
 		./tests/consumer.test.mjs \
 		./tests/compiler-fixture-matching.test.mjs ./tests/compiler-fixtures.test.mjs \
 		./tests/dependency-contracts.test.mjs \
@@ -86,7 +88,9 @@ coverage: ## Measure generated JavaScript and write text plus LCOV reports
 	$(BUN) test --coverage --coverage-reporter=text --coverage-reporter=lcov \
 		--coverage-dir=coverage ./tests/Bootstrap.test.res.mjs \
 		./tests/FxSequencing.test.res.mjs ./tests/FxEnvironment.test.res.mjs \
-		./tests/IO.test.res.mjs ./tests/consumer.test.mjs
+		./tests/IO.test.res.mjs ./tests/IoLaws.test.res.mjs \
+		./tests/FxLaws.test.res.mjs ./tests/FxEnvironmentLaws.test.res.mjs \
+		./tests/consumer.test.mjs
 
 markdownlint: ## Lint Markdown with the committed policy
 	$(MDLINT) "**/*.md"

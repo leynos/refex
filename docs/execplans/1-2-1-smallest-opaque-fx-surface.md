@@ -301,6 +301,27 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Commit 1, "Add fast-check as an exact development dependency":
     `fast-check` 4.10.2 in `devDependencies`, with `bun.lock` recording the
     planned integrity hash. `dependencies` and `rescript.json` unchanged.
+  - [x] Binding, model, harness, and suites implemented. `tests/FastCheck.res`
+    binds the plan's combinator set; `tests/FxLawModel.res` owns the
+    defunctionalized syntax, depth-four arbitraries, `build`, and `denote`;
+    `tests/LawHarness.res` observes each side twice; `tests/LawSuite.res` owns
+    the 200-run, 30-second law registration. `tests/IoLaws.test.res` has ten
+    laws (OB-6); `tests/FxLaws.test.res` has fifteen Fx laws, inertness, model
+    agreement, and classification; `tests/FxEnvironmentLaws.test.res` has ten
+    environment laws (OB-7 and OB-8), split out for the authored-size
+    tolerance. All 37 law tests pass.
+  - [x] Classification at `seed: 20261102` over 1,000 samples:
+    579 success, 421 failure, 601 at depth four; constructor presence 327 to
+    469, so every threshold in EP-M4 step 5 holds.
+  - [x] Ablations A-3b, A-4, and A-7 each fail model agreement; the
+    counterexamples are recorded in `Artefacts and notes` and kept as named
+    examples beside the agreement property. A-7 also fails on its named
+    example alone.
+  - [x] Documentation updated: `docs/context.md` C18, the developers' guide's
+    test registration and law-suite section, and the repository-layout rows.
+    `AGENTS.md` now records both test-only foreign function interfaces.
+  - [ ] Commit 2, "Check the IO and Fx laws and model agreement on generated
+    descriptions": gate and review pending.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
@@ -371,6 +392,24 @@ regenerated `typos.toml` are excluded from every count below.
   diagnostics instead of a variance diagnostic. Impact: A-12 confirms that the
   pair depends on contravariance, while the rejection's stated reason is
   specific to the invariant interface.
+- Observation (EP-M4): ReScript 12.3.1 rejects an inlined record payload in a
+  variant constructor when that constructor is used inside a generated lambda,
+  reporting that "an anonymous type would escape its constructor scope". The
+  plan's illustrative `Succeed({value: int})` shape therefore became positional
+  payloads, which keep the same one-to-one mapping onto production operations.
+- Observation (EP-M4): an unweighted `oneof` over the constructor alternatives
+  left Tap, Project, FlatMap, and MapError below 30 per cent presence at depth
+  four, because a leaf ends a branch while every constructor defers another
+  layer. Repeating each constructor alternative three times against one leaf
+  alternative raises the minimum to 327 of 1,000 samples without changing the
+  depth bound or a threshold.
+- Observation (EP-M4): the agreement property first appeared to find a model
+  mismatch. The counterexample was a test defect, not a production or model
+  defect: both evaluations append to the same trace array, so the second
+  snapshot is the first run's events followed by the second run's. Comparing it
+  with `firstTrace ++ modelSecondTrace` fixed the property; the shrunk
+  counterexample is kept as a named example so the comparison cannot regress
+  silently.
 
 ## Decision log
 
@@ -471,6 +510,17 @@ regenerated `typos.toml` are excluded from every count below.
   in EP-M0. This satisfies the plan's "ADR acceptance" tolerance and the EP-M1
   precondition without a separate waiting step. No scope, interface,
   verification, or milestone content changes.
+- D-15 (2026-11-02): EP-M4 keeps the plan's generators, thresholds, suite
+  semantics, and commit boundary, with three implementation choices inside the
+  tolerated scope. Constructor payloads are positional rather than inlined
+  records, because the compiler rejects the illustrative shape inside generated
+  lambdas. Constructor alternatives are weighted three-to-one against leaves so
+  the plan's 30 per cent presence threshold holds at depth four. The
+  environment laws live in `tests/FxEnvironmentLaws.test.res`, and the shared
+  law registration in `tests/LawSuite.res`, because one combined Fx suite
+  reached 497 lines against the 350-line split tolerance.
+  `tests/LawHarness.res` gains `traced` so both suites record callback order
+  through one helper.
 
 ## Outcomes & retrospective
 
@@ -1796,6 +1846,53 @@ and `scrutineer` log paths are appended here during implementation.
   (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface.out`). The probe re-run
   reproduced `ns1`, `ns2`, `ns6`, `ns7`, and `ns8`; its console transcript is in
   `docs/evidence/type-level-probes.md`.
+- EP-M4 green, 2026-11-02: the three law suites pass 37 tests (ten IO laws;
+  fifteen Fx laws plus inertness, agreement, and classification; ten
+  environment laws). Classification at `seed: 20261102` over 1,000 samples
+  gives 579 success, 421 failure, and 601 at depth four, with constructor
+  presence Succeed 436, Fail 469, Suspend 364, Map 352, FlatMap 343, Tap 339,
+  MapError 353, Access 377, AccessEffect 352, and Project 327.
+- A-3b against OB-9, 2026-11-02: evaluating `first` twice in `Fx.flatMap`
+  failed model agreement after 35 tests (`/tmp/ablation-a3b-refex.out`):
+
+  ```rescript
+  FlatMap(
+    Project(Map(Suspend(Succeed(0)), 0, "a"), 0, "a"),
+    Const(MapError(Project(Succeed(0), 0, "a"), "boom", "a")),
+  )
+  ```
+
+  `seed: -658164001`, `path: "34:0:0:0:0:0:0:0:0:0"`, environment
+  `{base: 0, token: "one"}`. Source restored and rebuilt.
+- A-4 against OB-9, 2026-11-02: calling the mapper twice in `IO.mapError`
+  failed model agreement after 6 tests (`/tmp/ablation-a4-refex.out`):
+
+  ```rescript
+  MapError(
+    MapError(
+      FlatMap(Map(Fail("boom"), 0, "a"), Branch(Succeed(0), Fail("boom"))),
+      "boom",
+      "a",
+    ),
+    "boom",
+    "a",
+  )
+  ```
+
+  `seed: -187236981`, `path: "5:0:0:0:0:0:0"`, environment
+  `{base: 0, token: "one"}`. Source restored and rebuilt.
+- A-7 against OB-9, 2026-11-02: ignoring the work in `Fx.tap` failed model
+  agreement after 15 tests (`/tmp/ablation-a7-refex.out`):
+
+  ```rescript
+  Tap(Access(0, "a"), Const(Suspend(Access(0, "a"))))
+  ```
+
+  `seed: -339515073`, `path: "14:0:0:0:0:0:0"`, environment
+  `{base: 0, token: "one"}`. Re-running the mutated production against the
+  named examples failed on the development example after one test
+  (`seed: 1202945863`, `path: "0"`), so the examples alone catch A-7
+  (`/tmp/ablation-a7-example-refex.out`). Source restored and rebuilt.
 
 ## Interfaces and dependencies
 
