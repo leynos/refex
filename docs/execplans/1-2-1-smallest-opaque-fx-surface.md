@@ -297,6 +297,11 @@ regenerated `typos.toml` are excluded from every count below.
     now says `IO` and `Fx` join it until EP-M5 retires `Bootstrap`.
   - [x] Review round 21: re-review of `9a006b2` returned no findings. EP-M3 is
     review-complete.
+  - [x] Review round 22, raised by the EP-M4 milestone review: one minor
+    finding, valid. `build()` in `tests/compiler-fixtures.test.mjs` ran
+    `Bun.spawnSync` without a process timeout, so the per-case test timeout
+    could not interrupt a blocking compiler process. The spawn now carries a
+    60-second timeout.
 - [ ] EP-M4: law and model-agreement property tests.
   - [x] Commit 1, "Add fast-check as an exact development dependency":
     `fast-check` 4.10.2 in `devDependencies`, with `bun.lock` recording the

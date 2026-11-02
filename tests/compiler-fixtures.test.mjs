@@ -124,9 +124,11 @@ function linkToolchain() {
 }
 
 function build() {
+  // A synchronous spawn blocks the event loop, so the per-case test timeout
+  // cannot interrupt it; bound the process itself instead.
   const result = Bun.spawnSync(
     [process.execPath, "run", "--bun", "rescript", "build"],
-    { cwd: project },
+    { cwd: project, timeout: 60_000 },
   );
   return {
     status: result.exitCode,
