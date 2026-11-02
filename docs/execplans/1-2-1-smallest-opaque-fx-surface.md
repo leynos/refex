@@ -382,6 +382,10 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Review round 30: one minor finding, valid. The plan declared
     `Status: COMPLETE` while EP-M6 remained unchecked and the last revision note
     still said `IN PROGRESS`. Both records now state completion.
+  - [x] Review round 31: re-review of `2088234` returned no findings. EP-M6 is
+    review-complete. Gates at `2088234`: `make all` passed with 193 tests in 17
+    files and a verified ten-file package, `make coverage` passed 70 tests at
+    100 per cent, and `make audit` found no vulnerabilities.
 
 ## Surprises & discoveries
 
