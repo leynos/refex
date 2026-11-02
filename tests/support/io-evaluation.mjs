@@ -19,7 +19,7 @@ this helper with the private runtime entry point.
  */
 export function evaluate(io) {
   if (typeof io !== "function" || io.length !== 0) {
-    throw new TypeError("IO.t must be a zero-argument thunk, not " + typeof io);
+    throw new TypeError(`IO.t must be a zero-argument thunk, not ${typeof io}`);
   }
   const outcome = io();
   if (
@@ -28,7 +28,7 @@ export function evaluate(io) {
     (outcome.TAG !== "Ok" && outcome.TAG !== "Error")
   ) {
     throw new TypeError(
-      "IO.t must evaluate to a result, not " + typeof outcome,
+      `IO.t must evaluate to a result, not ${typeof outcome}`,
     );
   }
   return outcome;
