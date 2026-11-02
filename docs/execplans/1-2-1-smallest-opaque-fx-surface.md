@@ -355,6 +355,12 @@ regenerated `typos.toml` are excluded from every count below.
     stale pre-retirement statements in ADR 001's amendment and ADR 008, the
     unchecked EP-M5 entry, and the unrecorded `minimatch` override. All are
     corrected in the follow-up documentation commit.
+  - [x] Review round 26: three findings, two of them one defect. The design
+    brief contradicted its own "every entry is Proposed" statement after the
+    EP-M5 wording change, and both user-guide examples used `open Refex`, which
+    promotes warning 44 to an error when `Fx` is later used. The brief now
+    records the implemented construction subset, and the examples alias
+    `Refex.Fx` and `Refex.IO` instead of opening the namespace.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
 ## Surprises & discoveries

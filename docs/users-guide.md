@@ -93,7 +93,8 @@ environment once per evaluation.
 Two services:
 
 ```rescript
-open Refex
+module Fx = Refex.Fx
+module IO = Refex.IO
 
 type clock = {now: unit => int}
 type log = {format: int => string}
@@ -113,7 +114,7 @@ let io: IO.t<string, string> = Fx.provide(describe, {clock, log})
 Projection:
 
 ```rescript
-open Refex
+module Fx = Refex.Fx
 
 type small = {count: int}
 type large = {small: small, label: string}

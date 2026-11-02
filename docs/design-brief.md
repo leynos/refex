@@ -3,8 +3,9 @@
 Status: draft brief for roadmap task 1.1.1. Date: 17 October 2026. Authority:
 subordinate to the [technical design](design.md) and accepted ADRs. This brief
 defines and maps; it introduces no mechanism the design does not already state.
-Only the opaque `IO` and `Fx` descriptions in the [user guide](users-guide.md)
-are implemented; every abstraction below remains proposed.
+This brief describes the target abstractions; the [user guide](users-guide.md)
+records the implemented opaque `IO` and `Fx` construction and composition
+surface.
 
 ## Purpose and non-goals
 
@@ -23,8 +24,9 @@ atomicity, crash recovery, or publication commitment.
 ## Initial public abstractions
 
 Each entry states what the abstraction promises, what it does not, where its
-full contract lives, and its status. Every entry is **Proposed**: specified in
-the design, not implemented, exercised, or verified.
+full contract lives, and its status. Every entry is **Proposed** unless it
+states otherwise: specified in the design, not necessarily implemented,
+exercised, or verified.
 
 - **`IO` and `Fx`.** `IO<A, E>` is a lazy computation with success `A` and
   expected failure `E`; `Fx<A, E, R>` adds a required environment `R`.
@@ -32,7 +34,10 @@ the design, not implemented, exercised, or verified.
   sequencing, and environment access compose without a runner. Does not
   promise: purity of environment-free `IO`, or interruption of work that
   ignores cancellation. Contract:
-  [design §§2.1, 3](design.md#3-io-requirements-and-pipelines).
+  [design §§2.1, 3](design.md#3-io-requirements-and-pipelines). Status:
+  **Implemented** for construction, composition, environment access, and
+  provision as opaque descriptions; execution and the remaining contracts are
+  Proposed.
 - **Requirements and environments.** Services are ordinary records reached
   through a structural outer environment, with explicit projection as the sound
   fallback. Promises: a missing or conflicting capability fails compilation at
@@ -174,17 +179,17 @@ and recovery.
 
 ## Status vocabulary
 
-| Brief status | Meaning                                                                     | Context label (§1)      |
-| ------------ | --------------------------------------------------------------------------- | ----------------------- |
-| Proposed     | A refex contract specified in the design; not implemented or exercised.     | Proposed or Unvalidated |
-| Delegated    | Supplied outside refex; no refex integration is implemented.                | Open (until integrated) |
-| Deferred     | Outside the initial supported scope; needs its own consumer.                | Deferred                |
-| Open         | A decision or experiment must settle it first.                              | Open                    |
-| Implemented  | Present in installable source; no capability in this brief has this status. | Established             |
+| Brief status | Meaning                                                                 | Context label (§1)      |
+| ------------ | ----------------------------------------------------------------------- | ----------------------- |
+| Proposed     | A refex contract specified in the design; not implemented or exercised. | Proposed or Unvalidated |
+| Delegated    | Supplied outside refex; no refex integration is implemented.            | Open (until integrated) |
+| Deferred     | Outside the initial supported scope; needs its own consumer.            | Deferred                |
+| Open         | A decision or experiment must settle it first.                          | Open                    |
+| Implemented  | Present in installable source; applies to `IO` and `Fx` construction.   | Established             |
 
 Delegated names the owner of a capability, not its maturity: the delegate
-exists outside refex, but nothing here is implemented, so every Delegated row
-reads as Open until a refex integration exists.
+exists outside refex, but nothing else here is implemented, so every Delegated
+row reads as Open until a refex integration exists.
 
 A row moves to Implemented only when installable source exists. Consumer
 exercise and interpreter or platform verification are recorded separately in
