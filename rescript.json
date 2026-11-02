@@ -4,7 +4,7 @@
   "sources": [
     {
       "dir": "src",
-      "public": ["Bootstrap"]
+      "public": ["Bootstrap", "IO"]
     },
     {
       "dir": "tests",

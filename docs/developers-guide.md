@@ -172,10 +172,10 @@ make package-check
 
 This gate cleans and rebuilds, checks generated synchronization, creates a real
 archive with `bun pm pack --ignore-scripts`, and compares its contents against
-an independent explicit seven-file allowlist. The archive contains README,
-`LICENSE`, package metadata, ReScript configuration, and the bootstrap source,
-interface, and generated ESM. Tests, dev scripts, coverage, editor state, and
-unrelated documents must never enter it.
+an independent explicit nine-file allowlist. The archive contains README,
+`LICENSE`, package metadata, ReScript configuration, and the `Bootstrap` and
+`IO` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
+editor state, and unrelated documents must never enter it.
 
 A temporary clean consumer installs the archive with the matching compiler,
 then checks frozen installation, imports and executes the JavaScript entry
@@ -184,10 +184,20 @@ point, compiles `Refex.Bootstrap`, and executes that compiled consumer. No
 archive and fixture on success or failure. System tar only inspects the locally
 produced archive; no publishing command exists.
 
-The only module export is `refex/src/Bootstrap.res.mjs`. ReScript consumers
-emit that concrete package path automatically, so an alias-only `bootstrap`
-export would compile but fail at execution. The archive checker executes the
-compiled consumer to verify this integration detail.
+The module exports are `refex/src/Bootstrap.res.mjs` and
+`refex/src/IO.res.mjs`. ReScript consumers emit those concrete package paths
+automatically, so an alias-only export would compile but fail at execution. The
+archive checker executes the compiled consumer to verify this integration
+detail.
+
+## Test-only foreign function interfaces
+
+Production `src/` contains no `external`, cast, or `%raw`. Tests have exactly
+two documented exceptions. `tests/IoEvaluation.res` binds
+`tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
+representation recorded in ADR 008; road map task 1.3.1 replaces it with the
+private runtime entry. `tests/FastCheck.res` binds the property-test library
+when those suites arrive.
 
 ## CI, auditing, and dependency automation
 

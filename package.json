@@ -23,10 +23,14 @@
     "rescript.json",
     "src/Bootstrap.res",
     "src/Bootstrap.resi",
-    "src/Bootstrap.res.mjs"
+    "src/Bootstrap.res.mjs",
+    "src/IO.res",
+    "src/IO.resi",
+    "src/IO.res.mjs"
   ],
   "exports": {
     "./src/Bootstrap.res.mjs": "./src/Bootstrap.res.mjs",
+    "./src/IO.res.mjs": "./src/IO.res.mjs",
     "./package.json": "./package.json"
   },
   "dependencies": {

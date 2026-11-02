@@ -65,8 +65,8 @@ lint: ## Enforce compiler and authored support-file static checks
 
 test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	+$(MAKE) build
-	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/consumer.test.mjs \
-		./tests/dependency-contracts.test.mjs \
+	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/IO.test.res.mjs \
+		./tests/consumer.test.mjs ./tests/dependency-contracts.test.mjs \
 		./tests/documentation-contracts.test.mjs ./tests/generated-gate.test.mjs \
 		./tests/makefile-contracts.test.mjs ./tests/markdown-contracts.test.mjs \
 		./tests/package-contracts.test.mjs ./tests/workflow-contracts.test.mjs
@@ -74,7 +74,8 @@ test: ## Compile and explicitly execute the ReScript and JavaScript suites
 coverage: ## Measure generated JavaScript and write text plus LCOV reports
 	+$(MAKE) build
 	$(BUN) test --coverage --coverage-reporter=text --coverage-reporter=lcov \
-		--coverage-dir=coverage ./tests/Bootstrap.test.res.mjs ./tests/consumer.test.mjs
+		--coverage-dir=coverage ./tests/Bootstrap.test.res.mjs \
+		./tests/IO.test.res.mjs ./tests/consumer.test.mjs
 
 markdownlint: ## Lint Markdown with the committed policy
 	$(MDLINT) "**/*.md"

@@ -49,6 +49,9 @@ try {
     "package/src/Bootstrap.res",
     "package/src/Bootstrap.resi",
     "package/src/Bootstrap.res.mjs",
+    "package/src/IO.res",
+    "package/src/IO.resi",
+    "package/src/IO.res.mjs",
   ].sort();
   const contents = run(["tar", "-tzf", archive]).trim().split("\n").sort();
   assert.deepEqual(

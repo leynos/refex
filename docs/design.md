@@ -67,8 +67,12 @@ Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional. It
 conditions ADR 002's dependency rule for a bounded trial.
 
 [ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
-ReScript runtime as a production dependency. This revision changes no package,
-dependency, generated source, or public-module allowlist.
+ReScript runtime as a production dependency.
+[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) amends the
+bootstrap baseline: the opaque `IO` and `Fx` modules replace `Bootstrap` as the
+public modules and archive contents, and `public` is a declaration checked by
+contracts rather than a visibility boundary. Roadmap task 1.2.1 implements that
+surface and retires the probe.
 
 The preferred experiment uses a private Effect execution adapter. Before
 adoption, an ADR must address the bootstrap dependency restriction, adapter

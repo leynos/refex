@@ -31,8 +31,8 @@ unsupported until a publication decision is recorded.
 
 ## Importing
 
-The package exports exactly two paths: `./package.json` and the generated ESM
-entry point. Import the concrete ReScript output path:
+The package exports these paths: `./package.json`, `./src/Bootstrap.res.mjs`,
+and `./src/IO.res.mjs`. Import the concrete ReScript output path:
 
 ```javascript
 import { identity } from "refex/src/Bootstrap.res.mjs";
@@ -72,14 +72,28 @@ real Refex source exists.
 There is no stability promise of any kind: not semantic versioning, not source
 compatibility, not a deprecation window. The version is `0.0.0`.
 
+## `IO`
+
+`IO.t<'a, 'e>` is a lazy description of work that succeeds with `'a` or fails
+with the expected error `'e`. Build one with `IO.succeed`, `IO.fail`, or
+`IO.suspend`, and combine descriptions with `IO.flatMap` and `IO.mapError`.
+Building a description runs nothing. The type is abstract, so consumers cannot
+call, inspect, or forge one.
+
+This release provides **no runner**. Roadmap task 1.3.1 adds the runtime entry
+point that evaluates a description; until then the repository's tests are the
+only code that does so. `Bootstrap` remains in the package until task 1.2.1
+retires it in its final milestone, and `Fx` follows in the same task.
+
 ## Generated output
 
-`src/Bootstrap.res.mjs` is compiler output, committed so the archive and the
-package export path resolve without a build step. Do not read it as the
-definition of the API's behaviour and never hand-edit it: ReScript 12.3.1 does
-not copy the source's documentation comments into generated JavaScript, so the
-generated file carries no docstrings by design. The ReScript source and its
-`.resi` interface are the documentation of record.
+Production output under `src/`, including `src/Bootstrap.res.mjs` and
+`src/IO.res.mjs`, is compiler output, committed so the archive and the package
+export paths resolve without a build step. Do not read it as the definition of
+the API's behaviour and never hand-edit it: ReScript 12.3.1 does not copy the
+source's documentation comments into generated JavaScript, so the generated
+file carries no docstrings by design. The ReScript source and its `.resi`
+interface are the documentation of record.
 
 ## Getting help
 
