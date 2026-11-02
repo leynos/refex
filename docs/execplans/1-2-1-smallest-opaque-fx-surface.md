@@ -262,6 +262,10 @@ regenerated `typos.toml` are excluded from every count below.
     guard; the `IO.t` representation is attributed to D-2 rather than ADR 008
     in the developer guide and the evaluation helper; and the Makefile
     contract's two recipe parsers became one `recipeCommand` helper.
+  - [x] Review round 15: one finding, valid. Four stale statements still
+    described `provide` as `fx(environment)`; the abstract model, its prose,
+    EP-M2 Green step 1, and the interface snippet now suspend the application.
+    Re-review pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
@@ -674,14 +678,15 @@ tap(m, k)             = flatMap(m, λa. map(k(a), λ_. a))
 mapError(m, g)        = λr. IO.mapError(IO.suspend(λ(). m(r)), g)
 access(h)             = λr. IO.suspend(λ(). IO.succeed(h(r)))
 accessEffect(h)       = λr. IO.suspend(λ(). h(r)(r))
-provide(m, r)         = m(r)
+provide(m, r)         = IO.suspend(λ(). m(r))
 contramapEnvironment(m, p) = λl. IO.suspend(λ(). m(p(l)))
 ```
 
-`provide` applies the description directly. Every combinator's environment
-closure is inert (C-13), so `provide` runs no callback by construction; the
-combinators, not `provide`, own deferral. This assignment makes each
-combinator's deferral observable through `provide` (see ablations A-2, A-5).
+`provide` suspends the application of the description to the environment. Every
+combinator's environment closure is also inert (C-13), so `provide` runs no
+callback and does not traverse the description; the combinators, not `provide`,
+own deferral. This assignment makes each combinator's deferral observable
+through `provide` (see ablations A-2, A-5).
 
 Premises under which the equations below are claimed:
 
@@ -1146,7 +1151,7 @@ commits separate (AGENTS.md).
   1. Create `src/Fx.resi` and `src/Fx.res` as specified. `Fx.res` uses only
      `IO.resi`. Each combinator returns an explicit environment closure whose
      body calls user code only inside IO thunks (C-13); `flatMap` follows
-     design §3.1's shape; `provide` is `fx(environment)`.
+     design §3.1's shape; `provide` is `IO.suspend(() => fx(environment))`.
   2. Register `Fx` in `public`, `files`, `exports`, `packageContract`, the
      package-check allowlist, and the interface-contract table.
   3. Stage `src/Fx.res src/Fx.resi src/Fx.res.mjs`.
@@ -1801,7 +1806,8 @@ let flatMap = (first: t<'a, 'e, 'r>, next: 'a => t<'b, 'e, 'r>): t<'b, 'e, 'r> =
 let access = (read: 'r => 'a): t<'a, 'e, 'r> =>
   environment => IO.suspend(() => IO.succeed(read(environment)))
 
-let provide = (fx: t<'a, 'e, 'r>, environment: 'r): IO.t<'a, 'e> => fx(environment)
+let provide = (fx: t<'a, 'e, 'r>, environment: 'r): IO.t<'a, 'e> =>
+  IO.suspend(() => fx(environment))
 ```
 
 ### Dependencies
