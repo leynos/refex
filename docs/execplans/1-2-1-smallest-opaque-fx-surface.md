@@ -366,6 +366,11 @@ regenerated `typos.toml` are excluded from every count below.
     contradicts the committed fixture cases and EP-M3's finding that
     formatter stability, not source length, is the constraint. The guide now
     states formatter stability directly.
+  - [x] Review round 28: three findings, each reported twice, all valid. The
+    consumer test lacked its `@file` header; D-16 misquoted `markdownlint-cli`
+    0.49.1's `minimatch` range as `~10.2.6` when the CLI pins `~10.2.5`; and
+    C18 described fast-check as having no runtime dependencies when it depends
+    on `pure-rand ^8.0.0`. All three records are corrected.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
 ## Surprises & discoveries
@@ -566,13 +571,13 @@ regenerated `typos.toml` are excluded from every count below.
   through one helper.
 - D-16 (2026-11-02): EP-M4's gate run made `make audit` red on
   `minimatch@10.2.6` (GHSA-g3hv-75wg-m249), reached through
-  `markdownlint-cli@0.49.1`. Both the current and the newer `0.50.0` pin
-  `~10.2.6`, so upgrading the CLI does not clear the advisory. The existing
-  `overrides` block pins `minimatch` to `11.0.4`, following the same
-  remediation already used for `smol-toml`; `make markdownlint` passes against
-  the overridden major. `make audit` is a required EP-M6 acceptance gate, so
-  the repair lands before the milestone review rather than as an accepted
-  advisory.
+  `markdownlint-cli@0.49.1`. The current CLI pins `~10.2.5` and the newer
+  `0.50.0` pins `~10.2.6`; both resolve to the affected 10.2.6, so upgrading
+  the CLI does not clear the advisory. The existing `overrides` block pins
+  `minimatch` to `11.0.4`, following the same remediation already used for
+  `smol-toml`; `make markdownlint` passes against the overridden major.
+  `make audit` is a required EP-M6 acceptance gate, so the repair lands before
+  the milestone review rather than as an accepted advisory.
 
 ## Outcomes & retrospective
 

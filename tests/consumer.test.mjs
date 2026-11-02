@@ -1,5 +1,5 @@
 /**
-Plain JavaScript consumer test for the package exports.
+@file Plain JavaScript consumer test for the package exports.
 
 It imports the committed generated ESM through the same `refex/src/...` paths
 an external package consumer uses, so a broken export map or a missing
