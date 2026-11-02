@@ -42,13 +42,19 @@ clean: ## Remove compiler output and coverage artefacts
 	rm -rf coverage
 
 fmt: ## Apply canonical ReScript, support-file and Markdown formatting
-	$(RESCRIPT) format src/*.res src/*.resi tests/*.res
+	$(RESCRIPT) format src/*.res src/*.resi tests/*.res \
+		tests/fixtures/compiler/fx-surface/base/*.res \
+		tests/fixtures/compiler/fx-surface/base/*.resi \
+		tests/fixtures/compiler/fx-surface/cases/*.res
 	$(BIOME) format --write .
 	$(MDTABLEFIX) --in-place $(MDTABLEFIX_RULES)
 	$(MDLINT) --fix "**/*.md"
 
 check-fmt: ## Check formatting without rewriting source
-	$(RESCRIPT) format --check src/*.res src/*.resi tests/*.res
+	$(RESCRIPT) format --check src/*.res src/*.resi tests/*.res \
+		tests/fixtures/compiler/fx-surface/base/*.res \
+		tests/fixtures/compiler/fx-surface/base/*.resi \
+		tests/fixtures/compiler/fx-surface/cases/*.res
 	$(BIOME) check --linter-enabled=false --assist-enabled=false .
 	$(MDTABLEFIX) --check $(MDTABLEFIX_RULES)
 
@@ -66,7 +72,9 @@ lint: ## Enforce compiler and authored support-file static checks
 test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	+$(MAKE) build
 	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/Fx.test.res.mjs \
-		./tests/IO.test.res.mjs ./tests/consumer.test.mjs ./tests/dependency-contracts.test.mjs \
+		./tests/IO.test.res.mjs ./tests/consumer.test.mjs \
+		./tests/compiler-fixture-matching.test.mjs ./tests/compiler-fixtures.test.mjs \
+		./tests/dependency-contracts.test.mjs \
 		./tests/documentation-contracts.test.mjs ./tests/generated-gate.test.mjs \
 		./tests/interface-contracts.test.mjs \
 		./tests/makefile-contracts.test.mjs ./tests/markdown-contracts.test.mjs \

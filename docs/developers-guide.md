@@ -136,6 +136,42 @@ baseline only once product code exists.
 default test patterns do not recognize the compiler's `.test.res.mjs` output.
 This corrects current coverage, not speculative workspace configuration.
 
+### Compiler fixtures
+
+`tests/compiler-fixtures.test.mjs` builds a temporary consumer that installs
+exactly the package's `files` allowlist into `node_modules/refex/`, symlinks
+the pinned toolchain, and compiles `tests/fixtures/compiler/fx-surface/base/`.
+The base's nine modules exercise multi-module accumulation, projection,
+injection, and opacity. The fixture project lives under `os.tmpdir()` and
+`afterAll` removes it; it is never packaged.
+`tests/compiler-fixture-matching.mjs` holds the matcher, the cast scan, and the
+one-line comparison, and its only permitted callers are the runner and
+`compiler-fixture-matching.test.mjs`. It is not a generic test framework.
+
+A case is one file under `cases/`, named `<id>.res`, with one entry in
+`cases.json`. Write the source as a two- or three-line declaration, build it as
+`src/Case.res`, and record the diagnostic's file, first line, and stable
+fragments. Match stable message fragments after collapsing whitespace, never a
+whole message or a mangled module name. Every negative case needs a positive
+control that differs by exactly one line; a syntax-broken case is stored as
+`<id>.res.txt` and is excluded from `rescript format`. The runner asserts that
+the id/file set in `cases.json` equals the files under `cases/`.
+
+Accepted sources are the only place the runner scans for casts. The scan is
+deliberately syntactic and reports `Obj.magic`, `:>`, `%identity`, `%raw`, and
+`external`. A case declares `castScanExemption` only when the coercion is a
+declared variance witness. ADR 005 scopes its `:>` ban to requirement rows, so
+`fx-widen-result` records why its `result` coercion is permitted while
+`fx-add-requirement` records the requirement-row witness.
+
+Outside a record's defining module, qualify the field access:
+`environment["clock"].Clock.now()`. The unqualified
+`environment["clock"].now()` fails with "now refers to a record field, but no
+corresponding record type is in scope" (R-2). Diagnostics are specific to
+ReScript 12.3.1; the runner first fails closed on any other compiler version.
+Each case has a 60-second timeout and the suite has a 120-second budget and
+logs its wall-clock time.
+
 ## Formatting and analysis
 
 ```bash
