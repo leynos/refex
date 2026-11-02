@@ -376,4 +376,18 @@ describe("Fx", () => {
       )
     },
   )
+
+  // Provision must hand its backend a description without first traversing the
+  // chain (design §3.1). Evaluating a chain this deep remains task 1.3.1's
+  // stack-safety work (R-4); completing this case without a stack overflow is
+  // the assertion.
+  test("Given a deep map chain, when provided, then provision does not recurse", () => {
+    let fx: ref<Fx.t<int, string, unit>> = ref(Fx.succeed(0))
+    let remaining = ref(50000)
+    while remaining.contents > 0 {
+      fx := Fx.map(fx.contents, value => value + 1)
+      remaining := remaining.contents - 1
+    }
+    let _io = Fx.provide(fx.contents, ())
+  })
 })

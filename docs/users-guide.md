@@ -102,13 +102,14 @@ and, once provided, yields `IO.t<'a, 'e>`. Build one with `Fx.succeed`,
 `Fx.accessEffect`; apply it with `Fx.provide`; and adapt it to a larger
 environment with `Fx.contramapEnvironment`.
 
-Building a description and calling `Fx.provide` run no user callback.
-Environment reads, projections, and every user function run only when the
-resulting `IO.t` is evaluated, once per evaluation. `Fx.flatMap` short-circuits
-on failure, and `Fx.tap` runs its work once in order and keeps the original
-value; if the work fails, the whole description fails with that error.
-`Fx.accessEffect` runs the description it returns in the same environment, and
-`Fx.contramapEnvironment` projects the environment once per evaluation.
+Building a description and calling `Fx.provide` run no user callback, and
+provision does not traverse the description. Environment reads, projections,
+and every user function run only when the resulting `IO.t` is evaluated, once
+per evaluation. `Fx.flatMap` short-circuits on failure, and `Fx.tap` runs its
+work once in order and keeps the original value; if the work fails, the whole
+description fails with that error. `Fx.accessEffect` runs the description it
+returns in the same environment, and `Fx.contramapEnvironment` projects the
+environment once per evaluation.
 
 Two services:
 

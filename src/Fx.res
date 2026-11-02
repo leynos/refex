@@ -13,7 +13,8 @@ let suspend = (make: unit => t<'a, 'e, 'r>): t<'a, 'e, 'r> =>
   environment => IO.suspend(() => make()(environment))
 
 let map = (fx: t<'a, 'e, 'r>, transform: 'a => 'b): t<'b, 'e, 'r> =>
-  environment => IO.flatMap(fx(environment), value => IO.succeed(transform(value)))
+  environment =>
+    IO.suspend(() => IO.flatMap(fx(environment), value => IO.succeed(transform(value))))
 
 let flatMap = (first: t<'a, 'e, 'r>, next: 'a => t<'b, 'e, 'r>): t<'b, 'e, 'r> =>
   environment =>
@@ -23,12 +24,14 @@ let flatMap = (first: t<'a, 'e, 'r>, next: 'a => t<'b, 'e, 'r>): t<'b, 'e, 'r> =
 
 let tap = (fx: t<'a, 'e, 'r>, work: 'a => t<'b, 'e, 'r>): t<'a, 'e, 'r> =>
   environment =>
-    IO.flatMap(fx(environment), value =>
-      IO.flatMap(work(value)(environment), _ => IO.succeed(value))
+    IO.suspend(() =>
+      IO.flatMap(fx(environment), value =>
+        IO.flatMap(work(value)(environment), _ => IO.succeed(value))
+      )
     )
 
 let mapError = (fx: t<'a, 'e1, 'r>, transform: 'e1 => 'e2): t<'a, 'e2, 'r> =>
-  environment => IO.mapError(fx(environment), transform)
+  environment => IO.suspend(() => IO.mapError(fx(environment), transform))
 
 let access = (read: 'r => 'a): t<'a, 'e, 'r> =>
   environment => IO.suspend(() => IO.succeed(read(environment)))
@@ -36,7 +39,8 @@ let access = (read: 'r => 'a): t<'a, 'e, 'r> =>
 let accessEffect = (next: 'r => t<'a, 'e, 'r>): t<'a, 'e, 'r> =>
   environment => IO.suspend(() => next(environment)(environment))
 
-let provide = (fx: t<'a, 'e, 'r>, environment: 'r): IO.t<'a, 'e> => fx(environment)
+let provide = (fx: t<'a, 'e, 'r>, environment: 'r): IO.t<'a, 'e> =>
+  IO.suspend(() => fx(environment))
 
 let contramapEnvironment = (fx: t<'a, 'e, 'small>, project: 'large => 'small): t<'a, 'e, 'large> =>
   environment => IO.suspend(() => fx(project(environment)))

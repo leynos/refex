@@ -53,7 +53,10 @@ evaluation. Runs nothing when called.
 */
 let accessEffect: ('r => t<'a, 'e, 'r>) => t<'a, 'e, 'r>
 
-/** Applies `fx` to `environment`, producing the description to evaluate. */
+/**
+Returns a description that applies `fx` to `environment` when evaluated.
+Applying it does not traverse the description, and nothing runs when called.
+*/
 let provide: (t<'a, 'e, 'r>, 'r) => IO.t<'a, 'e>
 
 /**

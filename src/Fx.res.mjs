@@ -15,7 +15,7 @@ function suspend(make) {
 }
 
 function map(fx, transform) {
-  return environment => IO$Refex.flatMap(fx(environment), value => IO$Refex.succeed(transform(value)));
+  return environment => IO$Refex.suspend(() => IO$Refex.flatMap(fx(environment), value => IO$Refex.succeed(transform(value))));
 }
 
 function flatMap(first, next) {
@@ -23,11 +23,11 @@ function flatMap(first, next) {
 }
 
 function tap(fx, work) {
-  return environment => IO$Refex.flatMap(fx(environment), value => IO$Refex.flatMap(work(value)(environment), param => IO$Refex.succeed(value)));
+  return environment => IO$Refex.suspend(() => IO$Refex.flatMap(fx(environment), value => IO$Refex.flatMap(work(value)(environment), param => IO$Refex.succeed(value))));
 }
 
 function mapError(fx, transform) {
-  return environment => IO$Refex.mapError(fx(environment), transform);
+  return environment => IO$Refex.suspend(() => IO$Refex.mapError(fx(environment), transform));
 }
 
 function access(read) {
@@ -39,7 +39,7 @@ function accessEffect(next) {
 }
 
 function provide(fx, environment) {
-  return fx(environment);
+  return IO$Refex.suspend(() => fx(environment));
 }
 
 function contramapEnvironment(fx, project) {
