@@ -16,7 +16,11 @@ published. ADR 001 fixes the archive contents.
 [ADR 004](adr-004-runtime-boundary.md) permits, for its bounded trial, "private
 `src/` modules absent from the public allowlist".
 [ADR 006](adr-006-complete-outcomes.md) requires `'e` to be invariant in
-`IO.resi`, which the compiler checks once `IO.t` has a concrete definition.
+`IO.resi`. The compiler checks a declared variance against the concrete
+definition, but it does not require invariance: `unit => result<'a, 'e>` is
+covariant in `'e`, so an invariant declaration is accepted trivially. The
+`fx-error-widening` fixture, not the compiler's variance check, guards the
+invariant.
 
 Compiler probes on the pinned toolchain change what those words can mean. Under
 ReScript 12.3.1's default build, Rewatch:

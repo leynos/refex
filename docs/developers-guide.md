@@ -235,9 +235,9 @@ integration detail.
 Production `src/` contains no `external`, cast, or `%raw`. Tests currently have
 one documented exception. `tests/IoEvaluation.res` binds
 `tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
-representation recorded in ADR 008; road map task 1.3.1 replaces it with the
-private runtime entry. EP-M4 of task 1.2.1 adds the second exception,
-`tests/FastCheck.res`, which binds the property-test library.
+representation recorded by decision D-2 in the 1.2.1 ExecPlan; road map task
+1.3.1 replaces it with the private runtime entry. EP-M4 of task 1.2.1 adds the
+second exception, `tests/FastCheck.res`, which binds the property-test library.
 
 ## Surface contracts
 

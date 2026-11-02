@@ -21,6 +21,12 @@ TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=$(UV_CACHE_DIR) UV_TOOL_DIR=$(UV_TOOL_DIR) \
 	$(UV) tool run --python 3.14.7 --from \
 	"git+https://github.com/leynos/typos-config-builder.git@c8a4f95d7cf7f6a1b7517f2775d122d47d5721eb" \
 	typos-config-builder
+# One list for the formatter and its check, so a checked path is always a
+# formatted path. The fixture globs are explicit because `**` is not portable.
+RES_FILES = src/*.res src/*.resi tests/*.res \
+	tests/fixtures/compiler/fx-surface/base/*.res \
+	tests/fixtures/compiler/fx-surface/base/*.resi \
+	tests/fixtures/compiler/fx-surface/cases/*.res
 
 .PHONY: help install build watch clean fmt check-fmt check-generated typecheck lint \
 	test coverage markdownlint spelling docs-check package-check audit all
@@ -42,19 +48,13 @@ clean: ## Remove compiler output and coverage artefacts
 	rm -rf coverage
 
 fmt: ## Apply canonical ReScript, support-file and Markdown formatting
-	$(RESCRIPT) format src/*.res src/*.resi tests/*.res \
-		tests/fixtures/compiler/fx-surface/base/*.res \
-		tests/fixtures/compiler/fx-surface/base/*.resi \
-		tests/fixtures/compiler/fx-surface/cases/*.res
+	$(RESCRIPT) format $(RES_FILES)
 	$(BIOME) format --write .
 	$(MDTABLEFIX) --in-place $(MDTABLEFIX_RULES)
 	$(MDLINT) --fix "**/*.md"
 
 check-fmt: ## Check formatting without rewriting source
-	$(RESCRIPT) format --check src/*.res src/*.resi tests/*.res \
-		tests/fixtures/compiler/fx-surface/base/*.res \
-		tests/fixtures/compiler/fx-surface/base/*.resi \
-		tests/fixtures/compiler/fx-surface/cases/*.res
+	$(RESCRIPT) format --check $(RES_FILES)
 	$(BIOME) check --linter-enabled=false --assist-enabled=false .
 	$(MDTABLEFIX) --check $(MDTABLEFIX_RULES)
 

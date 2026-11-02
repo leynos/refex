@@ -37,21 +37,26 @@ const authoredSuites = () =>
     .map((name) => `./tests/${name.endsWith(".res") ? `${name}.mjs` : name}`)
     .sort();
 
-// The joined `$(BUN) test` command of the `test` recipe, up to any shell
+// The joined `$(BUN) test` command of a target's recipe, up to any shell
 // comment: a path in a recipe comment, a trailing comment, or another command
 // is not executed by `bun test`. Throws when the recipe or command is absent.
-function testCommand(makefile) {
-  const recipe = makefile.match(/^test:.*\n((?:\t.*\n?)+)/m)?.[1];
-  if (!recipe) throw new Error("Makefile has no test recipe");
+// `test` and `coverage` share this parser so a fix to one cannot miss the other.
+function recipeCommand(makefile, target) {
+  const recipe = makefile.match(
+    new RegExp(`^${target}:.*\\n((?:\\t.*\\n?)+)`, "m"),
+  )?.[1];
+  if (!recipe) throw new Error(`Makefile has no ${target} recipe`);
   const command = recipe
     .replace(/\\\n\t*/g, " ")
     .split("\n")
     .map((line) => line.trim())
     .find((line) => line.startsWith("$(BUN) test "))
     ?.replace(/\s#.*$/, "");
-  if (!command) throw new Error("test recipe has no $(BUN) test command");
+  if (!command) throw new Error(`${target} recipe has no $(BUN) test command`);
   return command;
 }
+
+const testCommand = (makefile) => recipeCommand(makefile, "test");
 
 // The suite paths a command line names.
 const namedSuites = (command) =>
@@ -77,18 +82,7 @@ const rescriptSuites = () =>
 
 // The suite paths named by the `coverage` recipe, which has the same command
 // shape as `test` plus coverage flags.
-function coverageCommand(makefile) {
-  const recipe = makefile.match(/^coverage:.*\n((?:\t.*\n?)+)/m)?.[1];
-  if (!recipe) throw new Error("Makefile has no coverage recipe");
-  const command = recipe
-    .replace(/\\\n\t*/g, " ")
-    .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.startsWith("$(BUN) test "))
-    ?.replace(/\s#.*$/, "");
-  if (!command) throw new Error("coverage recipe has no $(BUN) test command");
-  return command;
-}
+const coverageCommand = (makefile) => recipeCommand(makefile, "coverage");
 
 describe("Makefile contracts", () => {
   test("spelling gate lets the provisioner choose the uv cache location", () => {

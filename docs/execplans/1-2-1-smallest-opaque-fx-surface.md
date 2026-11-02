@@ -11,9 +11,9 @@ Status: IN PROGRESS
 Plan identifier: `EP-1.2.1`. Branch: `1-2-1-smallest-opaque-fx-surface`.
 Roadmap task:
 [1.2.1](../roadmap.md#12-prove-dependency-and-error-composition-through-separate-modules),
-the first task of step 1.2. Implementation must not begin until the repository
-owner approves this plan. EP-M1 additionally waits for the owner to accept ADR
-008, which EP-M0 drafts.
+the first task of step 1.2. The repository owner approved this plan on
+2 November 2026 (D-14). EP-M1 additionally waited for the owner to accept ADR
+008, which EP-M0 drafted and the owner accepted.
 
 ## Purpose / big picture
 
@@ -252,8 +252,16 @@ regenerated `typos.toml` are excluded from every count below.
     `a5d162d`: 156 tests in 14 files.
   - [x] Ablations A-10, A-11, and A-12 record the fixture suite's sensitivity
     to each interface change (see `Artefacts and notes`).
-  - [ ] Commit 2, "Build the multi-module consumer from the packed archive":
-    implemented and observed; gate and review pending.
+  - [x] Commit 2, "Build the multi-module consumer from the packed archive":
+    `make all` green at `3a343d2`.
+  - [x] Review round 14: seven findings, all valid and all fixed in one
+    follow-up commit. The formatter path list moved to `RES_FILES`; the
+    plan's pre-approval wording and its "proposed" ADR description became
+    past tense; ADR 008 now says the compiler checks a variance declaration
+    but does not require invariance, with `fx-error-widening` named as the
+    guard; the `IO.t` representation is attributed to D-2 rather than ADR 008
+    in the developer guide and the evaluation helper; and the Makefile
+    contract's two recipe parsers became one `recipeCommand` helper.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
@@ -592,8 +600,8 @@ Upstream artefacts at commit `826202b37289a590cfaebdbd661baabbcc3e5ff5`
 This plan invents no new upstream identifiers. Plan-local identifiers are `C-n`
 (constraints), `R-n` (risks), `D-n` (decisions), `EP-Mn` (milestones), `OB-n`
 (verification obligations), `P-n` (premises), `AXIOM-n` (axioms), `A-n`
-(ablations), and `K-n` (matrix rows). ADR 008 is a new, proposed upstream
-artefact that this plan drafts.
+(ablations), and `K-n` (matrix rows). ADR 008 is a new artefact that this plan
+drafted; the repository owner accepted it on 2 November 2026.
 
 Trace chains:
 

@@ -2,8 +2,9 @@
 @file Test-only evaluation of an `IO.t` description.
 
 `IO.t` is opaque to consumers, so the suites cannot call it directly. This
-helper is the single place that relies on the representation recorded in
-ADR 008: a zero-argument thunk returning a `result`. It rejects an unexpected
+helper is the single place that relies on the representation recorded by
+decision D-2 in the 1.2.1 ExecPlan: a zero-argument thunk returning a `result`.
+It rejects an unexpected
 shape loudly, because a silent `undefined` would make a broken representation
 look like a passing test.
 
