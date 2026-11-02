@@ -371,6 +371,9 @@ regenerated `typos.toml` are excluded from every count below.
     0.49.1's `minimatch` range as `~10.2.6` when the CLI pins `~10.2.5`; and
     C18 described fast-check as having no runtime dependencies when it depends
     on `pure-rand ^8.0.0`. All three records are corrected.
+  - [x] Review round 29: re-review of `4e03e21` returned no findings over 82
+    files. EP-M5 is review-complete. Gates at `4e03e21`: `make all` passed with
+    193 tests in 17 files and a verified ten-file package.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
 ## Surprises & discoveries
