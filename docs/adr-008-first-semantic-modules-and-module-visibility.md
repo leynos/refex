@@ -98,7 +98,7 @@ encapsulation, with its own evidence, when it introduces the execution adapter.
 | Option                                               | Assessment                                                                                                        |
 | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | An unlisted "private kernel" module holding a runner | Reachable by consumers (`ns1`), so C-5's no-runner guarantee would not hold.                                      |
-| Make `IO.t` manifestly equal to a kernel type        | Leaks the kernel's module name in consumer diagnostics (`ns4`) and defeats opacity.                               |
+| Make `IO.t` manifestly equal to a kernel type        | Leaks the kernel's module name in consumer diagnostics and defeats opacity.                                       |
 | Nest `IO` inside `Fx`                                | Diverges from ADR 005's `IO.t` and from the `provide` signature it fixes.                                         |
 | Adopt `namespace-entry` now                          | Undocumented at the 12.3.1 tag; in-package development access untested. Left to task 1.3.1 with its own evidence. |
 
@@ -117,26 +117,26 @@ encapsulation, with its own evidence, when it introduces the execution adapter.
 
 ## Consequences
 
-The package's semantic surface is `IO` and `Fx`; the archive grows from the
-bootstrap module to those two modules and their generated output. Adding a
-public module or a public export is now a contract change that must be made
-deliberately, because the module and export-set contracts will reject an
-unrecorded addition. Consumers of the packed package can reach every `src/`
-module, so the honesty of the public declaration rests on those contracts and
-on review, not on the compiler. JavaScript consumers remain untyped and can
-call the generated representation directly; opacity is a ReScript-consumer
-guarantee only.
+The package's semantic surface is `IO` and `Fx`; the archive now contains those
+two modules and their generated output alongside `Bootstrap`, which EP-M5
+retires. Adding a public module or a public export is now a contract change
+that must be made deliberately, because the module and export-set contracts
+will reject an unrecorded addition. Consumers of the packed package can reach
+every `src/` module, so the honesty of the public declaration rests on those
+contracts and on review, not on the compiler. JavaScript consumers remain
+untyped and can call the generated representation directly; opacity is a
+ReScript-consumer guarantee only.
 
 ## Amendments
 
 ### ADR 001
 
-The archive allowlist admits the package's semantic modules in place of the
+The archive allowlist admits the package's semantic modules in addition to the
 bootstrap module: `IO` and `Fx`, each with its `.resi` and generated ESM,
-replacing `Bootstrap`. ADR 001's consequence that "new semantic code must
-replace the disposable module" is executed by roadmap task 1.2.1. Every other
-bootstrap rule, including exact pins, generated-output policy, and the isolated
-archive check, stands.
+alongside `Bootstrap` until EP-M5 retires it. ADR 001's consequence that "new
+semantic code must replace the disposable module" is executed by roadmap task
+1.2.1. Every other bootstrap rule, including exact pins, generated-output
+policy, and the isolated archive check, stands.
 
 ### ADR 004
 

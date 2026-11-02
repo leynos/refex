@@ -289,6 +289,13 @@ regenerated `typos.toml` are excluded from every count below.
     and live-observation cases are `tests/FxEnvironment.test.res`. Both are
     registered in `test` and `coverage`, and the layout, guide, and plan name
     them. Re-review pending.
+  - [x] Review round 20: two findings, both valid, both documentation defects.
+    The alternatives table cited probe `ns4`, which the linked evidence record
+    does not contain; the citation is dropped, and the reason stands on the
+    leaked kernel name. The archive wording in ADR 008, the ADR 001 amendment,
+    and `docs/design.md` implied `Bootstrap` had already left the archive; each
+    now says `IO` and `Fx` join it until EP-M5 retires `Bootstrap`. Re-review
+    pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
