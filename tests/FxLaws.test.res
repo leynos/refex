@@ -14,7 +14,7 @@ let fixed = LawHarness.fixedEnvironment
 let fxLaw = (name, make) =>
   law(name, () =>
     FastCheck.property2(FxLawModel.smallInt, LawHarness.step, (value, chosen) => {
-      let (left, right) = make(value, chosen, [])
+      let (left, right) = make(value, chosen)
       LawHarness.holdsFx(~resultsOnly=false, left, right, fixed)
     })
   )
@@ -23,40 +23,53 @@ describe("Fx laws", () => {
   fxLaw("Given Fx, when flatMap follows succeed, then the continuation is the only work", (
     value,
     chosen,
-    _,
   ) => {
     let leftTrace = []
     let rightTrace = []
     (
       LawHarness.fxTerm(
         Fx.flatMap(Fx.succeed(value), seen => LawHarness.fxFor(chosen, seen, leftTrace)),
+        leftTrace,
       ),
-      LawHarness.fxTerm(Fx.suspend(() => LawHarness.fxFor(chosen, value, rightTrace))),
+      LawHarness.fxTerm(Fx.suspend(() => LawHarness.fxFor(chosen, value, rightTrace)), rightTrace),
     )
   })
 
   fxLaw("Given Fx, when flatMap ends in succeed, then the description is unchanged", (
     value,
     chosen,
-    _,
   ) => {
     let leftTrace = []
     let rightTrace = []
     (
-      LawHarness.fxTerm(Fx.flatMap(LawHarness.fxFor(chosen, value, leftTrace), Fx.succeed)),
-      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace)),
+      LawHarness.fxTerm(
+        Fx.flatMap(LawHarness.fxFor(chosen, value, leftTrace), Fx.succeed),
+        leftTrace,
+      ),
+      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace), rightTrace),
     )
   })
 
-  fxLaw("Given Fx, when flatMap nests, then associativity holds", (value, chosen, _) => {
+  fxLaw("Given Fx, when flatMap nests, then associativity holds", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     let k1 = seen => LawHarness.fxFor(chosen, seen, leftTrace)
     let k2 = seen => LawHarness.fxFor(chosen, seen, leftTrace)
     (
-      LawHarness.fxTerm(Fx.flatMap(Fx.flatMap(LawHarness.fxFor(chosen, value, leftTrace), k1), k2)),
       LawHarness.fxTerm(
-        Fx.flatMap(LawHarness.fxFor(chosen, value, rightTrace), seen => Fx.flatMap(k1(seen), k2)),
+        Fx.flatMap(Fx.flatMap(LawHarness.fxFor(chosen, value, leftTrace), k1), k2),
+        leftTrace,
+      ),
+      LawHarness.fxTerm(
+        Fx.flatMap(
+          LawHarness.fxFor(chosen, value, rightTrace),
+          seen =>
+            Fx.flatMap(
+              LawHarness.fxFor(chosen, seen, rightTrace),
+              nested => LawHarness.fxFor(chosen, nested, rightTrace),
+            ),
+        ),
+        rightTrace,
       ),
     )
   })
@@ -64,40 +77,43 @@ describe("Fx laws", () => {
   fxLaw("Given Fx, when flatMap follows fail, then its continuation never runs", (
     _value,
     chosen,
-    _,
   ) => {
     let leftTrace = []
+    let rightTrace = []
     (
       LawHarness.fxTerm(
         Fx.flatMap(Fx.fail("halt"), seen => LawHarness.fxFor(chosen, seen, leftTrace)),
+        leftTrace,
       ),
-      LawHarness.fxTerm(Fx.fail("halt")),
+      LawHarness.fxTerm(Fx.fail("halt"), rightTrace),
     )
   })
 
   fxLaw("Given Fx, when suspend wraps a description, then evaluation is unchanged", (
     value,
     chosen,
-    _,
   ) => {
     let leftTrace = []
     let rightTrace = []
     (
-      LawHarness.fxTerm(Fx.suspend(() => LawHarness.fxFor(chosen, value, leftTrace))),
-      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace)),
+      LawHarness.fxTerm(Fx.suspend(() => LawHarness.fxFor(chosen, value, leftTrace)), leftTrace),
+      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace), rightTrace),
     )
   })
 
-  fxLaw("Given Fx, when mapError maps with identity, then nothing changes", (value, chosen, _) => {
+  fxLaw("Given Fx, when mapError maps with identity, then nothing changes", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     (
-      LawHarness.fxTerm(Fx.mapError(LawHarness.fxFor(chosen, value, leftTrace), error => error)),
-      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace)),
+      LawHarness.fxTerm(
+        Fx.mapError(LawHarness.fxFor(chosen, value, leftTrace), error => error),
+        leftTrace,
+      ),
+      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace), rightTrace),
     )
   })
 
-  fxLaw("Given Fx, when mapError nests, then composition holds", (value, chosen, _) => {
+  fxLaw("Given Fx, when mapError nests, then composition holds", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     let inner = error => error ++ "!"
@@ -105,15 +121,18 @@ describe("Fx laws", () => {
     (
       LawHarness.fxTerm(
         Fx.mapError(Fx.mapError(LawHarness.fxFor(chosen, value, leftTrace), inner), outer),
+        leftTrace,
       ),
       LawHarness.fxTerm(
         Fx.mapError(LawHarness.fxFor(chosen, value, rightTrace), error => outer(inner(error))),
+        rightTrace,
       ),
     )
   })
 
-  fxLaw("Given Fx, when mapError wraps a success, then its mapper never runs", (value, _, _) => {
+  fxLaw("Given Fx, when mapError wraps a success, then its mapper never runs", (value, _) => {
     let leftTrace = []
+    let rightTrace = []
     (
       LawHarness.fxTerm(
         Fx.mapError(
@@ -123,15 +142,23 @@ describe("Fx laws", () => {
             error
           },
         ),
+        leftTrace,
       ),
-      LawHarness.fxTerm(Fx.succeed(value)),
+      LawHarness.fxTerm(Fx.succeed(value), rightTrace),
     )
   })
 
-  fxLaw("Given Fx, when mapError wraps a failure, then it maps the error once", (_, _, _) => (
-    LawHarness.fxTerm(Fx.mapError(Fx.fail("nope"), error => error ++ "!")),
-    LawHarness.fxTerm(Fx.fail("nope!")),
-  ))
+  fxLaw("Given Fx, when mapError wraps a failure, then it maps the error once", (
+    _value,
+    _chosen,
+  ) => {
+    let leftTrace = []
+    let rightTrace = []
+    (
+      LawHarness.fxTerm(Fx.mapError(Fx.fail("nope"), error => error ++ "!"), leftTrace),
+      LawHarness.fxTerm(Fx.fail("nope!"), rightTrace),
+    )
+  })
 
   law("Given Fx, when mapError meets flatMap, then it distributes", () =>
     FastCheck.property2(
@@ -154,15 +181,15 @@ describe("Fx laws", () => {
         )
         LawHarness.holdsFx(
           ~resultsOnly=true,
-          LawHarness.fxTerm(left),
-          LawHarness.fxTerm(right),
+          LawHarness.fxTerm(left, leftTrace),
+          LawHarness.fxTerm(right, rightTrace),
           fixed,
         )
       },
     )
   )
 
-  fxLaw("Given Fx, when map replaces flatMap, then both agree", (value, chosen, _) => {
+  fxLaw("Given Fx, when map replaces flatMap, then both agree", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     (
@@ -174,6 +201,7 @@ describe("Fx laws", () => {
             seen + 1
           },
         ),
+        leftTrace,
       ),
       LawHarness.fxTerm(
         Fx.flatMap(
@@ -183,48 +211,54 @@ describe("Fx laws", () => {
             Fx.succeed(seen + 1)
           },
         ),
+        rightTrace,
       ),
     )
   })
 
-  fxLaw("Given Fx, when map applies identity, then nothing changes", (value, chosen, _) => {
+  fxLaw("Given Fx, when map applies identity, then nothing changes", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     (
-      LawHarness.fxTerm(Fx.map(LawHarness.fxFor(chosen, value, leftTrace), seen => seen)),
-      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace)),
+      LawHarness.fxTerm(
+        Fx.map(LawHarness.fxFor(chosen, value, leftTrace), seen => seen),
+        leftTrace,
+      ),
+      LawHarness.fxTerm(LawHarness.fxFor(chosen, value, rightTrace), rightTrace),
     )
   })
 
-  fxLaw("Given Fx, when map nests, then composition holds", (value, chosen, _) => {
+  fxLaw("Given Fx, when map nests, then composition holds", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     let first = seen => seen + 1
     let second = seen => seen * 2
     (
-      LawHarness.fxTerm(Fx.map(Fx.map(LawHarness.fxFor(chosen, value, leftTrace), first), second)),
+      LawHarness.fxTerm(
+        Fx.map(Fx.map(LawHarness.fxFor(chosen, value, leftTrace), first), second),
+        leftTrace,
+      ),
       LawHarness.fxTerm(
         Fx.map(LawHarness.fxFor(chosen, value, rightTrace), seen => second(first(seen))),
+        rightTrace,
       ),
     )
   })
 
-  fxLaw("Given Fx, when tap sequences work, then it equals flatMap then map", (
-    value,
-    chosen,
-    _,
-  ) => {
+  fxLaw("Given Fx, when tap sequences work, then it equals flatMap then map", (value, chosen) => {
     let leftTrace = []
     let rightTrace = []
     (
       LawHarness.fxTerm(
         Fx.tap(Fx.succeed(value), seen => LawHarness.fxFor(chosen, seen, leftTrace)),
+        leftTrace,
       ),
       LawHarness.fxTerm(
         Fx.flatMap(
           Fx.succeed(value),
           seen => Fx.map(LawHarness.fxFor(chosen, seen, rightTrace), _ => seen),
         ),
+        rightTrace,
       ),
     )
   })

@@ -147,15 +147,16 @@ binding and the model are test code only and never enter the package.
 `tests/FxLawModel.res` owns the defunctionalized description syntax, its
 arbitraries bounded at depth four, `build`, which maps every constructor onto
 the production operations with traced callbacks, and `denote`, an independent
-executable model. `tests/LawHarness.res` owns observation: each side is
-evaluated twice, and traces are compared only at the strength a law claims.
-`tests/LawSuite.res` owns the shared run count and timeout.
-`tests/IoLaws.test.res` checks OB-6, `tests/FxLaws.test.res` checks inertness
-and model agreement, and `tests/FxEnvironmentLaws.test.res` checks OB-7 and
-OB-8. The environment laws are a separate file only to keep both suites inside
-the authored-size tolerance. Constructor payloads are positional rather than
-inlined records, because ReScript 12.3.1 rejects an inlined record payload when
-a constructor is used inside a generated lambda.
+executable model. `tests/LawHarness.res` owns observation: each term carries
+the array its callbacks write to, each side is evaluated twice, and traces are
+compared only at the strength a law claims. `tests/LawSuite.res` owns the
+shared run count and timeout. `tests/IoLaws.test.res` checks OB-6,
+`tests/FxLaws.test.res` checks inertness and model agreement, and
+`tests/FxEnvironmentLaws.test.res` checks OB-7 and OB-8. The environment laws
+are a separate file only to keep both suites inside the authored-size
+tolerance. Constructor payloads are positional rather than inlined records,
+because ReScript 12.3.1 rejects an inlined record payload when a constructor is
+used inside a generated lambda.
 
 Each law runs 200 generated cases. A failure reports the fast-check `seed` and
 shrink `path`; replay it by passing the same `seed` and `path` to `assert`.

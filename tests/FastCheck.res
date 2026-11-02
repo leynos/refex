@@ -6,9 +6,10 @@ arity, because fast-check's `property` and `tuple` are variadic. It is a
 development dependency with no ReScript sources, so it stays out of
 `rescript.json`.
 
-Permitted callers: `tests/FxLawModel.res`, `tests/IoLaws.test.res`, and
-`tests/FxLaws.test.res` only. Roadmap task 1.3.1 may revisit this binding with
-the runtime entry point.
+Permitted callers: `tests/FxLawModel.res`, `tests/LawHarness.res`,
+`tests/LawSuite.res`, `tests/IoLaws.test.res`, `tests/FxLaws.test.res`, and
+`tests/FxEnvironmentLaws.test.res` only. Roadmap task 1.3.1 may revisit this
+binding with the runtime entry point.
 */
 type arbitrary<'a>
 type property

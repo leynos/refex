@@ -324,7 +324,12 @@ regenerated `typos.toml` are excluded from every count below.
     descriptions": `make all` passed at `4816f77` with 195 tests in 18 files,
     and `make coverage` passed with 71 tests and 100 per cent function and
     line coverage of the three production modules. `make audit` initially
-    failed on `minimatch@10.2.6`, repaired under D-16. Review pending.
+    failed on `minimatch@10.2.6`, repaired under D-16. The first milestone
+    review found that `fxTerm` and `ioTerm` hard-coded an empty trace, so
+    every `resultsOnly=false` law compared empty arrays and the `≈t` claims
+    were vacuous. Terms now carry the array their callbacks write to, the
+    unused `make` argument is gone, and all 37 laws pass with real traces.
+    Re-review pending.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
@@ -1905,6 +1910,13 @@ and `scrutineer` log paths are appended here during implementation.
   named examples failed on the development example after one test
   (`seed: 1202945863`, `path: "0"`), so the examples alone catch A-7
   (`/tmp/ablation-a7-example-refex.out`). Source restored and rebuilt.
+- Observation (EP-M4 review): the law harness originally created terms with
+  `trace: []`, so every `resultsOnly=false` comparison saw two empty arrays.
+  Wiring the real array through `fxTerm` and `ioTerm` immediately failed the
+  `accessEffect` law, because its right-hand body ran at construction and left
+  one event before observation. Deferring that body through `Fx.suspend` keeps
+  the trace honest, and all 37 laws then pass with real event sequences. This
+  confirms the comparison is live rather than vacuous.
 
 ## Interfaces and dependencies
 

@@ -22,7 +22,11 @@ describe("IO laws", () => {
         let rightTrace = []
         let left = IO.flatMap(IO.succeed(value), seen => LawHarness.ioFor(chosen, seen, leftTrace))
         let right = IO.suspend(() => LawHarness.ioFor(chosen, value, rightTrace))
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -36,7 +40,11 @@ describe("IO laws", () => {
         let rightTrace = []
         let left = IO.flatMap(LawHarness.ioFor(chosen, value, leftTrace), IO.succeed)
         let right = LawHarness.ioFor(chosen, value, rightTrace)
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -60,7 +68,11 @@ describe("IO laws", () => {
               nested => LawHarness.ioFor(second, nested, rightTrace),
             ),
         )
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -71,9 +83,14 @@ describe("IO laws", () => {
       LawHarness.step,
       (error, chosen) => {
         let leftTrace = []
+        let rightTrace = []
         let left = IO.flatMap(IO.fail(error), seen => LawHarness.ioFor(chosen, seen, leftTrace))
         let right = IO.fail(error)
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -87,7 +104,11 @@ describe("IO laws", () => {
         let rightTrace = []
         let left = IO.suspend(() => LawHarness.ioFor(chosen, value, leftTrace))
         let right = LawHarness.ioFor(chosen, value, rightTrace)
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -101,7 +122,11 @@ describe("IO laws", () => {
         let rightTrace = []
         let left = IO.mapError(LawHarness.ioFor(chosen, value, leftTrace), error => error)
         let right = LawHarness.ioFor(chosen, value, rightTrace)
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -124,7 +149,11 @@ describe("IO laws", () => {
           LawHarness.ioFor(chosen, value, rightTrace),
           error => outer(inner(error)),
         )
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -135,6 +164,7 @@ describe("IO laws", () => {
       LawHarness.errorMap,
       (value, mapper) => {
         let leftTrace = []
+        let rightTrace = []
         let left = IO.mapError(
           IO.succeed(value),
           error => {
@@ -143,7 +173,11 @@ describe("IO laws", () => {
           },
         )
         let right = IO.succeed(value)
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -157,8 +191,9 @@ describe("IO laws", () => {
           ~resultsOnly=true,
           LawHarness.ioTerm(
             IO.mapError(IO.fail(error), mapped => LawHarness.applyErrorMap(mapper, mapped)),
+            [],
           ),
-          LawHarness.ioTerm(IO.fail(LawHarness.applyErrorMap(mapper, error))),
+          LawHarness.ioTerm(IO.fail(LawHarness.applyErrorMap(mapper, error)), []),
         ),
     )
   )
@@ -183,7 +218,11 @@ describe("IO laws", () => {
           IO.mapError(LawHarness.ioFor(chosen, value, rightTrace), map),
           seen => IO.mapError(LawHarness.ioFor(chosen, seen, rightTrace), map),
         )
-        LawHarness.holdsIo(~resultsOnly=true, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=true,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )

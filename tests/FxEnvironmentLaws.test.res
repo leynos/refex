@@ -33,7 +33,11 @@ describe("Fx environment laws", () => {
         }
         let left = Fx.provide(Fx.access(seen => read(seen, leftTrace)), environment)
         let right = IO.suspend(() => IO.succeed(read(environment, rightTrace)))
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -50,8 +54,14 @@ describe("Fx environment laws", () => {
           LawHarness.fxFor(LawHarness.SuspendAdd(value), seen.base, trace)
         }
         let left = Fx.provide(Fx.accessEffect(seen => run(seen, leftTrace)), environment)
-        let right = Fx.provide(run(environment, rightTrace), environment)
-        LawHarness.holdsIo(~resultsOnly=true, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        // Defer the body so construction records no trace event; the harness
+        // observes each evaluation from an empty trace.
+        let right = Fx.provide(Fx.suspend(() => run(environment, rightTrace)), environment)
+        LawHarness.holdsIo(
+          ~resultsOnly=true,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -67,8 +77,11 @@ describe("Fx environment laws", () => {
           LawHarness.traced("read", trace)
           seen.base + value
         }
-        let left = LawHarness.fxTerm(Fx.accessEffect(seen => Fx.succeed(read(seen, leftTrace))))
-        let right = LawHarness.fxTerm(Fx.access(seen => read(seen, rightTrace)))
+        let left = LawHarness.fxTerm(
+          Fx.accessEffect(seen => Fx.succeed(read(seen, leftTrace))),
+          leftTrace,
+        )
+        let right = LawHarness.fxTerm(Fx.access(seen => read(seen, rightTrace)), rightTrace)
         LawHarness.holdsFx(~resultsOnly=false, left, right, environment)
       },
     )
@@ -81,8 +94,11 @@ describe("Fx environment laws", () => {
       (environment, chosen) => {
         let leftTrace = []
         let rightTrace = []
-        let left = LawHarness.fxTerm(Fx.accessEffect(_ => LawHarness.fxFor(chosen, 1, leftTrace)))
-        let right = LawHarness.fxTerm(LawHarness.fxFor(chosen, 1, rightTrace))
+        let left = LawHarness.fxTerm(
+          Fx.accessEffect(_ => LawHarness.fxFor(chosen, 1, leftTrace)),
+          leftTrace,
+        )
+        let right = LawHarness.fxTerm(LawHarness.fxFor(chosen, 1, rightTrace), rightTrace)
         LawHarness.holdsFx(~resultsOnly=false, left, right, environment)
       },
     )
@@ -101,8 +117,9 @@ describe("Fx environment laws", () => {
             LawHarness.fxFor(chosen, base, leftTrace),
             (environment: base) => environment,
           ),
+          leftTrace,
         )
-        let right = LawHarness.fxTerm(LawHarness.fxFor(chosen, base, rightTrace))
+        let right = LawHarness.fxTerm(LawHarness.fxFor(chosen, base, rightTrace), rightTrace)
         LawHarness.holdsFx(~resultsOnly=false, left, right, {base: base + offset})
       },
     )
@@ -128,12 +145,14 @@ describe("Fx environment laws", () => {
             Fx.contramapEnvironment(LawHarness.fxFor(chosen, base, leftTrace), inner),
             outer,
           ),
+          leftTrace,
         )
         let right = LawHarness.fxTerm(
           Fx.contramapEnvironment(
             LawHarness.fxFor(chosen, base, rightTrace),
             seen => inner(outer(seen)),
           ),
+          rightTrace,
         )
         LawHarness.holdsFx(~resultsOnly=false, left, right, {base, token: "one", offset})
       },
@@ -159,7 +178,11 @@ describe("Fx environment laws", () => {
         let right = IO.suspend(
           () => Fx.provide(LawHarness.fxFor(chosen, base, rightTrace), project(environment)),
         )
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )
@@ -175,8 +198,8 @@ describe("Fx environment laws", () => {
         }
         let read = (environment: base) => environment.base + value
         let environment = {base, token: "one", offset}
-        let left = LawHarness.fxTerm(Fx.contramapEnvironment(Fx.access(read), project))
-        let right = LawHarness.fxTerm(Fx.access(seen => read(project(seen))))
+        let left = LawHarness.fxTerm(Fx.contramapEnvironment(Fx.access(read), project), [])
+        let right = LawHarness.fxTerm(Fx.access(seen => read(project(seen))), [])
         LawHarness.holdsFx(~resultsOnly=true, left, right, environment)
       },
     )
@@ -200,12 +223,14 @@ describe("Fx environment laws", () => {
             ),
             project,
           ),
+          leftTrace,
         )
         let right = LawHarness.fxTerm(
           Fx.flatMap(
             Fx.contramapEnvironment(LawHarness.fxFor(chosen, base, rightTrace), project),
             seen => Fx.contramapEnvironment(LawHarness.fxFor(chosen, seen, rightTrace), project),
           ),
+          rightTrace,
         )
         LawHarness.holdsFx(~resultsOnly=true, left, right, {base, token: "one", offset: 2})
       },
@@ -230,7 +255,11 @@ describe("Fx environment laws", () => {
           Fx.provide(LawHarness.fxFor(chosen, value, rightTrace), fixed),
           seen => Fx.provide(LawHarness.fxFor(chosen, seen, rightTrace), fixed),
         )
-        LawHarness.holdsIo(~resultsOnly=false, LawHarness.ioTerm(left), LawHarness.ioTerm(right))
+        LawHarness.holdsIo(
+          ~resultsOnly=false,
+          LawHarness.ioTerm(left, leftTrace),
+          LawHarness.ioTerm(right, rightTrace),
+        )
       },
     )
   )

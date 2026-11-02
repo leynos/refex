@@ -8,8 +8,9 @@ compared on outcome and exact ordering. Constructors carry positional payloads:
 ReScript 12.3.1 rejects inlined record payloads when the constructor is used in
 a generated lambda, reporting that the anonymous type would escape.
 
-Permitted callers: `tests/IoLaws.test.res` and `tests/FxLaws.test.res`. This is
-test code only; nothing here is packaged.
+Permitted callers: `tests/LawHarness.res`, `tests/IoLaws.test.res`,
+`tests/FxLaws.test.res`, and `tests/FxEnvironmentLaws.test.res`. This is test
+code only; nothing here is packaged.
 */
 type environment = {base: int, token: string}
 

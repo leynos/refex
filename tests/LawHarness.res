@@ -31,9 +31,17 @@ let traced = (label: string, trace: array<string>) => {
   ()
 }
 
-let fxTerm = (description: Fx.t<int, string, 'r>): fxTerm<'r> => {description, trace: []}
+/** Carries the array the description's callbacks write to, so observation
+can compare event order and repeatability rather than two empty arrays. */
+let fxTerm = (description: Fx.t<int, string, 'r>, trace: array<string>): fxTerm<'r> => {
+  description,
+  trace,
+}
 
-let ioTerm = (description: IO.t<int, string>): ioTerm => {description, trace: []}
+let ioTerm = (description: IO.t<int, string>, trace: array<string>): ioTerm => {
+  description,
+  trace,
+}
 
 let sameObserved = (
   left: IoEvaluation.outcome<int, string>,
