@@ -240,8 +240,18 @@ describe("compiler fixtures", () => {
     for (const entry of cases.filter(
       (candidate) => candidate.kind === "accept",
     )) {
-      if (entry.castScanExemption) continue;
-      expect(scanForCasts(readFileSync(sourcePath(entry), "utf8"))).toEqual([]);
+      const findings = scanForCasts(readFileSync(sourcePath(entry), "utf8"));
+      if (!entry.castScanExemption) {
+        expect(findings).toEqual([]);
+        continue;
+      }
+      const exemption = entry.castScanExemption;
+      const isDeclared = ({ kind, line }) =>
+        kind === exemption.kind && line === exemption.line;
+      // The whole source is still scanned: a second escape, even of the
+      // exempted kind, fails, and the declared witness must actually exist.
+      expect(findings.filter(isDeclared)).toHaveLength(1);
+      expect(findings.filter((finding) => !isDeclared(finding))).toEqual([]);
     }
   });
 

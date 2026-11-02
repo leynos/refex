@@ -59,7 +59,11 @@
     {
       "id": "fx-add-requirement",
       "kind": "accept",
-      "castScanExemption": "Variance witness; ADR 005 bans `:>` only in composition."
+      "castScanExemption": {
+        "kind": ":>",
+        "line": 5,
+        "reason": "Variance witness; ADR 005 bans `:>` only in composition."
+      }
     },
     {
       "id": "fx-error-widening",
@@ -77,7 +81,11 @@
     {
       "id": "fx-widen-result",
       "kind": "accept",
-      "castScanExemption": "Variance witness for the result error parameter; ADR 005 scopes `:>` to requirement rows."
+      "castScanExemption": {
+        "kind": ":>",
+        "line": 7,
+        "reason": "Variance witness for the result error parameter; ADR 005 scopes `:>` to requirement rows."
+      }
     },
     {
       "id": "fx-value-export",

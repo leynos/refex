@@ -226,8 +226,16 @@ describe("scanForCasts", () => {
     expect(
       metadata.cases
         .filter((entry) => entry.castScanExemption)
-        .map((entry) => entry.id),
-    ).toEqual(["fx-add-requirement", "fx-widen-result"]);
+        .map(({ id, castScanExemption: { kind, line, reason } }) => ({
+          id,
+          kind,
+          line,
+          hasReason: reason.length > 0,
+        })),
+    ).toEqual([
+      { id: "fx-add-requirement", kind: ":>", line: 5, hasReason: true },
+      { id: "fx-widen-result", kind: ":>", line: 7, hasReason: true },
+    ]);
   });
 });
 

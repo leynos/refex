@@ -271,6 +271,10 @@ regenerated `typos.toml` are excluded from every count below.
     promoted warning carrying the expected file, line, and fragments could pass
     as the expected error; the matcher now requires `kind === "error"`, and two
     disguise tests cover identical fragments on syntax and warning blocks.
+  - [x] Review round 17: one finding, valid. The cast scan skipped any accepted
+    case with an exemption, so an added escape in that source went unseen.
+    Exemptions now name the witness kind and line; every accepted source is
+    scanned, the witness must occur exactly once, and any other finding fails.
     Re-review pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
@@ -1219,7 +1223,11 @@ commits separate (AGENTS.md).
         {
           "id": "fx-add-requirement",
           "kind": "accept",
-          "castScanExemption": "Variance witness; ADR 005 bans `:>` only in composition."
+          "castScanExemption": {
+            "kind": ":>",
+            "line": 5,
+            "reason": "Variance witness; ADR 005 bans `:>` only in composition."
+          }
         }
       ]
     }

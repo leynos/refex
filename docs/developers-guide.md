@@ -159,10 +159,12 @@ the id/file set in `cases.json` equals the files under `cases/`.
 
 Accepted sources are the only place the runner scans for casts. The scan is
 deliberately syntactic and reports `Obj.magic`, `:>`, `%identity`, `%raw`, and
-`external`. A case declares `castScanExemption` only when the coercion is a
-declared variance witness. ADR 005 scopes its `:>` ban to requirement rows, so
-`fx-widen-result` records why its `result` coercion is permitted while
-`fx-add-requirement` records the requirement-row witness.
+`external`. A case may declare `castScanExemption` with the kind, line, and
+reason of one variance witness. The runner scans the whole source regardless:
+the declared finding must appear exactly once, and any other finding, even a
+second coercion of the same kind, fails. ADR 005 scopes its `:>` ban to
+requirement rows, so `fx-widen-result` records why its `result` coercion is
+permitted while `fx-add-requirement` records the requirement-row witness.
 
 Outside a record's defining module, qualify the field access:
 `environment["clock"].Clock.now()`. The unqualified
