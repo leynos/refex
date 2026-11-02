@@ -225,6 +225,10 @@ regenerated `typos.toml` are excluded from every count below.
   amendments recorded.
 - [x] (2026-11-02) EP-M1: `IO` test-first, with interface and module
   contracts; red output, ablations, and pass counts recorded below.
+- [x] (2026-11-02) EP-M1 review round 6: gate green; the review found that the
+  probe script installed only a copied package while the prose claimed a
+  symbolic-link case too. The script now builds `ns1` over a symlink and `ns2`
+  over a copy, and the observations record both runs.
 - [ ] EP-M2: `Fx` test-first.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
 - [ ] EP-M4: law and model-agreement property tests.
@@ -236,8 +240,8 @@ regenerated `typos.toml` are excluded from every count below.
 - Observation: ReScript 12.3.1's default build, Rewatch, does not implement
   `sources[].public`. A consumer of a library with `"public": ["IO"]` compiled
   and ran `Refex.Kernel.evaluate(...)`, where `Kernel` was absent from
-  `public`, both with a symbolic-link dependency and with a copied package
-  (`ns1`, `ns2`). A nonsense value,
+  `public`, with a symbolic-link dependency (`ns1`) and with a copied package
+  (`ns2`), each reproduced separately. A nonsense value,
   `"public": "bogus-value-should-be-rejected"`, builds without complaint
   (`ns7`). The un-namespaced name fails for every module, including `IO`, which
   is listed (`ns6`), so that failure reflects the namespace, not `public`. The
@@ -1473,10 +1477,14 @@ libcfg() {
   echo "{\"name\":\"refex\",\"namespace\":true,$1\"sources\":[{\"dir\":\"src\",\"public\":$2}],$SPECS,$WARN}" \
     > $lib/rescript.json
 }
-install() {
+install_copy() {
   rm -rf $con/node_modules/refex $con/lib; mkdir $con/node_modules/refex
   cp -r $lib/src $lib/package.json $lib/rescript.json $con/node_modules/refex/
   rm -f $con/node_modules/refex/src/*.mjs
+}
+install_link() {
+  rm -rf $con/node_modules/refex $con/lib
+  ln -s $lib $con/node_modules/refex
 }
 echo '{"name":"refex","private":true,"version":"0.0.0"}' > $lib/package.json
 echo '{"name":"consumer","private":true,"type":"module"}' > $con/package.json
@@ -1488,10 +1496,13 @@ printf "let succeed = (value): t<'a, 'e> => () => Ok(value)\n" >> $lib/src/IO.re
 printf 'let evaluate: IO.t<int, string> => int\n' > $lib/src/Kernel.resi
 printf 'let evaluate = (_: IO.t<int, string>) => 42\n' > $lib/src/Kernel.res
 echo 'let io: Refex.IO.t<int, string> = Refex.IO.succeed(1)' > $con/src/Main.res
-echo "== ns1/ns2: Kernel absent from public, consumer calls Refex.Kernel"
-libcfg "" '["IO"]'; expect_build ok $lib; install
+echo "== ns1: Kernel absent from public, symbolic-link dependency"
+libcfg "" '["IO"]'; expect_build ok $lib; install_link
 echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build ok $con
-(cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("ran:", leaked)' > run.mjs && bun run.mjs)
+(cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("link ran:", leaked)' > run.mjs && bun run.mjs)
+echo "== ns2: Kernel absent from public, copied package"
+install_copy; expect_build ok $con
+(cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("copy ran:", leaked)' > run.mjs && bun run.mjs)
 echo "== ns6: bare IO (listed in public) from consumer"
 echo 'let x: IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build fail $con
 echo "== ns7: nonsense public value accepted"
@@ -1499,7 +1510,7 @@ libcfg "" '"bogus-value-should-be-rejected"'; expect_build ok $lib
 echo "== ns8: namespace-entry hides Kernel"
 libcfg '"namespace-entry":"Refex",' '["IO"]'
 printf 'module IO = IO\n' > $lib/src/Refex.res; printf 'module IO = IO\n' > $lib/src/Refex.resi
-expect_build ok $lib; install
+expect_build ok $lib; install_copy
 echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build fail $con
 echo 'let ok: Refex.IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build ok $con
 rm -rf "$P"
@@ -1508,9 +1519,12 @@ rm -rf "$P"
 Observed output, abbreviated:
 
 ```plaintext
-== ns1/ns2: Kernel absent from public, consumer calls Refex.Kernel
+== ns1: Kernel absent from public, symbolic-link dependency
+Compiled 2 modules
+link ran: 42
+== ns2: Kernel absent from public, copied package
 Compiled 4 modules
-ran: 42
+copy ran: 42
 == ns6: bare IO (listed in public) from consumer
 The module or file IO can't be found.
 == ns7: nonsense public value accepted
