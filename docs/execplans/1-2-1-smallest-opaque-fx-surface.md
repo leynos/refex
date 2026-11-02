@@ -374,7 +374,14 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Review round 29: re-review of `4e03e21` returned no findings over 82
     files. EP-M5 is review-complete. Gates at `4e03e21`: `make all` passed with
     193 tests in 17 files and a verified ten-file package.
-- [ ] EP-M6: reconciliation and roadmap completion.
+- [x] (2026-11-02) EP-M6: reconciliation and roadmap completion. `make all`
+  passed through `scrutineer` at `e747f51` with 193 tests in 17 files, 272
+  `expect()` calls, and a verified ten-file package; `make coverage` passed 70
+  tests at 100 per cent function and line coverage; `make audit` found no
+  vulnerabilities across 94 packages; both roadmap lines are checked.
+  - [x] Review round 30: one minor finding, valid. The plan declared
+    `Status: COMPLETE` while EP-M6 remained unchecked and the last revision note
+    still said `IN PROGRESS`. Both records now state completion.
 
 ## Surprises & discoveries
 
@@ -661,10 +668,13 @@ owners at once, and generated docstring paths must not name a deleted module.
 
 Delivered: the reconciliation record below, the `Unreleased` changelog entries,
 the contents index, the checked roadmap task, and this plan's completion.
-Evidence: `make all`, `make coverage`, and `make audit` pass at the completion
-commit, and roadmap item 1.2.1 is checked. Deviations: none. Lessons: the
-conformance basis is a snapshot of upstream artefacts, so reconciliation must
-distinguish deliberate downstream change from a stale description.
+Evidence: at `e747f51`, `make all` passed with 193 tests in 17 files and a
+verified ten-file package, `make coverage` passed 70 tests at 100 per cent
+function and line coverage, and `make audit` found no vulnerabilities across 94
+packages. Review round 30 found one documentation inconsistency, now corrected.
+Deviations: none. Lessons: the conformance basis is a snapshot of upstream
+artefacts, so reconciliation must distinguish deliberate downstream change from
+a stale description.
 
 ## Context and orientation
 
@@ -2144,3 +2154,8 @@ still waits for plan approval, and EP-M1 for acceptance of ADR 008.
 (D-14); status is `IN PROGRESS`. EP-M0 completed with the baseline gate, the
 probe re-run, the evidence section, the source register entries C19 and C20,
 ADR 008 as `accepted`, and the amendments to ADR 001, ADR 004, and ADR 006.
+
+2026-11-02, revision 5: EP-M6 reconciled the conformance basis and repository
+state, recorded the milestone outcomes and D-17, updated the changelog and
+contents index, and checked roadmap task 1.2.1 and its sub-item. Status is
+`COMPLETE`.
