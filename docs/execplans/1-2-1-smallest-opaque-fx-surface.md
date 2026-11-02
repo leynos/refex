@@ -373,9 +373,22 @@ regenerated `typos.toml` are excluded from every count below.
 
 ## Outcomes & retrospective
 
-Not started. Complete this section at each milestone boundary and at
-completion: what was delivered, which acceptance evidence passed, what changed
-from the plan, and lessons for 1.2.2, 1.2.3, and 1.3.1.
+### After EP-M1 (2026-11-02)
+
+Delivered: ADR 008 is accepted, the planning evidence is recorded, and the
+opaque `IO.t` provides its five operations with a tested deferral, sequencing,
+short-circuit, and mapper contract. Acceptance evidence: `make all` exited 0 at
+`9fcd6f2` with 93 tests, the red run recorded the missing-module failure before
+the implementation existed, and ablations A-3, A-6, and A-13 failed as
+designed. Deviations: the EP-M0 baseline was re-run after concurrent
+documentation writes invalidated the first run; only one of the two planned
+test-only FFI boundaries exists so far. Lessons: `check-generated` compares
+against Git's index, so a new generated `.res.mjs` must be committed with its
+source before the gate can pass, and the interface contract depends on
+`rescript-tools doc` output remaining stable.
+
+Later milestones still complete this section: EP-M2 to EP-M6 outcomes,
+acceptance evidence, deviations, and lessons for 1.2.2, 1.2.3, and 1.3.1.
 
 ## Context and orientation
 

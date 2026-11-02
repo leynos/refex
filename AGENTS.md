@@ -22,10 +22,10 @@
   sources. Never globally open Bun or platform namespaces through compiler
   flags. Tests may locally open `RescriptBun.Test`.
 - No unsafe casts or `Obj.magic`-style escapes outside narrow, documented
-  foreign function interface (FFI) boundaries. Tests have exactly two:
+  foreign function interface (FFI) boundaries. Tests currently have one:
   `tests/IoEvaluation.res`, which binds `tests/support/io-evaluation.mjs` to
-  evaluate an opaque `IO.t`, and `tests/FastCheck.res`, the property-test
-  binding. Production `src/` has none.
+  evaluate an opaque `IO.t`. EP-M4 of roadmap task 1.2.1 adds the second,
+  `tests/FastCheck.res`, for property tests. Production `src/` has none.
 - The `public` allowlist in `rescript.json` is a declaration, not an
   enforcement point on ReScript 12.3.1: every `src/` module remains reachable.
   Add a module deliberately and keep the module and interface contracts

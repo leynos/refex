@@ -172,7 +172,7 @@ make package-check
 
 This gate cleans and rebuilds, checks generated synchronization, creates a real
 archive with `bun pm pack --ignore-scripts`, and compares its contents against
-an independent explicit nine-file allowlist. The archive contains README,
+an independent explicit ten-file allowlist. The archive contains README,
 `LICENSE`, package metadata, ReScript configuration, and the `Bootstrap` and
 `IO` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
 editor state, and unrelated documents must never enter it.
@@ -192,12 +192,12 @@ detail.
 
 ## Test-only foreign function interfaces
 
-Production `src/` contains no `external`, cast, or `%raw`. Tests have exactly
-two documented exceptions. `tests/IoEvaluation.res` binds
+Production `src/` contains no `external`, cast, or `%raw`. Tests currently have
+one documented exception. `tests/IoEvaluation.res` binds
 `tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
 representation recorded in ADR 008; road map task 1.3.1 replaces it with the
-private runtime entry. `tests/FastCheck.res` binds the property-test library
-when those suites arrive.
+private runtime entry. EP-M4 of task 1.2.1 adds the second exception,
+`tests/FastCheck.res`, which binds the property-test library.
 
 ## Surface contracts
 

@@ -77,8 +77,14 @@ compatibility, not a deprecation window. The version is `0.0.0`.
 `IO.t<'a, 'e>` is a lazy description of work that succeeds with `'a` or fails
 with the expected error `'e`. Build one with `IO.succeed`, `IO.fail`, or
 `IO.suspend`, and combine descriptions with `IO.flatMap` and `IO.mapError`.
-Building a description runs nothing. The type is abstract, so consumers cannot
-call, inspect, or forge one.
+Building a description runs nothing. For ReScript consumers the type is
+abstract: the `.resi` interface prevents them from calling, inspecting, or
+forging one.
+
+JavaScript consumers import the generated module, where `IO.t` is an ordinary
+zero-argument function. They can call it and observe the `result` it returns.
+That representation is an implementation detail with no compatibility promise;
+task 1.3.1 may replace it.
 
 This release provides **no runner**. Roadmap task 1.3.1 adds the runtime entry
 point that evaluates a description; until then the repository's tests are the
