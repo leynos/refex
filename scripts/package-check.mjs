@@ -3,15 +3,16 @@ Archive and package-consumer gate for the published `refex` tarball.
 
 Unlike the contract tests, which inspect metadata, this script inspects the
 real produced archive and then installs it into a temporary fixture: a plain
-JavaScript consumer executes the generated ESM, and a separate ReScript
-consumer compiles and executes against the packed interface. The archive must
+JavaScript consumer exercises the generated `IO` and `Fx` ESM, and a separate
+ReScript consumer compiles the multi-module fixture base against the packed
+interface and executes its workflow. The archive must
 match an explicit allowlist, so the check tests what `bun pm pack` actually
 emits rather than what `package.json` claims. Nothing here publishes; see
 `docs/developers-guide.md` for the release boundary.
 */
 
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -91,7 +92,19 @@ try {
   );
   writeFileSync(
     join(fixture, "consumer.mjs"),
-    'import {identity} from "refex/src/Bootstrap.res.mjs";\nif (identity("consumer") !== "consumer") throw new Error("consumer failed");\n',
+    [
+      'import * as Fx from "refex/src/Fx.res.mjs";',
+      'import * as IO from "refex/src/IO.res.mjs";',
+      'for (const name of ["succeed", "map", "flatMap", "provide"]) {',
+      '  if (typeof Fx[name] !== "function") throw new Error("Fx." + name + " is not exported");',
+      "}",
+      'for (const name of ["succeed", "flatMap", "mapError"]) {',
+      '  if (typeof IO[name] !== "function") throw new Error("IO." + name + " is not exported");',
+      "}",
+      "const result = Fx.provide(Fx.map(Fx.succeed(20), value => value + 22), {})();",
+      'if (result.TAG !== "Ok" || result._0 !== 42) throw new Error("JavaScript Fx consumer failed");',
+      "",
+    ].join("\n"),
   );
   run([bun, "consumer.mjs"]);
 
@@ -107,18 +120,26 @@ try {
     }),
   );
   mkdirSync(join(fixture, "consumer"));
-  writeFileSync(
-    join(fixture, "consumer/Consumer.res"),
-    'let value = Refex.Bootstrap.identity("ReScript consumer")\n',
+  cpSync(
+    join(root, "tests/fixtures/compiler/fx-surface/base"),
+    join(fixture, "consumer"),
+    { recursive: true },
   );
   run([bun, "run", "--bun", "rescript", "build"]);
   writeFileSync(
     join(fixture, "check-rescript.mjs"),
-    'import {value} from "./consumer/Consumer.res.mjs";\nif (value !== "ReScript consumer") throw new Error("ReScript consumer failed");\n',
+    [
+      'import {io, projected} from "./consumer/Main.res.mjs";',
+      "const workflow = io();",
+      'if (workflow.TAG !== "Ok" || workflow._0 !== 42) throw new Error("ReScript workflow failed");',
+      "const projection = projected();",
+      'if (projection.TAG !== "Ok" || projection._0 !== 7) throw new Error("ReScript projection failed");',
+      "",
+    ].join("\n"),
   );
   run([bun, "check-rescript.mjs"]);
   console.log(
-    `Verified ${contents.length} package files, ISC licence and both isolated consumers.`,
+    `Verified ${contents.length} package files, ISC licence, a JavaScript consumer, and a multi-module ReScript consumer.`,
   );
 } finally {
   rmSync(fixture, { recursive: true, force: true });

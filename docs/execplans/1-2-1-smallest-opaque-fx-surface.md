@@ -240,8 +240,20 @@ regenerated `typos.toml` are excluded from every count below.
   and the CLI review found that provision traversed the description eagerly and
   that this plan's validation block lacked `pipefail`. The combinators now
   suspend application, a deep-chain case covers provision, and the validation
-  block fails on a piped error. Re-review is pending.
+  block fails on a piped error.
+- [x] (2026-11-02) EP-M2 review round 13: re-review of `80b0689` raised no
+  remaining concern about the provision repair; two minor package-check
+  observations were folded into EP-M3 commit 2, where the JavaScript consumer
+  now evaluates a description instead of only checking exports.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
+  - [x] Commit 1, "Add a compiler-fixture runner for consumer boundaries":
+    matcher and its unit suite, runner, fixture base, thirteen cases, Makefile
+    registration, and developer-guide and layout updates. `make all` green at
+    `a5d162d`: 156 tests in 14 files.
+  - [x] Ablations A-10, A-11, and A-12 record the fixture suite's sensitivity
+    to each interface change (see `Artefacts and notes`).
+  - [ ] Commit 2, "Build the multi-module consumer from the packed archive":
+    implemented and observed; gate and review pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.
@@ -293,6 +305,26 @@ regenerated `typos.toml` are excluded from every count below.
   `Fx.flatMap` already did. Impact: every applying combinator now returns
   `IO.suspend`; provision is one thunk and does not traverse the chain, while
   evaluating the chain keeps R-4's accepted recursion.
+- Observation (EP-M3): fixture cases must be formatter-stable.
+  `rescript format` rewrites a short type alias onto one line but leaves a
+  record-bearing alias multi-line, so the plan's "one- or two-line declaration"
+  became a constraint on formatted output, not on source length. Each case was
+  replaced with a formatter-stable equivalent and `check-fmt` now covers every
+  fixture.
+- Observation (EP-M3, A-10 and A-11): `fx-value-export`
+  (`let value = Refex.IO.succeed(1)`) is rejected with "cannot be generalized"
+  only while `'e` is invariant. Declaring `+'e` (A-10) or manifesting `IO.t`
+  (A-11) makes it compile, consistent with the relaxed value restriction
+  generalizing covariant weak variables. Impact: the value-export case
+  witnesses the current interface, but it is not an independent opacity probe,
+  so K-8 rests on the three structural rejection pairs plus A-11, not on
+  value-export alone.
+- Observation (EP-M3, A-12): removing `'r` contravariance fails both
+  requirement cases, but the control (`fx-add-requirement`) and
+  `fx-forget-requirement` now fail with structural "expected to have a field"
+  diagnostics instead of a variance diagnostic. Impact: A-12 confirms that the
+  pair depends on contravariance, while the rejection's stated reason is
+  specific to the invariant interface.
 
 ## Decision log
 
@@ -1667,6 +1699,37 @@ and `scrutineer` log paths are appended here during implementation.
   the same script printed `provided function`, and `tests/Fx.test.res.mjs`
   passes 22 cases including the deep-chain case. The repair's full-gate and
   re-review evidence is recorded with EP-M3.
+- EP-M2 round-12 repair gate, 2026-11-02: `make all` green at `80b0689`,
+  116 tests in 12 files, package-check verifying 13 files and both isolated
+  consumers (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface-15.out`). Round
+  13 raised the two package-check coverage findings quoted in Progress; both
+  are implemented in EP-M3 commit 2.
+- EP-M3 commit 1 gate, 2026-11-02: `make all` green at `a5d162d`, 156 tests in
+  14 files in 26.79 s, package-check verifying 13 files
+  (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface-16.out`). The fixture suite
+  alone ran between 12.6 s and 22.2 s across runs, inside its 120 s budget, and
+  logged the elapsed time itself. Thirteen cases ran: twelve accepted or
+  rejected as recorded, plus the wrong-reason control.
+- A-10: declaring `+'e` in `IO.resi` and `Fx.resi` built cleanly; the fixture
+  suite then failed two cases, `fx-error-widening` ("expected fx-error-widening
+  to fail") and `fx-value-export` ("expected fx-value-export to fail")
+  (`/tmp/ablation-a10-refex-1-2-1-smallest-opaque-fx-surface.out`). Sources
+  restored, build clean, `git diff --exit-code src/` passed.
+- A-11: manifesting `IO.t<+'a, 'e> = unit => result<'a, 'e>` built cleanly;
+  `fx-apply-io` and `fx-value-export` then compiled when both should be rejected
+  (`/tmp/ablation-a11-refex-1-2-1-smallest-opaque-fx-surface.out`). Sources
+  restored, build clean, `git diff --exit-code src/` passed.
+- A-12: declaring `Fx.t<+'a, 'e, 'r>` (invariant requirement) built cleanly;
+  the control `fx-add-requirement` then failed ("unexpected diagnostics … The
+  first object is expected to have a field \"log\" of type int") and
+  `fx-forget-requirement` rejected with the matching structural diagnostic
+  rather than a variance one
+  (`/tmp/ablation-a12-refex-1-2-1-smallest-opaque-fx-surface.out`). Sources
+  restored, build clean, `git diff --exit-code src/` passed.
+- EP-M3 commit 2, 2026-11-02: `make package-check` printed "Verified 13
+  package files, ISC licence, a JavaScript consumer, and a multi-module
+  ReScript consumer."; the JavaScript consumer evaluates a packed `Fx.provide`
+  description and the ReScript consumer executes the copied fixture `Main`.
 - EP-M0, 2026-11-02: baseline `make all` green through `scrutineer`,
   `MAKE_ALL_EXIT=0`, 78 passing tests in 9 files, package-check verifying 7
   files and both isolated consumers

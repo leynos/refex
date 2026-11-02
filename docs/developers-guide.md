@@ -216,8 +216,10 @@ and `Fx` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
 editor state, and unrelated documents must never enter it.
 
 A temporary clean consumer installs the archive with the matching compiler,
-then checks frozen installation, imports and executes the JavaScript entry
-point, compiles `Refex.Bootstrap`, and executes that compiled consumer. No
+then checks frozen installation, imports the packed `IO` and `Fx` ESM and
+evaluates a small `Fx.provide` description. It then copies the compiler-fixture
+base into the consumer, compiles the nine modules against the archive, and
+executes `Main.res.mjs`, which runs the composed workflow and the projection. No
 `rescript-bun` package enters the fixture. A `finally` block removes the
 archive and fixture on success or failure. System tar only inspects the locally
 produced archive; no publishing command exists.
