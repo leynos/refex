@@ -275,7 +275,13 @@ regenerated `typos.toml` are excluded from every count below.
     case with an exemption, so an added escape in that source went unseen.
     Exemptions now name the witness kind and line; every accepted source is
     scanned, the witness must occur exactly once, and any other finding fails.
-    Re-review pending.
+  - [x] Review round 18: three findings, all valid. The compiler-version
+    check matched a prefix, so 12.3.10 could pass; it now matches the exact
+    line. ADR 008 claimed the archive already contained only the semantic
+    modules; it now states that `Bootstrap` remains until EP-M5. The
+    wrong-reason control now requires a syntax diagnostic for `Case.res` line
+    2 before checking that the type-error matcher rejects it. Re-review
+    pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
 - [ ] EP-M6: reconciliation and roadmap completion.

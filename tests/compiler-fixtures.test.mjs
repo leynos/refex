@@ -49,6 +49,10 @@ const started = performance.now();
 const caseFile = (entry) => entry.file ?? `cases/${entry.id}.res`;
 const sourcePath = (entry) => join(fixtureRoot, caseFile(entry));
 
+// True only for the exact pinned version, not a longer version that shares
+// its prefix such as 12.3.10.
+const isPinnedCompiler = (printed) => /^rescript 12\.3\.1$/m.test(printed);
+
 const project = mkdtempSync(join(tmpdir(), "refex-fixtures-"));
 const packageDir = join(project, "node_modules/refex");
 
@@ -144,7 +148,7 @@ beforeAll(() => {
     { cwd: root },
   );
   const printed = `${version.stdout.toString()}${version.stderr.toString()}`;
-  if (version.exitCode !== 0 || !printed.includes("rescript 12.3.1")) {
+  if (version.exitCode !== 0 || !isPinnedCompiler(printed)) {
     throw new Error(`expected ReScript 12.3.1, got:\n${printed}`);
   }
   mkdirSync(join(project, "src"), { recursive: true });
@@ -170,7 +174,7 @@ describe("compiler fixtures", () => {
     );
     const printed = `${result.stdout.toString()}${result.stderr.toString()}`;
     expect(result.exitCode).toBe(0);
-    expect(printed).toContain("rescript 12.3.1");
+    expect(isPinnedCompiler(printed)).toBe(true);
   });
 
   test("the copied package files equal package.json files", () => {
@@ -201,9 +205,16 @@ describe("compiler fixtures", () => {
           if (result.status === 0) {
             throw new Error("the wrong-reason control compiled");
           }
+          const diagnostics = parseDiagnostics(result.output);
+          // The control must fail because of its syntax, not some other way
+          // that merely looks unlike the expected type error.
           expect(
-            matchesExpectation(parseDiagnostics(result.output), entry.expect),
-          ).toBe(false);
+            diagnostics.some(
+              ({ kind, file, line }) =>
+                kind === "syntax" && file === "Case.res" && line === 2,
+            ),
+          ).toBe(true);
+          expect(matchesExpectation(diagnostics, entry.expect)).toBe(false);
           return;
         }
         if (entry.kind === "reject") {
