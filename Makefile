@@ -68,6 +68,7 @@ test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/IO.test.res.mjs \
 		./tests/consumer.test.mjs ./tests/dependency-contracts.test.mjs \
 		./tests/documentation-contracts.test.mjs ./tests/generated-gate.test.mjs \
+		./tests/interface-contracts.test.mjs \
 		./tests/makefile-contracts.test.mjs ./tests/markdown-contracts.test.mjs \
 		./tests/package-contracts.test.mjs ./tests/workflow-contracts.test.mjs
 

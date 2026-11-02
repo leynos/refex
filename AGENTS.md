@@ -26,6 +26,11 @@
   `tests/IoEvaluation.res`, which binds `tests/support/io-evaluation.mjs` to
   evaluate an opaque `IO.t`, and `tests/FastCheck.res`, the property-test
   binding. Production `src/` has none.
+- The `public` allowlist in `rescript.json` is a declaration, not an
+  enforcement point on ReScript 12.3.1: every `src/` module remains reachable.
+  Add a module deliberately and keep the module and interface contracts
+  (`tests/package-contracts.test.mjs`, `tests/interface-contracts.test.mjs`)
+  satisfied; see ADR 008.
 - Use the ReScript 12 standard library. Do not add `@rescript/core`.
 - Treat `Bootstrap` as disposable tooling evidence, not a product API.
 - Change and format ReScript source, then rebuild and commit production

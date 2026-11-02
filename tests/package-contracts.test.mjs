@@ -14,6 +14,7 @@ file owns only the values it feeds them.
 import { describe, expect, test } from "bun:test";
 import {
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   symlinkSync,
@@ -21,7 +22,11 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { packageContract } from "./support/package-dependency-contracts.mjs";
+import {
+  internalModules,
+  packageContract,
+  publicModulesContract,
+} from "./support/package-dependency-contracts.mjs";
 
 // Private to this suite: reads the repository's own files, not a generic model.
 const root = process.cwd();
@@ -63,6 +68,21 @@ describe("package and compiler contracts", () => {
     expect(biome.files.includes).toContain("!!**/*.res.mjs");
     expect(biome.files.includes).toContain("!!.uv-cache");
     expect(biome.vcs.useIgnoreFile).toBe(true);
+  });
+
+  test("every src module is declared and has an interface", () => {
+    const entries = readdirSync("src");
+    publicModulesContract(config, entries, internalModules);
+    expect(() =>
+      publicModulesContract(config, [...entries, "Extra.res"], internalModules),
+    ).toThrow();
+    expect(() =>
+      publicModulesContract(
+        config,
+        entries.filter((name) => name !== "IO.resi"),
+        internalModules,
+      ),
+    ).toThrow();
   });
 
   test("portable private package with exact tools and explicit exports", () => {

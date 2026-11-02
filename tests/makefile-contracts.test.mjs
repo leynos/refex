@@ -66,6 +66,30 @@ function testTargetListsEverySuite(makefile, suites) {
   }
 }
 
+// The ReScript suites whose generated JavaScript coverage must measure. The
+// authored `.mjs` contract suites stay out: they inspect the repository rather
+// than exercise `src/`.
+const rescriptSuites = () =>
+  readdirSync("tests")
+    .filter((name) => name.endsWith(".test.res"))
+    .map((name) => `./tests/${name}.mjs`)
+    .sort();
+
+// The suite paths named by the `coverage` recipe, which has the same command
+// shape as `test` plus coverage flags.
+function coverageCommand(makefile) {
+  const recipe = makefile.match(/^coverage:.*\n((?:\t.*\n?)+)/m)?.[1];
+  if (!recipe) throw new Error("Makefile has no coverage recipe");
+  const command = recipe
+    .replace(/\\\n\t*/g, " ")
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.startsWith("$(BUN) test "))
+    ?.replace(/\s#.*$/, "");
+  if (!command) throw new Error("coverage recipe has no $(BUN) test command");
+  return command;
+}
+
 describe("Makefile contracts", () => {
   test("spelling gate lets the provisioner choose the uv cache location", () => {
     spellingGateContract(source("Makefile"));
@@ -125,6 +149,12 @@ describe("Makefile contracts", () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  test("make coverage measures every ReScript test suite", () => {
+    const named = namedSuites(coverageCommand(source("Makefile")));
+    const missing = rescriptSuites().filter((suite) => !named.has(suite));
+    expect(missing).toEqual([]);
   });
 
   test("make test runs every authored test suite", () => {

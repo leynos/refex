@@ -222,7 +222,8 @@ regenerated `typos.toml` are excluded from every count below.
   defect it found was real and is fixed.
 - [x] (2026-11-02) Owner acceptance of ADR 008; it is `accepted` with the
   amendments recorded.
-- [ ] EP-M1: `IO` test-first, with interface and module contracts.
+- [x] (2026-11-02) EP-M1: `IO` test-first, with interface and module
+  contracts; red output, ablations, and pass counts recorded below.
 - [ ] EP-M2: `Fx` test-first.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
 - [ ] EP-M4: law and model-agreement property tests.
@@ -1551,6 +1552,18 @@ R-2 records.
 Red-stage outputs, ablation results, suite pass counts, fixture-suite timings,
 and `scrutineer` log paths are appended here during implementation.
 
+- EP-M1 red, 2026-11-02: `make test` failed with "The module or file IO can't
+  be found." at `tests/IoEvaluation.res:7`
+  (`/tmp/test-red-refex-1-2-1-smallest-opaque-fx-surface.out`).
+- EP-M1 green, 2026-11-02: `tests/IO.test.res.mjs` passes 9 cases; the
+  interface, module-inventory, and coverage-registration contracts pass with
+  their negative controls.
+- A-3: caching the last success inside `IO.flatMap` made the fresh-execution
+  case observe `Succeeded(2)` instead of `Failed("second")`; one failure.
+- A-6: memoizing `IO.suspend` made the twice-evaluated constructor run once and
+  made the fresh-execution case return the cached success; two failures.
+- A-13: adding `IO.unsafeRun` made the interface contract report the extra
+  signature; one failure.
 - EP-M0, 2026-11-02: baseline `make all` green through `scrutineer`,
   `MAKE_ALL_EXIT=0`, 78 passing tests in 9 files, package-check verifying 7
   files and both isolated consumers

@@ -199,6 +199,19 @@ representation recorded in ADR 008; road map task 1.3.1 replaces it with the
 private runtime entry. `tests/FastCheck.res` binds the property-test library
 when those suites arrive.
 
+## Surface contracts
+
+`tests/package-contracts.test.mjs` calls `publicModulesContract`: the `public`
+declaration plus the documented `internalModules` list must equal the
+`src/*.res` inventory, and every module must have a `.resi`.
+`tests/interface-contracts.test.mjs` runs `rescript-tools doc` on each `.resi`
+and compares the exported names, kinds, and signatures with an exact table.
+
+On ReScript 12.3.1, `public` is a declaration rather than an enforcement point:
+a module omitted from it stays reachable as `Refex.<Module>`. The contracts,
+not the allowlist, are therefore the boundary. ADR 008 and the planning probes
+in `docs/evidence/type-level-probes.md` record the evidence.
+
 ## CI, auditing, and dependency automation
 
 `ci.yml` is authoritative for pull requests, main pushes, and manual dispatch.
