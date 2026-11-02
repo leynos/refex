@@ -613,10 +613,12 @@ regenerated `typos.toml` are excluded from every count below.
   reach depth five. `exprDepth` now counts constructor layers, and the
   classification test asserts reachability and a depth-four upper bound; at the
   pinned seed the 1,000 samples reach depth four 337 times and none go deeper.
-  (c) The branch adds 3,941 net lines across 78 counted files against the
-  3,800-line escalation threshold. The count cannot be reduced without deleting
-  verification or documentation, so the escalation stays open for the owner's
-  decision; it is a delivery-governance item, not a runtime defect.
+  (c) The branch added 3,941 net lines across 78 counted files at `32dd6b4`
+  against the 3,800-line escalation threshold. The repairs add one counted file
+  and 29 net lines, so the same convention counts 3,970 net lines across 79
+  files at `ca47e59`. The count cannot be reduced without deleting verification
+  or documentation, so the escalation stays open for the owner's decision; it
+  is a delivery-governance item, not a runtime defect.
 
 ## Outcomes & retrospective
 
@@ -2196,3 +2198,8 @@ Fx agreement properties moved to `tests/FxAgreement.test.res`, the depth metric
 now counts constructor layers, and the classification test enforces the
 depth-four upper bound. The scope-tolerance escalation remains open for the
 owner's decision. Status stays `COMPLETE` for the implementation.
+
+2026-11-02, revision 7: corrected the repaired footprint. Under the plan's
+counting convention the split adds one file and 29 net lines, so `ca47e59`
+counts 3,970 net lines across 79 files rather than the 3,941 across 78 at
+`32dd6b4`. Finding 1 remains an owner scope decision.
