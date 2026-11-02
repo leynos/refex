@@ -86,9 +86,10 @@ make coverage
 ```
 
 The test target compiles first and explicitly selects
-`tests/Bootstrap.test.res.mjs`, the authored JavaScript consumer, and the
-repository contract suites. This prevents a green run that never executes the
-ReScript smoke. Contract tests cover package and compiler boundaries, workflow
+`tests/Bootstrap.test.res.mjs`, `tests/IO.test.res.mjs`,
+`tests/Fx.test.res.mjs`, the authored JavaScript consumer, and the repository
+contract suites. This prevents a green run that never executes the ReScript
+smoke. Contract tests cover package and compiler boundaries, workflow
 permissions and pins, privileged metadata-only operations, `make -j` gate
 order, the Dependabot configuration, the Markdown rule policy and its ignore
 paths, the Bun coverage exclusion, registration of every authored suite in the
@@ -172,9 +173,9 @@ make package-check
 
 This gate cleans and rebuilds, checks generated synchronization, creates a real
 archive with `bun pm pack --ignore-scripts`, and compares its contents against
-an independent explicit ten-file allowlist. The archive contains README,
-`LICENSE`, package metadata, ReScript configuration, and the `Bootstrap` and
-`IO` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
+an independent explicit thirteen-file allowlist. The archive contains README,
+`LICENSE`, package metadata, ReScript configuration, and the `Bootstrap`, `IO`,
+and `Fx` sources, interfaces, and generated ESM. Tests, dev scripts, coverage,
 editor state, and unrelated documents must never enter it.
 
 A temporary clean consumer installs the archive with the matching compiler,
@@ -184,11 +185,11 @@ point, compiles `Refex.Bootstrap`, and executes that compiled consumer. No
 archive and fixture on success or failure. System tar only inspects the locally
 produced archive; no publishing command exists.
 
-The module exports are `refex/src/Bootstrap.res.mjs` and
-`refex/src/IO.res.mjs`. ReScript consumers emit those concrete package paths
-automatically, so an alias-only export would compile but fail at execution. The
-archive checker executes the compiled consumer to verify this integration
-detail.
+The module exports are `refex/src/Bootstrap.res.mjs`, `refex/src/IO.res.mjs`,
+and `refex/src/Fx.res.mjs`. ReScript consumers emit those concrete package
+paths automatically, so an alias-only export would compile but fail at
+execution. The archive checker executes the compiled consumer to verify this
+integration detail.
 
 ## Test-only foreign function interfaces
 

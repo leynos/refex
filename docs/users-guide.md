@@ -113,9 +113,14 @@ value; if the work fails, the whole description fails with that error.
 Two services:
 
 ```rescript
+open Refex
+
 type clock = {now: unit => int}
 type log = {format: int => string}
 type services = {clock: clock, log: log}
+
+let clock = {now: () => 42}
+let log = {format: tick => "tick " ++ Int.toString(tick)}
 
 let describe: Fx.t<string, string, services> = Fx.flatMap(
   Fx.access(services => services.clock.now()),
@@ -128,6 +133,8 @@ let io: IO.t<string, string> = Fx.provide(describe, {clock, log})
 Projection:
 
 ```rescript
+open Refex
+
 type small = {count: int}
 type large = {count: int, label: string}
 

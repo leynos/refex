@@ -722,10 +722,12 @@ Each obligation names its claim, boundary, method, and non-vacuity evidence.
   - `provide(contramapEnvironment(m, p), l) ≈t
     IO.suspend(() => provide(m, p(l)))`;
   - `contramapEnvironment(access(h), p) ≈r access(x => h(p(x)))`;
-  - projection distributes over sequencing (`≈r`, because the right side
-    calls `p` twice):
+  - projection distributes over sequencing for a pure projection (`≈r`,
+    because the right side calls `p` twice):
     `contramapEnvironment(flatMap(m, k), p)
-    ≈r flatMap(contramapEnvironment(m, p), a => contramapEnvironment(k(a), p))`;
+    ≈r flatMap(contramapEnvironment(m, p), a => contramapEnvironment(k(a), p))`.
+    A stateful `p` is governed by the once-per-evaluation contract and the
+    named example below, not by this law; the test states the purity premise.
   - provision distributes over sequencing:
     `provide(flatMap(m, k), r) ≈t IO.flatMap(provide(m, r), a =>
     provide(k(a), r))`.

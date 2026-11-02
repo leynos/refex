@@ -6,10 +6,10 @@ refex explores lazy workflows, explicit capabilities, typed failures, and owned
 resources without exposing a backend runtime's API to application code. React
 is the primary application target; the core remains portable ReScript.
 
-**Status: development bootstrap only. No effects API exists yet.** The private
-`0.0.0` package exports one disposable toolchain probe, not a stable library.
-The [technical design](docs/design.md) describes proposals to validate, not
-features that can already be imported.
+**Status: development bootstrap only.** The private `0.0.0` package exports an
+early opaque `IO` and `Fx` API with no runner, plus one disposable toolchain
+probe. Nothing here is a stable library. The [technical design](docs/design.md)
+describes proposals to validate, not features that can already be imported.
 
 ______________________________________________________________________
 
@@ -62,15 +62,16 @@ ______________________________________________________________________
 
 ## Features
 
-Available today: a pinned ReScript 12.3.1 bootstrap, explicit interfaces,
-committed generated production JavaScript, a consumer smoke test, and
-sequential Make gates. Bun runs development tools and tests; it is not a core
-dependency. Core source must not call React, Bun, Node, or browser APIs.
+Available today: a pinned ReScript 12.3.1 bootstrap, explicit interfaces, opaque
+`IO` and `Fx` descriptions with no runner, committed generated production
+JavaScript, a consumer smoke test, and sequential Make gates. Bun runs
+development tools and tests; it is not a core dependency. Core source must not
+call React, Bun, Node, or browser APIs.
 
-Planned and unvalidated: typed `Fx` workflows, dependency-aware resources and
-layers, pipeline helpers, owned concurrency, deterministic time, a React
-adapter, and a gated native-await experiment. `rescript-schema` supplies the
-schema starting point rather than a new refex schema language.
+Planned and unvalidated: a runtime for typed `Fx` workflows, dependency-aware
+resources and layers, pipeline helpers, owned concurrency, deterministic time,
+a React adapter, and a gated native-await experiment. `rescript-schema`
+supplies the schema starting point rather than a new refex schema language.
 
 Three vertical validators decide which abstractions survive:
 
