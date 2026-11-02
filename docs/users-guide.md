@@ -90,8 +90,8 @@ task 1.3.1 may replace it.
 This release provides **no runner**. Roadmap task 1.3.1 adds the runtime entry
 point that evaluates a description. Until then nothing in the package evaluates
 one: only the repository's tests, and a JavaScript consumer that calls the
-generated thunk directly, do so. `Bootstrap` remains in the package until task
-1.2.1 retires it in its final milestone, and `Fx` follows in the same task.
+generated thunk directly, do so. `Bootstrap` remains in the package until its
+retirement milestone (EP-M5 of task 1.2.1).
 
 ## `Fx`
 
@@ -136,12 +136,12 @@ Projection:
 open Refex
 
 type small = {count: int}
-type large = {count: int, label: string}
+type large = {small: small, label: string}
 
 let count: Fx.t<int, string, small> = Fx.access(environment => environment.count)
 
 let countInLarge: Fx.t<int, string, large> =
-  Fx.contramapEnvironment(count, environment => {count: environment.count})
+  Fx.contramapEnvironment(count, environment => environment.small)
 ```
 
 Annotate top-level descriptions and their provided results. Without an

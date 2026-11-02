@@ -18,10 +18,11 @@ owner approves this plan. EP-M1 additionally waits for the owner to accept ADR
 ## Purpose / big picture
 
 refex is an experimental ReScript 12 library for lazy computations with typed
-requirements and typed failures. Today the repository contains only a
-disposable toolchain probe, `src/Bootstrap.res`, and a set of design decisions.
-No computation type exists yet, so none of those decisions has been tested at a
-real consumer's interface.
+requirements and typed failures. The repository now contains opaque `IO` and
+`Fx` modules with behavioural suites; the disposable `src/Bootstrap.res` probe
+remains until its retirement milestone. EP-M1 and EP-M2 are complete. EP-M3
+adds compiler fixtures and a packed multi-module consumer, EP-M4 property-based
+laws, EP-M5 retires `Bootstrap`, and EP-M6 reconciles the record.
 
 Roadmap task 1.2.1 asks for the smallest opaque `Fx` surface that lets
 separately compiled modules build workflows. `Fx.t<'a, 'e, 'r>` describes a

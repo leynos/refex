@@ -51,11 +51,12 @@ adopted with its own evidence.
 ### Public modules and archive contents
 
 `IO` and `Fx` are public modules with explicit `.resi` interfaces, and each
-public type introduced is abstract there. Once both exist, `Bootstrap` is
-retired, as ADR 001's Consequences require. `package.json` `files` and
-`exports`, the package contract, the package-check allowlist, and the
-interface-contract table gain `IO` and `Fx` and lose `Bootstrap` in the same
-change that retires it.
+public type introduced is abstract there. Task 1.2.1 retires `Bootstrap` in its
+EP-M5 milestone, as ADR 001's Consequences require, so the package's archive
+contains only the semantic modules. `package.json` `files` and `exports`, the
+package contract, the package-check allowlist, and the interface-contract table
+gain `IO` and `Fx` when those modules land and lose `Bootstrap` when it is
+retired.
 
 ### `public` is a declaration, not an enforcement point
 
