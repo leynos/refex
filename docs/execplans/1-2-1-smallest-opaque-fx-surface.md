@@ -1431,8 +1431,13 @@ Run on 2026-10-31 with ReScript 12.3.1 and Bun 1.4.2, outside the repository.
 #!/usr/bin/env bash
 # Reproduce planning probes for EP-1.2.1. Usage: probe.sh REPO_ROOT
 set -uo pipefail
-REPO=$1; P=$(mktemp -d "$HOME/.cache/refex-ns-XXXXXX")
-lib=$P/lib; con=$P/consumer; mkdir -p $lib/src $con/src $con/node_modules
+REPO=$1
+if ! P=$(mktemp -d "${TMPDIR:-/tmp}/refex-ns-XXXXXX"); then
+  echo "cannot create the probe scratch directory" >&2
+  exit 1
+fi
+trap 'rm -rf "$P"' EXIT
+lib=$P/lib; con=$P/consumer; mkdir -p "$lib/src" "$con/src" "$con/node_modules"
 ln -s "$REPO/node_modules" $lib/node_modules
 for f in "$REPO"/node_modules/* "$REPO"/node_modules/.bin "$REPO"/node_modules/@rescript; do
   ln -sfn "$f" $con/node_modules/
