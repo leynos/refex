@@ -159,6 +159,29 @@ describe("matchesExpectation", () => {
       matchesExpectation(parseDiagnostics(syntaxBlock), errorExpectation),
     ).toBe(false);
   });
+
+  test("rejects a syntax error carrying the expected fragments", () => {
+    const disguised = syntaxBlock.replace(
+      'I\'m not sure what to parse here when looking at "]".',
+      "This can't be called, it's not a function. The function has type:",
+    );
+    expect(
+      matchesExpectation(parseDiagnostics(disguised), errorExpectation),
+    ).toBe(false);
+  });
+
+  test("rejects a promoted warning carrying the expected fragments", () => {
+    const disguised = warningBlock
+      .replace("GuideSnippets.res", "Case.res")
+      .replace(":1:1-10", ":2:14")
+      .replace(
+        "this open statement shadows the module identifier Fx (which is later used)",
+        "This can't be called, it's not a function. The function has type:",
+      );
+    expect(
+      matchesExpectation(parseDiagnostics(disguised), errorExpectation),
+    ).toBe(false);
+  });
 });
 
 describe("scanForCasts", () => {

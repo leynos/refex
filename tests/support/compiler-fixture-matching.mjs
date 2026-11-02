@@ -73,6 +73,7 @@ export function parseDiagnostics(output) {
 export function matchesExpectation(diagnostics, expect) {
   if (diagnostics.length !== 1) return false;
   const [diagnostic] = diagnostics;
+  if (diagnostic.kind !== "error") return false;
   if (diagnostic.file !== expect.file) return false;
   if (diagnostic.line !== expect.line) return false;
   return expect.fragments.every((fragment) =>

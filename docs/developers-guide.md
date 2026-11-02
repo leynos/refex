@@ -144,8 +144,8 @@ the pinned toolchain, and compiles `tests/fixtures/compiler/fx-surface/base/`.
 The base's nine modules exercise multi-module accumulation, projection,
 injection, and opacity. The fixture project lives under `os.tmpdir()` and
 `afterAll` removes it; it is never packaged.
-`tests/compiler-fixture-matching.mjs` holds the matcher, the cast scan, and the
-one-line comparison, and its only permitted callers are the runner and
+`tests/support/compiler-fixture-matching.mjs` holds the matcher, the cast scan,
+and the one-line comparison, and its only permitted callers are the runner and
 `compiler-fixture-matching.test.mjs`. It is not a generic test framework.
 
 A case is one file under `cases/`, named `<id>.res`, with one entry in

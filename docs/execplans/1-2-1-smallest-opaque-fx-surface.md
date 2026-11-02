@@ -265,6 +265,12 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Review round 15: one finding, valid. Four stale statements still
     described `provide` as `fx(environment)`; the abstract model, its prose,
     EP-M2 Green step 1, and the interface snippet now suspend the application.
+  - [x] Review round 16: three findings, two distinct defects, both valid. The
+    developer guide named the matcher under `tests/` rather than `tests/support/`.
+    `matchesExpectation` never read the diagnostic kind, so a syntax error or
+    promoted warning carrying the expected file, line, and fragments could pass
+    as the expected error; the matcher now requires `kind === "error"`, and two
+    disguise tests cover identical fragments on syntax and warning blocks.
     Re-review pending.
 - [ ] EP-M4: law and model-agreement property tests.
 - [ ] EP-M5: retire `Bootstrap`.
