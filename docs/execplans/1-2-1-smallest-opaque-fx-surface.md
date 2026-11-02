@@ -6,7 +6,7 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Conformance basis`, and `Verification plan` must be kept up to date as work
 proceeds.
 
-Status: DRAFT
+Status: IN PROGRESS
 
 Plan identifier: `EP-1.2.1`. Branch: `1-2-1-smallest-opaque-fx-surface`.
 Roadmap task:
@@ -208,9 +208,20 @@ regenerated `typos.toml` are excluded from every count below.
 - [x] (2026-10-31) Owner accepted the plan's recommendations (D-13): ADR 008
   as the amendment route, `Bootstrap` retirement, `fast-check` now, and the
   raised tolerances. The plan itself remains under review.
-- [ ] Owner approval of this plan.
-- [ ] EP-M0: baseline, namespace-visibility evidence, and ADR 008 (proposed).
-- [ ] Owner acceptance of ADR 008.
+- [x] (2026-11-02) Owner approved this plan and accepted ADR 008 (D-14).
+- [x] (2026-11-02) EP-M0: probe script reproduced `ns1`, `ns2`, `ns6`, `ns7`,
+  and `ns8`; the evidence, source register, ADR 008, and the ADR 001, 004, and
+  006 amendments are written.
+- [x] (2026-11-02) EP-M0: re-run `make all` on the quiescent EP-M0 tree; green
+  through `scrutineer` (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface.out`,
+  `MAKE_ALL_EXIT=0`). The first baseline run at `6164db0` was invalidated
+  rather than failed: it saw 24 Markdown files during `check-fmt` and 25 during
+  `docs-check` because the EP-M0 documents were still being written, and
+  `docs-check` then rejected the untracked ADR 008
+  (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface.out`). The formatting
+  defect it found was real and is fixed.
+- [x] (2026-11-02) Owner acceptance of ADR 008; it is `accepted` with the
+  amendments recorded.
 - [ ] EP-M1: `IO` test-first, with interface and module contracts.
 - [ ] EP-M2: `Fx` test-first.
 - [ ] EP-M3: compiler fixtures and the packed consumer.
@@ -352,6 +363,12 @@ regenerated `typos.toml` are excluded from every count below.
   85 files and 3,800 lines. This acceptance does not approve the plan, which
   remains under review, and does not accept ADR 008 itself, which does not yet
   exist. Implementation stays unauthorized until the owner approves the plan.
+- D-14 (2026-11-02): the owner approved this plan and accepted ADR 008 in the
+  same instruction. ADR 008 is therefore recorded as `accepted`, not
+  `proposed`, and its amendments to ADR 001, ADR 004, and ADR 006 are recorded
+  in EP-M0. This satisfies the plan's "ADR acceptance" tolerance and the EP-M1
+  precondition without a separate waiting step. No scope, interface,
+  verification, or milestone content changes.
 
 ## Outcomes & retrospective
 
@@ -1534,6 +1551,13 @@ R-2 records.
 Red-stage outputs, ablation results, suite pass counts, fixture-suite timings,
 and `scrutineer` log paths are appended here during implementation.
 
+- EP-M0, 2026-11-02: baseline `make all` green through `scrutineer`,
+  `MAKE_ALL_EXIT=0`, 78 passing tests in 9 files, package-check verifying 7
+  files and both isolated consumers
+  (`/tmp/all-refex-1-2-1-smallest-opaque-fx-surface.out`). The probe re-run
+  reproduced `ns1`, `ns2`, `ns6`, `ns7`, and `ns8`; its console transcript is in
+  `docs/evidence/type-level-probes.md`.
+
 ## Interfaces and dependencies
 
 ### Public interfaces
@@ -1637,3 +1661,8 @@ is unchanged in scope: owner approval, then EP-M0.
 recommendations as D-13 and in `Progress`. No scope, interface, verification,
 or milestone content changed. The plan stays `DRAFT` and under review; EP-M0
 still waits for plan approval, and EP-M1 for acceptance of ADR 008.
+
+2026-11-02, revision 4: the owner approved the plan and accepted ADR 008
+(D-14); status is `IN PROGRESS`. EP-M0 completed with the baseline gate, the
+probe re-run, the evidence section, the source register entries C19 and C20,
+ADR 008 as `accepted`, and the amendments to ADR 001, ADR 004, and ADR 006.

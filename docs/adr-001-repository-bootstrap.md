@@ -96,3 +96,12 @@ waived, so no severity cutoff or ignore list exists. The
 Required CI protection and repository settings need administrative operations
 the connected integration does not expose. Dependabot automerge remains in
 dry-run mode until those controls exist; major updates always need review.
+
+## Amendments
+
+[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) replaces the
+bootstrap module in the archive allowlist with the package's first semantic
+modules, `IO` and `Fx`, each with its `.resi` and generated ESM. The
+consequence above, that new semantic code must replace the disposable module,
+is executed by roadmap task 1.2.1. Exact pins, generated-output policy, and the
+isolated archive check are unchanged.
