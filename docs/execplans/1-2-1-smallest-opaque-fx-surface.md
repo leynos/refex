@@ -19,11 +19,11 @@ the first task of step 1.2. The repository owner approved this plan on
 
 refex is an experimental ReScript 12 library for lazy computations with typed
 requirements and typed failures. The repository now contains opaque `IO` and
-`Fx` modules with behavioural suites; the disposable `src/Bootstrap.res` probe
-remains until its retirement milestone. EP-M1 to EP-M4 are complete: the opaque
-modules, the compiler fixtures and packed consumer, and the property-based law
-suites all pass their gates and milestone reviews. EP-M5 retires `Bootstrap`,
-and EP-M6 reconciles the record.
+`Fx` modules with behavioural suites, and the disposable `src/Bootstrap.res`
+probe has been retired. EP-M1 to EP-M5 are complete: the opaque modules, the
+compiler fixtures and packed consumer, the property-based law suites, and the
+probe retirement all pass their gates and milestone reviews. EP-M6 reconciles
+the record.
 
 Roadmap task 1.2.1 asks for the smallest opaque `Fx` surface that lets
 separately compiled modules build workflows. `Fx.t<'a, 'e, 'r>` describes a
@@ -343,7 +343,18 @@ regenerated `typos.toml` are excluded from every count below.
   - [x] Review round 24: re-review of `215cfd6` returned no findings. EP-M4 is
     review-complete. Gates at `215cfd6`: `make all` 195 tests in 18 files,
     `make coverage` 71 tests at 100 per cent, `make audit` clean.
-- [ ] EP-M5: retire `Bootstrap`.
+- [x] (2026-11-02) EP-M5: retired `Bootstrap` at `fb30193`; `IO` and `Fx` are
+  now the only public modules, package exports, and archive contents.
+  `make all` passed through `scrutineer` with 193 tests in 17 files and a
+  verified ten-file package. The search
+  `rg -n "Bootstrap" --glob '!docs/execplans/**'` leaves only permitted
+  historical residue: ADR 001 and its amendment, ADR 008, the historical
+  baseline link in `docs/terms-of-reference.md`, the design §2.2 heading, and
+  `CHANGELOG.md`.
+  - [x] Review round 25: seven findings, all valid and documentation-only:
+    stale pre-retirement statements in ADR 001's amendment and ADR 008, the
+    unchecked EP-M5 entry, and the unrecorded `minimatch` override. All are
+    corrected in the follow-up documentation commit.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
 ## Surprises & discoveries

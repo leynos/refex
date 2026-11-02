@@ -316,7 +316,7 @@ none reaches the portable runtime or the packed consumer.
 | KaTeX 0.16.47    | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                               |
 | smol-toml 1.8.0  | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                |
 | js-yaml 5.2.3    | [GHSA-r3ph-w7gj-g6xm](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm) | Pin override to stable 5.4.3 and verify Markdown lint.                                |
-| minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) | Pin override to stable 11.0.1 and verify Markdown lint.                               |
+| minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) | Pin override to stable 11.0.4 and verify Markdown lint.                               |
 | braces 3.0.3     | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Replace markdownlint-cli2 with markdownlint-cli and verify the identical rule policy. |
 
 `braces` had no patched registry release and the upstream maintainer disputes
@@ -328,6 +328,11 @@ The two linters share rule semantics, so the committed policy and its findings
 are unchanged; `--dot` preserves dot-directory coverage, which the replacement
 does not enable by default. The repository-contract suite rejects a return to
 the vulnerable linter, a floating pin, or a loss of `--dot`.
+
+`markdownlint-cli` 0.49.1 pins `minimatch ~10.2.5`, which resolves to the
+affected 10.2.6. The `minimatch` override moves that single transitive instance
+to 11.0.4. Remove the override once `markdownlint-cli` admits minimatch 11 and
+`make audit` stays clean without it.
 
 Do not manufacture an audit pass with a severity cutoff or ignore list. If a
 future advisory has no replacement path, record it here and keep `make audit`

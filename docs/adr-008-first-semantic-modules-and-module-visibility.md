@@ -55,12 +55,12 @@ adopted with its own evidence.
 ### Public modules and archive contents
 
 `IO` and `Fx` are public modules with explicit `.resi` interfaces, and each
-public type introduced is abstract there. Task 1.2.1 retires `Bootstrap` in its
-EP-M5 milestone, as ADR 001's Consequences require; until then the archive
-still contains `Bootstrap` alongside the semantic modules. `package.json`
-`files` and `exports`, the package contract, the package-check allowlist, and
-the interface-contract table gain `IO` and `Fx` when those modules land and lose
-`Bootstrap` only when EP-M5 retires it.
+public type introduced is abstract there. Task 1.2.1 retired `Bootstrap` in its
+EP-M5 milestone, as ADR 001's Consequences require; the archive now contains
+the semantic modules alone. `package.json` `files` and `exports`, the package
+contract, the package-check allowlist, and the interface-contract table gained
+`IO` and `Fx` when those modules landed and lost `Bootstrap` when EP-M5 retired
+it.
 
 ### `public` is a declaration, not an enforcement point
 
@@ -118,22 +118,22 @@ encapsulation, with its own evidence, when it introduces the execution adapter.
 ## Consequences
 
 The package's semantic surface is `IO` and `Fx`; the archive now contains those
-two modules and their generated output alongside `Bootstrap`, which EP-M5
-retires. Adding a public module or a public export is now a contract change
-that must be made deliberately, because the module and export-set contracts
-will reject an unrecorded addition. Consumers of the packed package can reach
-every `src/` module, so the honesty of the public declaration rests on those
-contracts and on review, not on the compiler. JavaScript consumers remain
-untyped and can call the generated representation directly; opacity is a
-ReScript-consumer guarantee only.
+two modules and their generated output, and no longer contains `Bootstrap`,
+which EP-M5 retired. Adding a public module or a public export is now a
+contract change that must be made deliberately, because the module and
+export-set contracts will reject an unrecorded addition. Consumers of the
+packed package can reach every `src/` module, so the honesty of the public
+declaration rests on those contracts and on review, not on the compiler.
+JavaScript consumers remain untyped and can call the generated representation
+directly; opacity is a ReScript-consumer guarantee only.
 
 ## Amendments
 
 ### ADR 001
 
-The archive allowlist admits the package's semantic modules in addition to the
-bootstrap module: `IO` and `Fx`, each with its `.resi` and generated ESM,
-alongside `Bootstrap` until EP-M5 retires it. ADR 001's consequence that "new
+The archive allowlist admits the package's semantic modules: `IO` and `Fx`,
+each with its `.resi` and generated ESM. EP-M5 retired `Bootstrap`, so the
+archive contains the semantic modules alone. ADR 001's consequence that "new
 semantic code must replace the disposable module" is executed by roadmap task
 1.2.1. Every other bootstrap rule, including exact pins, generated-output
 policy, and the isolated archive check, stands.
