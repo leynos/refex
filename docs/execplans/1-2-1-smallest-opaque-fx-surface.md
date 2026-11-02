@@ -361,6 +361,11 @@ regenerated `typos.toml` are excluded from every count below.
     promotes warning 44 to an error when `Fx` is later used. The brief now
     records the implemented construction subset, and the examples alias
     `Refex.Fx` and `Refex.IO` instead of opening the namespace.
+  - [x] Review round 27: one finding, reported twice, valid. The developers'
+    guide still required a two- or three-line source declaration, which
+    contradicts the committed fixture cases and EP-M3's finding that
+    formatter stability, not source length, is the constraint. The guide now
+    states formatter stability directly.
 - [ ] EP-M6: reconciliation and roadmap completion.
 
 ## Surprises & discoveries

@@ -180,13 +180,13 @@ and the one-line comparison, and its only permitted callers are the runner and
 `compiler-fixture-matching.test.mjs`. It is not a generic test framework.
 
 A case is one file under `cases/`, named `<id>.res`, with one entry in
-`cases.json`. Write the source as a two- or three-line declaration, build it as
-`src/Case.res`, and record the diagnostic's file, first line, and stable
-fragments. Match stable message fragments after collapsing whitespace, never a
-whole message or a mangled module name. Every negative case needs a positive
-control that differs by exactly one line; a syntax-broken case is stored as
-`<id>.res.txt` and is excluded from `rescript format`. The runner asserts that
-the id/file set in `cases.json` equals the files under `cases/`.
+`cases.json`. Keep each source formatter-stable, so `rescript format` leaves it
+unchanged, build it as `src/Case.res`, and record the diagnostic's file, first
+line, and stable fragments. Match stable message fragments after collapsing
+whitespace, never a whole message or a mangled module name. Every negative case
+needs a positive control that differs by exactly one line; a syntax-broken case
+is stored as `<id>.res.txt` and is excluded from `rescript format`. The runner
+asserts that the id/file set in `cases.json` equals the files under `cases/`.
 
 Accepted sources are the only place the runner scans for casts. The scan is
 deliberately syntactic and reports `Obj.magic`, `:>`, `%identity`, `%raw`, and
