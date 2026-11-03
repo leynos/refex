@@ -2,8 +2,8 @@
 @file Documentation contracts: the ADR index and status vocabulary.
 
 An ADR's status line is where "decided" and "evidenced" most easily blur, so
-every `docs/adr-NNN-*.md` must declare one status from a fixed vocabulary and
-be reachable from `docs/contents.md`. The status token is the text after
+every `docs/adrs/adr-NNNN-*.md` must declare one status from a fixed vocabulary
+and be reachable from `docs/contents.md`. The status token is the text after
 `Status:` up to the first `.` or `:`, so `provisional: authorizes a bounded
 trial.` reads as `provisional`. Negative controls drop an index link, invent a
 status, remove the status line, and link a missing ADR, so a contract that
@@ -24,15 +24,15 @@ const STATUSES = [
   "accepted",
 ];
 const SUPERSEDED = /^superseded by ADR \d{3}$/;
-const ADR_FILE = /^adr-\d{3}-[a-z0-9-]+\.md$/;
+const ADR_FILE = /^adr-\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
 const adrFiles = () =>
-  readdirSync("docs")
+  readdirSync("docs/adrs")
     .filter((name) => ADR_FILE.test(name))
     .sort()
     .map((name) => ({
-      path: `docs/${name}`,
-      text: readFileSync(`docs/${name}`, "utf8"),
+      path: `docs/adrs/${name}`,
+      text: readFileSync(`docs/adrs/${name}`, "utf8"),
     }));
 
 // The status token is the text after `Status:` up to the first `.` or `:`, on
@@ -50,7 +50,7 @@ const isKnownStatus = (token) =>
 // The error a fixture raises when its status line is altered: the suite names
 // the first ADR, so every negative control over an ADR's status expects this.
 const UNRECOGNIZED =
-  "adr-001-repository-bootstrap.md has no recognized status line";
+  "adr-0001-repository-bootstrap.md has no recognized status line";
 
 // Rewrites the text of the first fixture ADR, leaving the rest untouched.
 const rewriteFirstAdr = (adrs, rewrite) =>
@@ -82,7 +82,7 @@ function assertAdrsIndexed(linked, adrs) {
 // Throws naming the first ADR that is unindexed, unstatused, or missing.
 function adrIndexContract(contents, adrs) {
   const linked = new Set(
-    [...contents.matchAll(/\]\((adr-[^)#\s]+\.md)\)/g)].map(
+    [...contents.matchAll(/\]\((adrs\/adr-[^)#\s]+\.md)\)/g)].map(
       (match) => `docs/${match[1]}`,
     ),
   );
@@ -109,10 +109,10 @@ describe("Documentation contracts", () => {
     ],
   ])("%s", (_name, status) => {
     const adr = {
-      path: "docs/adr-099-x.md",
+      path: "docs/adrs/adr-0099-x.md",
       text: `# ADR 099: x\n\nStatus: ${status}\n`,
     };
-    adrIndexContract("[ADR 099](adr-099-x.md)", [adr]);
+    adrIndexContract("[ADR 099](adrs/adr-0099-x.md)", [adr]);
   });
 
   test("the developers guide status table matches the suite vocabulary", () => {
@@ -136,9 +136,12 @@ describe("Documentation contracts", () => {
   test.each([
     [
       "an ADR missing from the index",
-      "adr-001-repository-bootstrap.md is missing from docs/contents.md",
+      "docs/adrs/adr-0001-repository-bootstrap.md is missing from docs/contents.md",
       (contents, adrs) => [
-        contents.replace("(adr-001-repository-bootstrap.md)", "(elsewhere.md)"),
+        contents.replace(
+          "(adrs/adr-0001-repository-bootstrap.md)",
+          "(elsewhere.md)",
+        ),
         adrs,
       ],
     ],
@@ -174,8 +177,11 @@ describe("Documentation contracts", () => {
     ],
     [
       "an index link to a missing ADR",
-      "docs/contents.md links missing docs/adr-098-gone.md",
-      (contents, adrs) => [`${contents}\n- [ADR 098](adr-098-gone.md)\n`, adrs],
+      "docs/contents.md links missing docs/adrs/adr-0098-gone.md",
+      (contents, adrs) => [
+        `${contents}\n- [ADR 098](adrs/adr-0098-gone.md)\n`,
+        adrs,
+      ],
     ],
   ])("rejects %s", (_, reason, mutate) => {
     const [contents, adrs] = mutate(

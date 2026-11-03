@@ -7,13 +7,13 @@ Status: candidate. Date: 17 October 2026.
 refex computations of type `Fx<A, E, R>` need a required environment `R` whose
 omissions and mismatches fail compilation at a documented boundary (goal G1),
 while composition stays ordinary ReScript (G4).
-[Design §3.2](design.md#32-requirements-construction-and-observation-timing)
+[Design §3.2](../design.md#32-requirements-construction-and-observation-timing)
 prefers ordinary service records inside a structural outer environment, with
 explicit projection if inference fails, and leaves the choice open as decision
 D2. Primavera motivates the structural approach in OCaml, but its inference
 through ReScript `.resi` boundaries was unverified (assumption A2).
 
-The [type-level probes](evidence/type-level-probes.md) established, with
+The [type-level probes](../evidence/type-level-probes.md) established, with
 ReScript 12.3.1:
 
 - Accessors exported as functions from separately compiled modules accumulate
@@ -49,7 +49,7 @@ open-row export is a function and that row keys need an ownership convention.
 contravariance of `'r` from that definition, so no requirement variance is
 declared on trust. The variance `IO.t` declares remains in the trusted base
 until `IO.t` has a checked definition. Error-parameter variance is settled by
-[ADR 006](adr-006-complete-outcomes.md)'s cause representation.
+[ADR 006](adr-0006-complete-outcomes.md)'s cause representation.
 
 ### Conventions
 
@@ -143,9 +143,9 @@ runtime ownership or observation timing, which E3, E6, and E9 test separately.
 
 ## References
 
-- [Type-level probe evidence](evidence/type-level-probes.md).
-- [Technical design §3.2 and §12](design.md#32-requirements-construction-and-observation-timing).
+- [Type-level probe evidence](../evidence/type-level-probes.md).
+- [Technical design §3.2 and §12](../design.md#32-requirements-construction-and-observation-timing).
 - [Primavera](https://github.com/cargocut/primavera), prior art for
   object-based dependency injection in OCaml.
-- [ADR 004](adr-004-runtime-boundary.md) and
-  [ADR 006](adr-006-complete-outcomes.md).
+- [ADR 004](adr-0004-runtime-boundary.md) and
+  [ADR 006](adr-0006-complete-outcomes.md).

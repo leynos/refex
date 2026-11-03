@@ -318,9 +318,9 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - [x] (2026-10-17 00:41+02:00) EP-M1: documentation contract and
   test-registration contract (`74af4dd`). Red:
   `make test does not run ./tests/documentation-contracts.test.mjs`, then
-  `docs/adr-004-stub.md is missing from docs/contents.md`. Green: `make all`
-  passes, with 69 tests across 9 files. The guides were updated in the
-  following commit.
+  `docs/adrs/adr-0004-stub.md is missing from docs/contents.md`. Green:
+  `make all` passes, with 69 tests across 9 files. The guides were updated in
+  the following commit.
 - [x] (2026-10-17 00:45+02:00) EP-M2: design brief, glossary additions, and
   capability map (1.1.1). EV-BRIEF: 77 independently extracted capabilities all
   map to the 50 map rows.
@@ -668,7 +668,7 @@ These are hard invariants. Violating one requires escalation, not a workaround.
 - Decision: number the new ADRs 004 (runtime boundary), 005 (structural
   dependency environments), 006 (complete outcomes), and 007 (shared work,
   closure, and recovery contract).
-  - They follow the existing `docs/adr-NNN-kebab-title.md` pattern and the
+  - They follow the existing `docs/adrs/adr-nnnn-title-slug.md` pattern and the
     Context, Decision, and Consequences spine.
   - Each adds a Y-statement, "Alternatives considered", and "Falsifiers and
     evidence".
@@ -1415,8 +1415,8 @@ here. The plan does three distinct things, and they must not be confused:
 
 VP-1: ADR index and status contract.
 
-- Obligation: every file matching `docs/adr-[0-9][0-9][0-9]-*.md` meets
-  two conditions:
+- Obligation: every file matching `docs/adrs/adr-[0-9][0-9][0-9][0-9]-*.md`
+  meets two conditions:
   - `docs/contents.md` links to it;
   - its first line after the title begins with the `Status:` label, and
     the token up to the first `.` or `:` is one of `accepted for
@@ -1430,9 +1430,9 @@ VP-1: ADR index and status contract.
   `adrIndexContract(contentsMarkdown, adrFiles)` is private to the suite.
   `adrFiles` is an array of `{path, text}`.
 - Evidence:
-  - Red: a temporary `docs/adr-004-stub.md` that `docs/contents.md` does
+  - Red: a temporary `docs/adrs/adr-0004-stub.md` that `docs/contents.md` does
     not link makes the suite fail, with a message naming
-    `docs/adr-004-stub.md`.
+    `docs/adrs/adr-0004-stub.md`.
   - Green: the stub is removed and the suite passes.
 - Non-vacuity:
   - Positive control: the test asserts `adrFiles.length >= 3`, so an empty
@@ -2275,7 +2275,7 @@ EP-M3: runtime boundary (task 1.1.2).
 
 - Outcome: `docs/evidence/runtime-boundary-audit.md` holds the static audit
   and probes P1 to P7, for both Effect lines and for the Reventless archive.
-- `docs/adr-004-runtime-boundary.md` contains:
+- `docs/adrs/adr-0004-runtime-boundary.md` contains:
   - the comparison of the four bindings-and-line combinations against the
     `Decision log` criteria;
   - the provisional selection, pinned exactly with registry integrity;
@@ -2335,8 +2335,8 @@ EP-M4: type-level probe evidence (tasks 1.1.3 and 1.1.4).
 
 EP-M5: structural dependency environments (task 1.1.3).
 
-- Outcome: `docs/adr-005-structural-dependency-environments.md` decides the
-  following.
+- Outcome: `docs/adrs/adr-0005-structural-dependency-environments.md` decides
+  the following.
   - Primavera-style capability objects (open object rows of service
     records) are preferred.
   - Explicit projection is the sound fallback, and the default for named
@@ -2374,7 +2374,7 @@ EP-M5: structural dependency environments (task 1.1.3).
 
 EP-M6: complete outcomes (task 1.1.4).
 
-- Outcome: `docs/adr-006-complete-outcomes.md` decides the following.
+- Outcome: `docs/adrs/adr-0006-complete-outcomes.md` decides the following.
   - Expected errors use ordinary closed variants by default. Open
     polymorphic variants are optional and shown by R9.
   - The infallible channel is an abstract `Never.t`. Its implementation is
@@ -2424,7 +2424,7 @@ EP-M6: complete outcomes (task 1.1.4).
 
 EP-M7: shared work, closure, and recovery contract (task 1.1.5).
 
-- Outcome: `docs/adr-007-shared-work-lifecycle-contract.md`, with status
+- Outcome: `docs/adrs/adr-0007-shared-work-lifecycle-contract.md`, with status
   `proposed`, becoming `candidate` on acceptance. It contains:
   - answers to the five questions (trigger, owner, cancellation, handoff,
     and recovery) for the two-consumer slice, in the table form of design
@@ -2594,7 +2594,7 @@ EP-M1 steps:
    `tests/documentation-contracts.test.mjs`.
 4. Add `./tests/documentation-contracts.test.mjs` to the `Makefile` `test`
    list, in alphabetical order among the contract suites.
-5. Red, part two: create `docs/adr-004-stub.md` containing
+5. Red, part two: create `docs/adrs/adr-0004-stub.md` containing
    `# ADR 004: stub` and `Status: proposed.`, then run
    `bun test ./tests/documentation-contracts.test.mjs`. Expect one failure
    naming the stub. Delete the stub.
@@ -2636,7 +2636,7 @@ EP-M3 steps:
    static audit table.
 5. Write `docs/evidence/runtime-boundary-audit.md`. Gate, then commit:
    "Record the runtime boundary audit evidence (1.1.2)".
-6. Write `docs/adr-004-runtime-boundary.md`, and list it in
+6. Write `docs/adrs/adr-0004-runtime-boundary.md`, and list it in
    `docs/contents.md` under the heading "Proposed decisions, evidence, and
    plans", which was added with this plan. Gate, then commit: "Propose the
    provisional runtime boundary (1.1.2)".
@@ -2778,7 +2778,7 @@ Acceptance is behavioural:
   tied to roadmap tasks, and links to evidence records whose commands reproduce
   the recorded observations.
 - `bun test ./tests/documentation-contracts.test.mjs` passes. Adding an
-  unlisted `docs/adr-099-x.md` with `Status: proposed.` makes it fail.
+  unlisted `docs/adrs/adr-0099-x.md` with `Status: proposed.` makes it fail.
 - Adding an empty `tests/x.test.mjs` without listing it makes
   `tests/makefile-contracts.test.mjs` fail.
 
