@@ -6,13 +6,14 @@ Status: candidate. Date: 17 October 2026.
 
 The first semantic experiment (E9) is one shared producer with two consumers,
 local cancellation, delayed cleanup, and failed release
-([design §§2.4, 5, 6, 10.4](design.md#24-behaviour-before-primitives)). Goal
-G3 requires that a failed release keeps an identifiable owner until confirmed
-release or explicit transfer, and that discarding a diagnostic does not discard
-that responsibility. Design §5.2 proposes the release lifecycle, and decisions
-D9 (recovery owner) and D10 (admission and publication) remain open.
+([design §§2.4, 5, 6, 10.4](../design.md#24-behaviour-before-primitives)).
+Goal G3 requires that a failed release keeps an identifiable owner until
+confirmed release or explicit transfer, and that discarding a diagnostic does
+not discard that responsibility. Design §5.2 proposes the release lifecycle,
+and decisions D9 (recovery owner) and D10 (admission and publication) remain
+open.
 
-The [runtime-boundary audit](evidence/runtime-boundary-audit.md) showed that
+The [runtime-boundary audit](../evidence/runtime-boundary-audit.md) showed that
 neither Effect line joins a repeated scope close, awaits a replaced fibre's
 finalizer, or waits for work that ignores its abort signal. These contracts are
 therefore refex's own. This ADR is the behavioural contract that roadmap tasks
@@ -44,7 +45,7 @@ The five questions of design §2.4, answered for the two-consumer slice:
 | Recovery     | An unresolved generation stays in the registry with its owner, attempt, and report history. Recovery starts a new attempt only from a settled failure. Transfer completes only when the destination acknowledges it.                                                                                            |
 
 The three cancellation contracts of
-[design §6.2](design.md#62-three-cancellation-contracts) stay distinct and
+[design §6.2](../design.md#62-three-cancellation-contracts) stay distinct and
 named: *stop waiting* withdraws one observer; *interrupt and join* requests
 managed interruption and observes termination plus finalizer attempts; *confirm
 termination* establishes the adapter's external predicate. A promise adapter
@@ -475,9 +476,9 @@ earlier commit before any oracle predicate changes. An oracle is never weakened
 to fit the reducer.
 
 The verification feasibility experiment
-([FX-1](evidence/verification-feasibility.md)) returned the verdict `revise`.
-The lifecycle reducer is therefore selected for machine-checked proof against
-its compiled JavaScript in task 1.3.3, in addition to enumeration:
+([FX-1](../evidence/verification-feasibility.md)) returned the verdict
+`revise`. The lifecycle reducer is therefore selected for machine-checked proof
+against its compiled JavaScript in task 1.3.3, in addition to enumeration:
 
 - L-1, L-2, L-3, and L-5, and the per-step forms of L-4 and L-6, are required
   proof obligations, each reported separately and each with at least one mutant
@@ -624,7 +625,7 @@ pipeline kept apart from the product build.
 
 ## References
 
-- [Technical design §§2.4, 5, 6, and 10.4](design.md#24-behaviour-before-primitives).
-- [Runtime-boundary audit](evidence/runtime-boundary-audit.md).
-- [ADR 004](adr-004-runtime-boundary.md) and
-  [ADR 006](adr-006-complete-outcomes.md).
+- [Technical design §§2.4, 5, 6, and 10.4](../design.md#24-behaviour-before-primitives).
+- [Runtime-boundary audit](../evidence/runtime-boundary-audit.md).
+- [ADR 004](adr-0004-runtime-boundary.md) and
+  [ADR 006](adr-0006-complete-outcomes.md).

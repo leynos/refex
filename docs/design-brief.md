@@ -171,11 +171,11 @@ contribution, if any, is the contract in the same row.
 
 Section references in the table are to the [technical design](design.md). The
 proposed decision records elaborate them:
-[ADR 004](adr-004-runtime-boundary.md) for the backend,
-[ADR 005](adr-005-structural-dependency-environments.md) for requirements,
-[ADR 006](adr-006-complete-outcomes.md) for outcomes, and
-[ADR 007](adr-007-shared-work-lifecycle-contract.md) for shared work, closure,
-and recovery.
+[ADR 004](adrs/adr-0004-runtime-boundary.md) for the backend,
+[ADR 005](adrs/adr-0005-structural-dependency-environments.md) for requirements,
+[ADR 006](adrs/adr-0006-complete-outcomes.md) for outcomes, and
+[ADR 007](adrs/adr-0007-shared-work-lifecycle-contract.md) for shared work,
+closure, and recovery.
 
 ## Status vocabulary
 

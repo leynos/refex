@@ -8,7 +8,7 @@ package exports opaque `IO` and `Fx` description types with no runner. Neither
 surface has a stability promise.
 
 `Effect`, `Exit`, `Cause`, `Fiber`, `Scope`, `Context`, `Layer`, and `Schedule`
-do not exist here. See [ADR 001](adr-001-repository-bootstrap.md) for the
+do not exist here. See [ADR 001](adrs/adr-0001-repository-bootstrap.md) for the
 bootstrap scope.
 
 ## Installing

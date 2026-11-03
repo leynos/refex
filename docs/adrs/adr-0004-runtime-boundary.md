@@ -10,18 +10,19 @@ or `superseded by ADR NNN`.
 ## Context
 
 refex needs an execution backend for lazy work, scopes, fibres, interruption,
-and exits. [Design §2.3](design.md#23-backend-selection-and-execution-boundary)
-prefers a private Effect execution adapter and leaves the choice between direct
-foreign function interface (FFI) bindings and the published
+and exits.
+[Design §2.3](../design.md#23-backend-selection-and-execution-boundary) prefers
+a private Effect execution adapter and leaves the choice between direct foreign
+function interface (FFI) bindings and the published
 `@reventlessdev/rescript-effect` bindings open as decision D1.
 
-[ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
+[ADR 002](adr-0002-portable-core-and-bun-boundary.md) permits only the matching
 `@rescript/runtime` as a production dependency, so any backend needs a reviewed
-change to that baseline. [Design §2.2](design.md#22-bootstrap-compatibility)
+change to that baseline. [Design §2.2](../design.md#22-bootstrap-compatibility)
 requires that change to address adapter placement, dependency discovery, and
 browser bundle behaviour.
 
-The [runtime-boundary audit](evidence/runtime-boundary-audit.md) established:
+The [runtime-boundary audit](../evidence/runtime-boundary-audit.md) established:
 
 - Effect 4.0.5 has no runtime dependencies, supports deep subpath imports, and
   lets an adapter-owned scope observe body and finalizer exits separately. Its
@@ -94,7 +95,7 @@ This ADR conditions one statement (clause 1) and interprets two (clauses 2 and
    independent dependencies; the core must not import the adapters." The
    execution adapter is not a platform adapter: it makes no platform calls, and
    core may depend on it.
-3. [Developer guide](developers-guide.md#future-adapters-and-workspace-migration):
+3. [Developer guide](../developers-guide.md#future-adapters-and-workspace-migration):
    "Platform adapters must have real platform-specific source and tests, own
    their runtime dependencies, and depend inward on core." Unchanged for
    platform adapters; the execution adapter's dependency belongs to core.
@@ -152,7 +153,7 @@ allowlist of production dependency names: `@rescript/runtime` and `effect`.
 
 Any minor or patch upgrade of `effect` requires a fresh runtime-boundary audit
 and reruns of E1 to E3 and E9 before the pin moves. E1 to E3 and E9 are defined
-in [design §10](design.md#10-experimental-validation). The probes in the
+in [design §10](../design.md#10-experimental-validation). The probes in the
 evidence record are version-specific.
 
 ## Alternatives considered
@@ -171,8 +172,8 @@ evidence record are version-specific.
 - If Effect 4.0.x cannot let the adapter observe body and finalizer exits
   separately, refex selects Effect 3.22.x or narrows design §4.1 as a recorded
   deviation. Evidence: probe P7 in the
-  [audit](evidence/runtime-boundary-audit.md); task 1.3.1 rechecks it through
-  refex's own adapter.
+  [audit](../evidence/runtime-boundary-audit.md); task 1.3.1 rechecks it
+  through refex's own adapter.
 - If a listed primitive is missing or behaves differently from its
   documentation, the trial stops for that contract. Evidence: P1 to P7 now; the
   binding-surface smoke test in 1.3.1.
@@ -200,15 +201,15 @@ back.
 
 ## References
 
-- [Runtime-boundary audit evidence](evidence/runtime-boundary-audit.md).
-- [Technical design §§2.2-2.3 and §12](design.md#22-bootstrap-compatibility).
-- [ADR 002](adr-002-portable-core-and-bun-boundary.md).
-- [Design brief](design-brief.md).
+- [Runtime-boundary audit evidence](../evidence/runtime-boundary-audit.md).
+- [Technical design §§2.2-2.3 and §12](../design.md#22-bootstrap-compatibility).
+- [ADR 002](adr-0002-portable-core-and-bun-boundary.md).
+- [Design brief](../design-brief.md).
 
 ## Amendments
 
-[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) records that
-the trial bound permitting "private `src/` modules absent from the public
+[ADR 0008](adr-0008-first-semantic-modules-and-module-visibility.md) records
+that the trial bound permitting "private `src/` modules absent from the public
 allowlist" is a declaration, not a visibility guarantee, on ReScript 12.3.1:
 such modules stay reachable by consumers. The execution adapter may not rely on
 allowlist absence to keep a runner or backend type unreachable. Hiding adapter

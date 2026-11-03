@@ -91,7 +91,7 @@ to implement effects. New semantic code must replace the disposable module and
 supply real behavioural tests. The advisory audit passes: transitive pins clear
 the reportable advisories, and the Markdown linter was replaced rather than
 waived, so no severity cutoff or ignore list exists. The
-[developer guide](developers-guide.md) records each disposition.
+[developer guide](../developers-guide.md) records each disposition.
 
 Required CI protection and repository settings need administrative operations
 the connected integration does not expose. Dependabot automerge remains in

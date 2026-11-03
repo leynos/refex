@@ -43,13 +43,16 @@ adapter packages, examples, benchmarks, or website exist.
 | `.github/dependabot.yml`                                      | Bounded Bun and action updates.                                                   | Minor/patch grouping, separate major review.                                            |
 | `docs/contents.md`                                            | Canonical documentation index.                                                    | Documentation inventory owner.                                                          |
 | `docs/users-guide.md`                                         | Installable surface, import path, and API limits.                                 | Consumer-facing truth; states what does not exist.                                      |
-| `docs/`                                                       | Consumer and developer guidance, bootstrap and product ADRs, evidence, and plans. | Engineering decisions, not a fabricated product design.                                 |
-| `docs/adr-*.md`                                               | Development and product decision records with fixed statuses.                     | Indexed by `docs/contents.md`; status vocabulary enforced by `documentation-contracts`. |
+| `docs/`                                                       | Consumer and developer guidance, design documents, ADRs, evidence, and plans.     | Engineering decisions, not a fabricated product design.                                 |
+| `docs/adrs/`                                                  | Bootstrap and product decision records with fixed statuses.                      | Indexed by `docs/contents.md`; status vocabulary enforced by `documentation-contracts`. |
+| `docs/documentation-style-guide.md`                           | Documentation conventions adopted by this repository.                            | Governs authored documentation and decision-record naming.                              |
 | `docs/evidence/`                                              | Source and tool evidence behind ADRs, with embedded probe sources.                | Never refex conformance; probes run in scratch directories, not committed as scripts.   |
 | `docs/execplans/`                                             | Living execution plans, one per branch.                                           | Planning records; ADRs and design documents stay authoritative.                         |
 | `AGENTS.md`                                                   | Contributor and agent guidance.                                                   | Repository-wide authored-code policy.                                                   |
 | `README.md`, `CHANGELOG.md`, `LICENSE`                        | Status, change record, and ISC terms.                                             | Package introduction and legal metadata.                                                |
 | `.gitignore`                                                  | Compiler internals, test output, coverage, and local state.                       | Preserve production generated output.                                                   |
+
+_Table 1: Repository paths and their ownership boundaries._
 
 Search for existing equivalents before introducing helpers. The generated gate
 owns only source/output synchronization; the package checker owns only archive
