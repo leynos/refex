@@ -117,8 +117,9 @@ The ExecPlan file, compiler-generated `src/*.res.mjs`, `bun.lock`, and the
 regenerated `typos.toml` are excluded from every count below.
 
 - Scope: stop and escalate if delivery needs more than 85 changed or deleted
-  files, or more than 3,800 net added lines. The expected footprint is about 79
-  files, many of them one-line fixture cases (see
+  files, or more than 7,600 net added lines. The owner raised the line
+  tolerance from 3,800 on 4 November 2026 (D-19). The expected footprint is
+  about 79 files, many of them one-line fixture cases (see
   `Interfaces and dependencies`, "Expected footprint").
 - File size: split any authored file that would exceed 350 lines before it
   reaches the repository's 400-line limit; stop if a coherent split is not
@@ -387,10 +388,11 @@ regenerated `typos.toml` are excluded from every count below.
     review-complete. Gates at `2088234`: `make all` passed with 193 tests in 17
     files and a verified ten-file package, `make coverage` passed 70 tests at
     100 per cent, and `make audit` found no vulnerabilities.
-  - [ ] Hosted ExecPlan assessment at `32dd6b4` (comment `6573128603`) found
+  - [x] Hosted ExecPlan assessment at `32dd6b4` (comment `6573128603`) found
     three plan-conformance gaps and no production defect. The law-suite split
-    and depth-bound convention are repaired under D-18; reconfirmation is
-    pending, and the scope-tolerance escalation awaits the owner's decision.
+    and depth-bound convention are repaired under D-18 and were discharged at
+    `ca47e59`; D-19 raises the scope line tolerance, closing the footprint
+    escalation.
 
 ## Surprises & discoveries
 
@@ -616,9 +618,15 @@ regenerated `typos.toml` are excluded from every count below.
   (c) The branch added 3,941 net lines across 78 counted files at `32dd6b4`
   against the 3,800-line escalation threshold. The repairs add one counted file
   and 29 net lines, so the same convention counts 3,970 net lines across 79
-  files at `ca47e59`. The count cannot be reduced without deleting verification
-  or documentation, so the escalation stays open for the owner's decision; it
-  is a delivery-governance item, not a runtime defect.
+  files at `ca47e59`. The count could not be reduced without deleting
+  verification or documentation, so the escalation was left open as a
+  delivery-governance item, not a runtime defect. D-19 records the owner's
+  decision, which closes it.
+- D-19 (2026-11-04): the owner raised the scope line tolerance from 3,800 to
+  7,600 net added lines in response to D-18(c), retaining the 85-file limit. At
+  `d1b5121` the counted footprint is 3,970 net lines across 79 files, inside
+  the revised tolerance. Finding 1 is closed without deleting verification or
+  documentation; no milestone scope or acceptance criterion changes.
 
 ## Outcomes & retrospective
 
@@ -2202,4 +2210,9 @@ owner's decision. Status stays `COMPLETE` for the implementation.
 2026-11-02, revision 7: corrected the repaired footprint. Under the plan's
 counting convention the split adds one file and 29 net lines, so `ca47e59`
 counts 3,970 net lines across 79 files rather than the 3,941 across 78 at
-`32dd6b4`. Finding 1 remains an owner scope decision.
+`32dd6b4`. Finding 1 remained an owner scope decision.
+
+2026-11-04, revision 8: recorded D-19. The owner raised the scope line
+tolerance from 3,800 to 7,600; the 3,970-line footprint at `d1b5121` is inside
+it, and finding 1 is closed. The hosted assessment's other findings were
+already discharged, so the implementation record is complete.
