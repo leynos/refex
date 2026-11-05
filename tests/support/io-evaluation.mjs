@@ -12,6 +12,10 @@ Permitted caller: `tests/IoEvaluation.res` only. Roadmap task 1.3.1 replaces
 this helper with the private runtime entry point.
 */
 
+const isResultTag = (tag) => tag === "Ok" || tag === "Error";
+
+const isResultObject = (value) => value !== null && typeof value === "object";
+
 /**
  * Evaluates one `IO.t` and returns its ReScript `result`.
  *
@@ -23,11 +27,7 @@ export function evaluate(io) {
     throw new TypeError(`IO.t must be a zero-argument thunk, not ${typeof io}`);
   }
   const outcome = io();
-  if (
-    outcome === null ||
-    typeof outcome !== "object" ||
-    (outcome.TAG !== "Ok" && outcome.TAG !== "Error")
-  ) {
+  if (!isResultObject(outcome) || !isResultTag(outcome.TAG)) {
     throw new TypeError(
       `IO.t must evaluate to a result, not ${typeof outcome}`,
     );
