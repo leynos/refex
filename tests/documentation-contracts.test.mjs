@@ -5,9 +5,11 @@ An ADR's status line is where "decided" and "evidenced" most easily blur, so
 every `docs/adrs/adr-NNNN-*.md` must declare one status from a fixed vocabulary
 and be reachable from `docs/contents.md`. The status token is the text after
 `Status:` up to the first `.` or `:`, so `provisional: authorizes a bounded
-trial.` reads as `provisional`. Negative controls drop an index link, invent a
-status, remove the status line, and link a missing ADR, so a contract that
-accepts everything fails here.
+trial.` reads as `provisional`. Discovery rejects a malformed ADR filename
+instead of skipping it, so a mistyped name cannot hide from the index and
+status checks. Negative controls drop an index link, invent a status, remove
+the status line, link a missing ADR, and supply malformed filenames, so a
+contract that accepts everything fails here.
 
 The helper is private to this suite because no other suite reads ADRs, so
 there is no second caller to justify a shared support module.
@@ -26,14 +28,35 @@ const STATUSES = [
 const SUPERSEDED = /^superseded by ADR \d{3}$/;
 const ADR_FILE = /^adr-\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
-const adrFiles = () =>
-  readdirSync("docs/adrs")
+// A name that claims to be an ADR but fails ADR_FILE. Discovery rejects such a
+// name rather than filtering it out: a dropped ADR escapes both the index and
+// the status checks, so a mistyped new filename would pass unnoticed.
+const ADR_CANDIDATE = /^adr-.*\.md$/;
+
+// Throws naming the first candidate that is not named like an ADR. Files that
+// do not start with `adr-` belong to no contract here and are ignored.
+function assertAdrNames(names) {
+  for (const name of names) {
+    if (ADR_CANDIDATE.test(name) && !ADR_FILE.test(name)) {
+      throw new Error(`${name} is not a valid ADR filename`);
+    }
+  }
+}
+
+// Discovers ADRs from a directory listing, reading each file through
+// `readFile(name)` so tests can supply listings without touching the disk.
+const discoverAdrFiles = (names, readFile) => {
+  assertAdrNames(names);
+  return names
     .filter((name) => ADR_FILE.test(name))
     .sort()
-    .map((name) => ({
-      path: `docs/adrs/${name}`,
-      text: readFileSync(`docs/adrs/${name}`, "utf8"),
-    }));
+    .map((name) => ({ path: `docs/adrs/${name}`, text: readFile(name) }));
+};
+
+const adrFiles = () =>
+  discoverAdrFiles(readdirSync("docs/adrs"), (name) =>
+    readFileSync(`docs/adrs/${name}`, "utf8"),
+  );
 
 // The status token is the text after `Status:` up to the first `.` or `:`, on
 // the first non-blank line after the title.
@@ -96,6 +119,46 @@ describe("Documentation contracts", () => {
     const adrs = adrFiles();
     expect(adrs.length).toBeGreaterThanOrEqual(3);
     adrIndexContract(readFileSync("docs/contents.md", "utf8"), adrs);
+  });
+
+  test.each([
+    ["a four-digit serial and ASCII slug", "adr-0008-valid-slug.md"],
+    ["a one-character slug", "adr-0008-x.md"],
+    ["digits in the slug", "adr-0008-step-2.md"],
+  ])("discovers %s", (_name, file) => {
+    expect(discoverAdrFiles([file], () => "Status: proposed.")).toEqual([
+      { path: `docs/adrs/${file}`, text: "Status: proposed." },
+    ]);
+  });
+
+  test.each([
+    ["a three-digit serial", "adr-008-three-digit.md"],
+    ["a two-digit serial", "adr-08-two-digit.md"],
+    ["a five-digit serial", "adr-00008-five-digit.md"],
+    ["consecutive hyphens", "adr-0008-double--dash.md"],
+    ["a leading hyphen in the slug", "adr-0008--leading.md"],
+    ["a trailing hyphen in the slug", "adr-0008-trailing-.md"],
+    ["an empty slug", "adr-0008-.md"],
+    ["an underscore in the slug", "adr-0008-under_score.md"],
+    ["an uppercase letter in the slug", "adr-0008-Caps.md"],
+    ["a non-ASCII letter in the slug", "adr-0008-café.md"],
+  ])("rejects %s", (_name, file) => {
+    expect(() => discoverAdrFiles([file], () => "")).toThrow(
+      `${file} is not a valid ADR filename`,
+    );
+  });
+
+  test("rejects a malformed ADR that the index does not link", () => {
+    expect(() =>
+      discoverAdrFiles(
+        ["adr-0001-repository-bootstrap.md", "adr-0008-bad_slug.md"],
+        () => "Status: proposed.",
+      ),
+    ).toThrow("adr-0008-bad_slug.md is not a valid ADR filename");
+  });
+
+  test("ignores files that are not ADR candidates", () => {
+    expect(discoverAdrFiles(["README.md", "notes.md"], () => "")).toEqual([]);
   });
 
   test.each([
