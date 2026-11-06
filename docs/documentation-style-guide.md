@@ -533,17 +533,21 @@ Name ADR files using the pattern `adrs/adr-nnnn-title-slug.md`, relative to the
 
 ### Required sections
 
-Every ADR must include the following sections in order:
+Every ADR must begin with a title, then a status line, then the following
+sections in order:
 
-- **Status:** One of `Proposed`, `Accepted`, `Superseded`, or `Deprecated`. For
-  `Accepted` status, include the date and a brief summary of what was decided.
-- **Date:** The date the ADR was created or last updated (format: YYYY-MM-DD).
+- **Status line:** The first non-blank line after the title must begin
+  `Status:` and use one of the statuses listed in the repository developer
+  guide. For an accepted status, include the date and a brief summary of what
+  was decided.
+- **Date:** The date the ADR was created or last updated (format: YYYY-MM-DD),
+  recorded on the status line.
 - **Context and problem statement:** Describe the situation, constraints, and
   the problem or question that prompted the decision. Include enough background
   for readers unfamiliar with the history.
 
 When an accepted ADR needs a targeted correction rather than replacement, add an
-`Amended by ADR-nnnn (YYYY-MM-DD)` banner to its Status section and an
+`Amended by ADR-nnnn (YYYY-MM-DD)` banner to its status line and an
 `## Amendments` section that preserves the original decision as history.
 
 ### Conditional sections
@@ -590,13 +594,7 @@ Include these sections as appropriate to the decision's complexity:
 ```markdown
 # Architectural decision record (ADR) nnnn: <title>
 
-## Status
-
-<Proposed | Accepted | Superseded | Deprecated>.
-
-## Date
-
-YYYY-MM-DD.
+Status: <status>. Date: YYYY-MM-DD.
 
 ## Context and problem statement
 
