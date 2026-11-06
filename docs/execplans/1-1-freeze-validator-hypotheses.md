@@ -8,6 +8,12 @@ proceeds.
 
 Status: COMPLETE
 
+> **Documentation note (2026-11-06).** The ADR files were later moved from
+> `docs/adr-NNN-*.md` to `docs/adrs/adr-NNNN-*.md` and given four-digit serials
+> when the repository adopted the documentation style guide. Paths, decisions,
+> and test evidence recorded below describe the layout in force when this plan
+> ran and are retained as historical record.
+
 Plan identifier: `EP-1.1`. Branch: `1-1-freeze-validator-hypotheses`. Roadmap
 step:
 [1.1](../roadmap.md#11-freeze-the-hypotheses-that-the-validators-must-test),

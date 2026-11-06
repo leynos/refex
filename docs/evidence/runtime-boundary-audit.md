@@ -11,7 +11,7 @@ The audit tests hypothesis H-RT from the
 supplies every primitive refex will build on and exposes enough for refex to
 build its own complete outcomes. It also records what each Effect line does for
 provision, mixed-cause mapping, close, replacement, and promise projection, so
-that [ADR 004](../adr-004-runtime-boundary.md) does not assume that names
+that [ADR 004](../adrs/adr-0004-runtime-boundary.md) does not assume that names
 preserve semantics.
 
 These observations concern the pinned upstream versions only. They are not
@@ -1001,4 +1001,4 @@ H-RT is not falsified for Effect 4.0.5, and no compelling reason selects Effect
 3.22.x. This evidence supports ADR 004's provisional selection of `effect`
 4.0.5 behind refex-owned narrow bindings, with the Reventless package treated
 as prior art and as the source of the unsound-signature counterexamples cited by
-[ADR 006](../adr-006-complete-outcomes.md).
+[ADR 006](../adrs/adr-0006-complete-outcomes.md).

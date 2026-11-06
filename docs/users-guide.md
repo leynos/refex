@@ -8,7 +8,7 @@ experimental structured-effects library with no effect-system API yet. The only
 published symbol is a disposable toolchain probe.
 
 `Effect`, `Exit`, `Cause`, `Fiber`, `Scope`, `Context`, `Layer`, and `Schedule`
-do not exist here. See [ADR 001](adr-001-repository-bootstrap.md) for the
+do not exist here. See [ADR 001](adrs/adr-0001-repository-bootstrap.md) for the
 bootstrap scope.
 
 ## Installing

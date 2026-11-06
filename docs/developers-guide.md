@@ -154,7 +154,7 @@ The official editor extension provides dead-code analysis through
 and `transitive: false`. ReScript 12.3.1 exposes no supported analyser CLI in
 its command list, so CI enforces compiler warnings rather than claiming
 `reanalyze` coverage. No obsolete standalone analyser or community linter is
-installed. See [ADR 003](adr-003-formatting-and-analysis-policy.md).
+installed. See [ADR 003](adrs/adr-0003-formatting-and-analysis-policy.md).
 
 Biome handles authored JavaScript and JSON. Markdown uses markdownlint-cli and
 mdtablefix. `.markdownlint.jsonc` holds the rule policy and
@@ -299,10 +299,10 @@ weaken the contract to hide it: `workflowContract` still asserts
 
 Platform adapters must have real platform-specific source and tests, own their
 runtime dependencies, and depend inward on core. Core must not depend on them.
-[ADR 004](adr-004-runtime-boundary.md) authorizes one exception for a bounded
-trial: the portable execution adapter that backs refex's computation types is
-part of core and may depend on its backend. Do not create `refex-bun` or
-`refex-react` as empty name reservations.
+[ADR 004](adrs/adr-0004-runtime-boundary.md) authorizes one exception for a
+bounded trial: the portable execution adapter that backs refex's computation
+types is part of core and may depend on its backend. Do not create `refex-bun`
+or `refex-react` as empty name reservations.
 
 Convert to a ReScript 12 monorepo when a second package has real source, tests,
 independent dependency boundaries, and a plausible publication lifecycle. Bun
@@ -317,13 +317,13 @@ results.
 
 ## Decisions, evidence, and plans
 
-ADRs live at `docs/adr-NNN-kebab-title.md`, numbered sequentially and never
-renumbered. Each opens with `# ADR NNN: title` and a status line, and product
-ADRs open their decision with a one-sentence Y-statement that names the
-rejected alternatives and the accepted downside. The `documentation-contracts`
-suite requires every ADR to be linked from `docs/contents.md` and to declare
-one of these statuses, matched as the text after `Status:` up to the first `.`
-or `:`:
+ADRs live at `docs/adrs/adr-nnnn-title-slug.md`, using four-digit serial
+numbers allocated independently from RFCs. Published numbers are never changed.
+Each opens with `# ADR NNN: title` and a status line, and product ADRs open
+their decision with a one-sentence Y-statement that names the rejected
+alternatives and the accepted downside. The `documentation-contracts` suite
+requires every ADR to be linked from `docs/contents.md` and to declare one of
+these statuses, matched as the text after `Status:` up to the first `.` or `:`:
 
 | Status                   | Meaning                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------- |
@@ -361,4 +361,4 @@ living documents maintained throughout their work.
 Proof tooling is evaluated by scratch feasibility experiments, recorded as
 evidence, until an approved plan adds a committed gate. The first such gate is
 planned for roadmap task 1.3.3 and is described in
-[ADR 007](adr-007-shared-work-lifecycle-contract.md).
+[ADR 007](adrs/adr-0007-shared-work-lifecycle-contract.md).
