@@ -94,11 +94,14 @@ builds `IO` thunks, which is why no user callback runs while a description is
 being built or provided.
 
 Evaluation is deferred and branch-conditional. Nothing runs until the `IO.t` is
-evaluated, and each user function then runs at most once per evaluation.
-`Fx.map`, `Fx.flatMap`, and `Fx.tap` skip their callback when the receiver
-fails; `Fx.mapError` skips its callback when the receiver succeeds; `Fx.access`
-reads the environment only on the success path. `Fx.flatMap` short-circuits on
-failure, and `Fx.tap` keeps the original value after running its work.
+evaluated. The callback limit is per combinator invocation, not per user
+function across the whole evaluation: a description reused in two places is
+evaluated once for each place, so a shared reader such as `Fx.access` can run
+more than once in a single evaluation. `Fx.map`, `Fx.flatMap`, and `Fx.tap`
+skip their callback when the receiver fails; `Fx.mapError` skips its callback
+when the receiver succeeds; `Fx.access` reads the environment only on the
+success path. `Fx.flatMap` short-circuits on failure, and `Fx.tap` keeps the
+original value after running its work.
 
 The package ships **no runner**. That is a statement about the published
 ReScript API, not about the generated JavaScript. Roadmap task 1.3.1 adds the

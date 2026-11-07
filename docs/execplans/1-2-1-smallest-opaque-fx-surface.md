@@ -440,6 +440,16 @@ regenerated `typos.toml` are excluded from every count below.
   that is rebutted, because the compiler strips source docstrings,
   `scripts/check-generated.mjs` rejects any hand edit to compiler output, and
   AGENTS.md forbids hand-editing it. The proof row stays rebutted under D-7.
+- [ ] (2026-11-07) CodeRabbit's chat reply to the reconciliation, comment
+  6710416263, accepted the generated-JavaScript rebuttal and recorded a
+  learning scoped to `src/IO.res.mjs` and `src/Fx.res.mjs`. It found one
+  remaining claim: the developers' guide still said each user function runs at
+  most once per evaluation, which `Fx.flatMap(read, _ => read)` disproves
+  because it calls the same reader twice. The guide now states the
+  per-invocation limit and names the shared-reader case. The reply also asked
+  that the proof row be re-evaluated against D-7 without describing the tests
+  as proof, so later reconciliation says the tests are conformance evidence for
+  evaluation order, not a proof of Lemmas S and I.
 
 ## Surprises & discoveries
 
@@ -2294,3 +2304,8 @@ per-evaluation callback claim, and the developer guide's claim that only the
 tests evaluate a description, and it recorded the evidence for rejecting the
 request to docstring generated JavaScript. No interface, milestone, acceptance
 criterion, or tolerance changes.
+
+2026-11-07, revision 13: recorded CodeRabbit's chat reply, comment 6710416263.
+It accepted the generated-JavaScript rebuttal and corrected the developers'
+guide's remaining per-evaluation callback claim. No interface, milestone,
+acceptance criterion, or tolerance changes.
