@@ -415,6 +415,16 @@ regenerated `typos.toml` are excluded from every count below.
   `IO`/`Fx` public surface, and `docs/contents.md` indexes it. The proof row
   is rebutted again under D-7; nothing in review 5810739489 supplies new
   evidence against it.
+- [ ] (2026-11-07) CodeRabbit's chat reply to the reconciliation, comment
+  6704035651, inspected `c0dcec4` and found two remaining documentation errors.
+  The `fx-error-widening` and `fx-widen-result` header claimed the reject case
+  had no cast, but both cast: the reject widens an `Fx` error, whose `'e` is
+  invariant, and the accept widens a `result` error, whose `'e` is covariant.
+  Both headers now say so and stay identical. The migration note listed the
+  `IO` and `Fx` module paths as unchanged when the comparison base exported only
+  `Bootstrap`, so it now identifies them as new. CodeRabbit also repeated that
+  D-7 selects no proof but that the saved check may not accept a recorded scope
+  decision; that remains an owner question rather than a repair.
 
 ## Surprises & discoveries
 
@@ -2256,3 +2266,9 @@ pair-specific case-fixture docstrings, corrects the base fixture docstring,
 corrects the `Fx.provide` description in the developers' guide, and adds
 `docs/migration-0.1.0.md` with an index entry. The proof row stays rebutted
 under D-7. No interface, milestone, acceptance criterion, or tolerance changes.
+
+2026-11-07, revision 11: recorded CodeRabbit's chat review of `c0dcec4` in
+`Progress`. It corrected the error-widening pair header, which misdescribed
+both cases as differing by a cast, and the migration note's claim that the `IO`
+and `Fx` module paths were unchanged. No interface, milestone, acceptance
+criterion, or tolerance changes.

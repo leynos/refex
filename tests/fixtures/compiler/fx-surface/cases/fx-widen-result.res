@@ -1,4 +1,4 @@
-/** Fixture pair: widening an error without a cast is rejected; the cast is accepted. */
+/** Fixture pair: an error cast fails on invariant Fx.t and succeeds on covariant result. */
 type narrow = ClockError.t
 type wide = WideError.t
 type narrowFx = Refex.Fx.t<int, narrow, {"clock": int}>

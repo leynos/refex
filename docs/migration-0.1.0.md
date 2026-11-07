@@ -41,5 +41,9 @@ operations and the evaluation rules.
 
 ## Unchanged
 
-The package name, the ISC licence, the ReScript 12.3.1 compiler pin, and the
-`refex/src/IO.res.mjs` and `refex/src/Fx.res.mjs` module paths are unchanged.
+The package name, the ISC licence, and the ReScript 12.3.1 compiler pin are
+unchanged.
+
+The `refex/src/IO.res.mjs` and `refex/src/Fx.res.mjs` module paths are new. The
+previous version exported only `Refex.Bootstrap`, so an import of either path
+introduces API rather than keeping an existing path as it was.
