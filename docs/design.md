@@ -67,8 +67,12 @@ Decision record: [ADR 004](adr-004-runtime-boundary.md), provisional. It
 conditions ADR 002's dependency rule for a bounded trial.
 
 [ADR 002](adr-002-portable-core-and-bun-boundary.md) permits only the matching
-ReScript runtime as a production dependency. This revision changes no package,
-dependency, generated source, or public-module allowlist.
+ReScript runtime as a production dependency.
+[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) amends the
+bootstrap baseline: the opaque `IO` and `Fx` modules are the public modules and
+archive contents, `public` is a declaration checked by contracts rather than a
+visibility boundary, and the disposable probe has been retired. Roadmap task
+1.2.1 implemented that surface and the retirement.
 
 The preferred experiment uses a private Effect execution adapter. Before
 adoption, an ADR must address the bootstrap dependency restriction, adapter
@@ -178,6 +182,11 @@ contramapEnvironment: (Fx<A,E,Small>, Large -> Small) -> Fx<A,E,Large>
 
 `accessEffect` suspends its callback and executes its result in the same
 environment, without a runner. `accessIO` serves bound-service methods.
+
+Task 1.2.1 implements every operation listed above except `accessIO`, over the
+thunk reference representation of §3.1. `accessIO` arrives with the first task
+that has bound service methods (decision D-5 of the 1.2.1 plan). Section 3.1's
+runtime, interruption, and stack-safety claims remain task 1.3.1's.
 
 A common `R` accumulates requirements only if open types survive exported
 interfaces. E1 covers independent services, extra fields, and conflicts. Use

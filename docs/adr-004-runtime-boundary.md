@@ -204,3 +204,12 @@ back.
 - [Technical design §§2.2-2.3 and §12](design.md#22-bootstrap-compatibility).
 - [ADR 002](adr-002-portable-core-and-bun-boundary.md).
 - [Design brief](design-brief.md).
+
+## Amendments
+
+[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) records that
+the trial bound permitting "private `src/` modules absent from the public
+allowlist" is a declaration, not a visibility guarantee, on ReScript 12.3.1:
+such modules stay reachable by consumers. The execution adapter may not rely on
+allowlist absence to keep a runner or backend type unreachable. Hiding adapter
+modules is an explicit open question for task 1.3.1.

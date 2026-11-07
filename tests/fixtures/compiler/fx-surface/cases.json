@@ -1,0 +1,115 @@
+{
+  "compiler": "12.3.1",
+  "cases": [
+    {
+      "id": "fx-apply-io",
+      "kind": "reject",
+      "control": "fx-hold-io",
+      "expect": {
+        "file": "Case.res",
+        "line": 3,
+        "fragments": [
+          "This can't be called, it's not a function.",
+          "The function has type:"
+        ]
+      }
+    },
+    { "id": "fx-hold-io", "kind": "accept" },
+    {
+      "id": "fx-apply-fx",
+      "kind": "reject",
+      "control": "fx-provide-fx",
+      "expect": {
+        "file": "Case.res",
+        "line": 3,
+        "fragments": [
+          "This can't be called, it's not a function.",
+          "The function has type:"
+        ]
+      }
+    },
+    { "id": "fx-provide-fx", "kind": "accept" },
+    {
+      "id": "fx-forge-fx",
+      "kind": "reject",
+      "control": "fx-build-fx",
+      "expect": {
+        "file": "Case.res",
+        "line": 2,
+        "fragments": [
+          "This has type: 'a => 'b",
+          "But it's expected to have type:"
+        ]
+      }
+    },
+    { "id": "fx-build-fx", "kind": "accept" },
+    {
+      "id": "fx-forget-requirement",
+      "kind": "reject",
+      "control": "fx-add-requirement",
+      "expect": {
+        "file": "Case.res",
+        "line": 6,
+        "fragments": [
+          "is not a subtype of",
+          "Type clock = {\"clock\": int} is not a subtype of"
+        ]
+      }
+    },
+    {
+      "id": "fx-add-requirement",
+      "kind": "accept",
+      "castScanExemption": {
+        "kind": ":>",
+        "line": 6,
+        "reason": "Variance witness; ADR 005 bans `:>` only in composition."
+      }
+    },
+    {
+      "id": "fx-error-widening",
+      "kind": "reject",
+      "control": "fx-widen-result",
+      "expect": {
+        "file": "Case.res",
+        "line": 8,
+        "fragments": [
+          "is not a subtype of",
+          "Type narrow = ClockError.t is not compatible with type wide = WideError.t"
+        ]
+      }
+    },
+    {
+      "id": "fx-widen-result",
+      "kind": "accept",
+      "castScanExemption": {
+        "kind": ":>",
+        "line": 8,
+        "reason": "Variance witness for the result error parameter; ADR 005 scopes `:>` to requirement rows."
+      }
+    },
+    {
+      "id": "fx-value-export",
+      "kind": "reject",
+      "control": "fx-function-export",
+      "expect": {
+        "file": "Case.res",
+        "line": 2,
+        "fragments": ["type variables that cannot be generalized"]
+      }
+    },
+    { "id": "fx-function-export", "kind": "accept" },
+    {
+      "id": "wrong-reason-control",
+      "kind": "reject",
+      "file": "cases/wrong-reason-control.res.txt",
+      "expect": {
+        "file": "Case.res",
+        "line": 3,
+        "fragments": [
+          "This can't be called, it's not a function.",
+          "The function has type:"
+        ]
+      }
+    }
+  ]
+}

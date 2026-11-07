@@ -3,7 +3,8 @@
 
 Owns the invariants behind package portability and exact pins, Dependabot
 policy, and the coverage and ignore-file agreement. Permitted callers are the
-`package-contracts` and `dependency-contracts` suites only. The suites feed both
+`package-contracts` and `dependency-contracts` suites only, except
+`publicModulesContract`, whose only caller is `package-contracts`. The suites feed both
 the real repository and deliberately mutated fixtures through these functions,
 so an assertion that accepts everything fails its negative control. These
 helpers register no plugin, no generic workflow engine, and no reusable policy
@@ -42,7 +43,7 @@ export function packageContract(metadata, rescript) {
   assert.ok(!rescript.dependencies.includes("rescript-bun"));
   assert.deepEqual(
     rescript.sources.find((entry) => entry.dir === "src").public,
-    ["Bootstrap"],
+    ["IO", "Fx"],
   );
   assert.equal(
     rescript.sources.find((entry) => entry.dir === "tests").type,
@@ -68,23 +69,67 @@ export function packageContract(metadata, rescript) {
   assert.equal(metadata.dependencies["@rescript/core"], undefined);
   assert.deepEqual(Object.keys(metadata.exports).sort(), [
     "./package.json",
-    "./src/Bootstrap.res.mjs",
+    "./src/Fx.res.mjs",
+    "./src/IO.res.mjs",
   ]);
-  assert.equal(
-    metadata.exports["./src/Bootstrap.res.mjs"],
-    "./src/Bootstrap.res.mjs",
-  );
+  assert.equal(metadata.exports["./src/IO.res.mjs"], "./src/IO.res.mjs");
+  assert.equal(metadata.exports["./src/Fx.res.mjs"], "./src/Fx.res.mjs");
   assert.deepEqual(
     [...metadata.files].sort(),
     [
       "LICENSE",
       "README.md",
       "rescript.json",
-      "src/Bootstrap.res",
-      "src/Bootstrap.res.mjs",
-      "src/Bootstrap.resi",
+      "src/IO.res",
+      "src/IO.res.mjs",
+      "src/IO.resi",
+      "src/Fx.res",
+      "src/Fx.res.mjs",
+      "src/Fx.resi",
     ].sort(),
   );
+}
+
+/**
+ * Modules that are reachable but deliberately absent from `public`.
+ *
+ * ReScript 12.3.1's Rewatch build does not hide a module omitted from
+ * `public` (ADR 008), so this list records intent rather than enforcement.
+ * Task 1.2.1 adds no adapter module; roadmap task 1.3.1 decides whether one
+ * belongs here.
+ */
+export const internalModules = [];
+
+/**
+ * Asserts the public declaration and the `src/` interface inventory agree.
+ *
+ * Every `src/*.res` module must be named by `public` or by `internalModules`,
+ * and every module must have a `.resi`. The check is an inventory, not a
+ * visibility guarantee: the pinned compiler still exposes an undeclared
+ * module to consumers.
+ */
+export function publicModulesContract(rescript, srcEntries, internalModules) {
+  const declared = rescript.sources.find((entry) => entry.dir === "src").public;
+  const modules = srcEntries
+    .filter((name) => name.endsWith(".res"))
+    .map((name) => name.slice(0, -".res".length))
+    .sort();
+  assert.deepEqual(
+    [...declared, ...internalModules].sort(),
+    modules,
+    "public plus internal must equal the src module inventory",
+  );
+  const interfaces = new Set(
+    srcEntries
+      .filter((name) => name.endsWith(".resi"))
+      .map((name) => name.slice(0, -".resi".length)),
+  );
+  for (const moduleName of modules) {
+    assert.ok(
+      interfaces.has(moduleName),
+      `src/${moduleName}.res has no interface`,
+    );
+  }
 }
 
 /**

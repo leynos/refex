@@ -22,9 +22,16 @@
   sources. Never globally open Bun or platform namespaces through compiler
   flags. Tests may locally open `RescriptBun.Test`.
 - No unsafe casts or `Obj.magic`-style escapes outside narrow, documented
-  foreign function interface (FFI) boundaries. This bootstrap has none.
+  foreign function interface (FFI) boundaries. Tests have exactly two:
+  `tests/IoEvaluation.res`, which binds `tests/support/io-evaluation.mjs` to
+  evaluate an opaque `IO.t`, and `tests/FastCheck.res`, for property tests.
+  Production `src/` has none.
+- The `public` allowlist in `rescript.json` is a declaration, not an
+  enforcement point on ReScript 12.3.1: every `src/` module remains reachable.
+  Add a module deliberately and keep the module and interface contracts
+  (`tests/package-contracts.test.mjs`, `tests/interface-contracts.test.mjs`)
+  satisfied; see ADR 008.
 - Use the ReScript 12 standard library. Do not add `@rescript/core`.
-- Treat `Bootstrap` as disposable tooling evidence, not a product API.
 - Change and format ReScript source, then rebuild and commit production
   `.res.mjs` output. Never hand-edit or reformat compiler output. Keep
   generated test JavaScript untracked.

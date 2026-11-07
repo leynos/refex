@@ -28,6 +28,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spellingGateContract } from "./support/toolchain-workflow-contracts.mjs";
 
+/** Reads a repository file as UTF-8 text. */
 const source = (path) => readFileSync(path, "utf8");
 
 // The executable path of every authored suite, as `make test` must name it.
@@ -37,27 +38,37 @@ const authoredSuites = () =>
     .map((name) => `./tests/${name.endsWith(".res") ? `${name}.mjs` : name}`)
     .sort();
 
-// The joined `$(BUN) test` command of the `test` recipe, up to any shell
-// comment: a path in a recipe comment, a trailing comment, or another command
-// is not executed by `bun test`. Throws when the recipe or command is absent.
-function testCommand(makefile) {
-  const recipe = makefile.match(/^test:.*\n((?:\t.*\n?)+)/m)?.[1];
-  if (!recipe) throw new Error("Makefile has no test recipe");
+/**
+ * Returns the joined `$(BUN) test` command of a target's recipe.
+ *
+ * Stops at any shell comment: a path in a recipe comment, a trailing comment,
+ * or another command is not executed by `bun test`. Throws when the recipe or
+ * command is absent. `test` and `coverage` share this parser so a fix to one
+ * cannot miss the other.
+ */
+function recipeCommand(makefile, target) {
+  const recipe = makefile.match(
+    new RegExp(`^${target}:.*\\n((?:\\t.*\\n?)+)`, "m"),
+  )?.[1];
+  if (!recipe) throw new Error(`Makefile has no ${target} recipe`);
   const command = recipe
     .replace(/\\\n\t*/g, " ")
     .split("\n")
     .map((line) => line.trim())
     .find((line) => line.startsWith("$(BUN) test "))
     ?.replace(/\s#.*$/, "");
-  if (!command) throw new Error("test recipe has no $(BUN) test command");
+  if (!command) throw new Error(`${target} recipe has no $(BUN) test command`);
   return command;
 }
+
+/** Returns the `$(BUN) test` command of the `test` recipe. */
+const testCommand = (makefile) => recipeCommand(makefile, "test");
 
 // The suite paths a command line names.
 const namedSuites = (command) =>
   new Set(command.split(/\s+/).filter((arg) => arg.startsWith("./tests/")));
 
-// Throws naming the first suite that the `test` recipe does not run.
+/** Throws naming the first suite that the `test` recipe does not run. */
 function testTargetListsEverySuite(makefile, suites) {
   const named = namedSuites(testCommand(makefile));
   const missing = suites.filter((suite) => !named.has(suite));
@@ -65,6 +76,19 @@ function testTargetListsEverySuite(makefile, suites) {
     throw new Error(`make test does not run ${missing[0]}`);
   }
 }
+
+// The ReScript suites whose generated JavaScript coverage must measure. The
+// authored `.mjs` contract suites stay out: they inspect the repository rather
+// than exercise `src/`.
+const rescriptSuites = () =>
+  readdirSync("tests")
+    .filter((name) => name.endsWith(".test.res"))
+    .map((name) => `./tests/${name}.mjs`)
+    .sort();
+
+// The suite paths named by the `coverage` recipe, which has the same command
+// shape as `test` plus coverage flags.
+const coverageCommand = (makefile) => recipeCommand(makefile, "coverage");
 
 describe("Makefile contracts", () => {
   test("spelling gate lets the provisioner choose the uv cache location", () => {
@@ -127,6 +151,12 @@ describe("Makefile contracts", () => {
     }
   });
 
+  test("make coverage measures every ReScript test suite", () => {
+    const named = namedSuites(coverageCommand(source("Makefile")));
+    const missing = rescriptSuites().filter((suite) => !named.has(suite));
+    expect(missing).toEqual([]);
+  });
+
   test("make test runs every authored test suite", () => {
     const suites = authoredSuites();
     expect(suites.length).toBeGreaterThanOrEqual(8);
@@ -172,7 +202,8 @@ describe("Makefile contracts", () => {
       // recipe parser. The explicit generated path also guards the mapping
       // from an authored ReScript suite to the JavaScript Bun executes.
       const expected = authoredSuites();
-      expect(expected).toContain("./tests/Bootstrap.test.res.mjs");
+      expect(expected).toContain("./tests/FxSequencing.test.res.mjs");
+      expect(expected).toContain("./tests/FxEnvironment.test.res.mjs");
       expect(received.slice(1).sort()).toEqual(expected);
     } finally {
       rmSync(directory, { recursive: true, force: true });
