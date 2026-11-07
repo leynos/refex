@@ -1,3 +1,4 @@
+/** Compiler fixture case; cases.json records acceptance or the expected diagnostic. */
 type clock = {"clock": int}
 type both = {"clock": int, "log": int}
 type clockFx = Refex.Fx.t<int, string, clock>

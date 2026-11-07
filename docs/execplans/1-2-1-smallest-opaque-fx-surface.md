@@ -108,8 +108,8 @@ Hard invariants. Violating any of them requires escalation, not a workaround.
   environment therefore runs no user callback. This keeps every user callback
   inside the region where task 1.3.1's adapter can classify a thrown exception
   as a defect.
-- C-14, delivery: the plan's pull request stays a draft until the owner
-  decides otherwise; never merge or publish (AGENTS.md).
+- C-14, delivery: the plan's pull request was a draft until the owner
+  authorized readiness on 2026-11-07 (D-20); never merge or publish (AGENTS.md).
 
 ## Tolerances (exception triggers)
 
@@ -393,6 +393,17 @@ regenerated `typos.toml` are excluded from every count below.
     and depth-bound convention are repaired under D-18 and were discharged at
     `ca47e59`; D-19 raises the scope line tolerance, closing the footprint
     escalation.
+- [ ] (2026-11-07) Owner authorized readiness and hosted review (D-20). The PR
+  left draft at `79c020f` with base `9dfbd4f` unchanged. CodeRabbit review
+  5808513718 raised two inline findings and four applicable pre-merge areas;
+  the repair set is under gate. It removes the wall-clock budget assertion but
+  keeps the timing log, counts an unpromoted warning header as a wrong
+  diagnostic with two regression tests, adds the two `Fx.tap` callback-count
+  cases, documents every base and case fixture module, adds the remaining
+  helper docstrings, corrects the users' guide's branch-conditional execution
+  claim, and adds the developers' guide section on the opaque descriptions. The
+  proof-scrutiny area is rebutted under D-7, and the 0.1.0 migration item is
+  inapplicable to an unpublished private package.
 
 ## Surprises & discoveries
 
@@ -627,6 +638,11 @@ regenerated `typos.toml` are excluded from every count below.
   `d1b5121` the counted footprint is 3,970 net lines across 79 files, inside
   the revised tolerance. Finding 1 is closed without deleting verification or
   documentation; no milestone scope or acceptance criterion changes.
+- D-20 (2026-11-07): the owner authorized marking the pull request ready for
+  review and taking it through the hosted review process. Readiness and review
+  are in scope; merging and publishing remain outside the assignment and are
+  still forbidden by C-14 and AGENTS.md. The PR left draft at `79c020f` with
+  the base and head unchanged.
 
 ## Outcomes & retrospective
 
@@ -2216,3 +2232,9 @@ counts 3,970 net lines across 79 files rather than the 3,941 across 78 at
 tolerance from 3,800 to 7,600; the 3,970-line footprint at `d1b5121` is inside
 it, and finding 1 is closed. The hosted assessment's other findings were
 already discharged, so the implementation record is complete.
+
+2026-11-07, revision 9: recorded D-20, the owner's authorization to mark the PR
+ready and run hosted review, and amended C-14 accordingly; merging and
+publishing remain forbidden. Recorded the repair set for CodeRabbit review
+5808513718 in `Progress`. No interface, milestone, acceptance criterion, or
+tolerance changes.

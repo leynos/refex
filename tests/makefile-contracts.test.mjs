@@ -28,6 +28,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spellingGateContract } from "./support/toolchain-workflow-contracts.mjs";
 
+/** Reads a repository file as UTF-8 text. */
 const source = (path) => readFileSync(path, "utf8");
 
 // The executable path of every authored suite, as `make test` must name it.
@@ -37,10 +38,14 @@ const authoredSuites = () =>
     .map((name) => `./tests/${name.endsWith(".res") ? `${name}.mjs` : name}`)
     .sort();
 
-// The joined `$(BUN) test` command of a target's recipe, up to any shell
-// comment: a path in a recipe comment, a trailing comment, or another command
-// is not executed by `bun test`. Throws when the recipe or command is absent.
-// `test` and `coverage` share this parser so a fix to one cannot miss the other.
+/**
+ * Returns the joined `$(BUN) test` command of a target's recipe.
+ *
+ * Stops at any shell comment: a path in a recipe comment, a trailing comment,
+ * or another command is not executed by `bun test`. Throws when the recipe or
+ * command is absent. `test` and `coverage` share this parser so a fix to one
+ * cannot miss the other.
+ */
 function recipeCommand(makefile, target) {
   const recipe = makefile.match(
     new RegExp(`^${target}:.*\\n((?:\\t.*\\n?)+)`, "m"),
@@ -56,13 +61,14 @@ function recipeCommand(makefile, target) {
   return command;
 }
 
+/** Returns the `$(BUN) test` command of the `test` recipe. */
 const testCommand = (makefile) => recipeCommand(makefile, "test");
 
 // The suite paths a command line names.
 const namedSuites = (command) =>
   new Set(command.split(/\s+/).filter((arg) => arg.startsWith("./tests/")));
 
-// Throws naming the first suite that the `test` recipe does not run.
+/** Throws naming the first suite that the `test` recipe does not run. */
 function testTargetListsEverySuite(makefile, suites) {
   const named = namedSuites(testCommand(makefile));
   const missing = suites.filter((suite) => !named.has(suite));

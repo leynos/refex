@@ -172,6 +172,37 @@ describe("Fx sequencing", () => {
     expect(trace)->Expect.toEqual(["tap:5"])
   })
 
+  test("Given tap, when its work succeeds, then the callback runs exactly once", () => {
+    let calls = ref(0)
+    let fx: Fx.t<int, string, environment> = Fx.tap(
+      Fx.succeed(5),
+      _ => {
+        calls := calls.contents + 1
+        Fx.succeed(0)
+      },
+    )
+    expect(calls.contents)->Expect.toBe(0)
+    let io = Fx.provide(fx, {base: 1, token: "one"})
+    expect(calls.contents)->Expect.toBe(0)
+    expect(IoEvaluation.evaluate(io))->Expect.toEqual(IoEvaluation.Succeeded(5))
+    expect(calls.contents)->Expect.toBe(1)
+  })
+
+  test("Given tap, when the description fails, then the callback does not run", () => {
+    let calls = ref(0)
+    let fx: Fx.t<int, string, environment> = Fx.tap(
+      Fx.fail("nope"),
+      _ => {
+        calls := calls.contents + 1
+        Fx.succeed(0)
+      },
+    )
+    expect(IoEvaluation.evaluate(Fx.provide(fx, {base: 1, token: "one"})))->Expect.toEqual(
+      IoEvaluation.Failed("nope"),
+    )
+    expect(calls.contents)->Expect.toBe(0)
+  })
+
   test("Given tap, when its work fails, then the whole description fails", () => {
     let fx: Fx.t<int, string, environment> = Fx.tap(Fx.succeed(5), _ => Fx.fail("tap-failed"))
     expect(IoEvaluation.evaluate(Fx.provide(fx, {base: 1, token: "one"})))->Expect.toEqual(

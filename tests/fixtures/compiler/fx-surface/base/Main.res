@@ -1,3 +1,4 @@
+/** Evaluates the composed workflow and projection with concrete services. */
 let io: Refex.IO.t<int, AppError.t> = Workflow.diagnosed()->Refex.Fx.provide({
   "clock": {Clock.now: () => 42},
   "log": {Log.write: _ => ()},

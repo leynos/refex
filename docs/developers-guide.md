@@ -78,6 +78,31 @@ carry no docstrings by design. Document the ReScript source and its interface;
 do not hand-edit the output to add comments, and do not read the absence of
 docstrings there as missing documentation.
 
+## Opaque `IO` and `Fx` descriptions
+
+`IO.t<'a, 'e>` and `Fx.t<'a, 'e, 'r>` are both abstract in their `.resi`
+interfaces, so ReScript consumers cannot call, inspect, or forge one. Their
+representations are private to `src/` and carry no compatibility promise.
+
+`IO.t` is a suspended computation that yields `result<'a, 'e>` when evaluated.
+`Fx.t` is a function from an environment `'r` to an `IO.t`; `Fx.provide`
+applies that function and wraps the result in `IO.suspend`, so the environment
+is captured without running anything. Every `Fx` combinator returns an
+environment closure that only builds `IO` thunks, which is why no user callback
+runs while a description is being built or provided.
+
+Evaluation is deferred and branch-conditional. Nothing runs until the `IO.t` is
+evaluated, and each user function then runs at most once per evaluation.
+`Fx.map`, `Fx.flatMap`, and `Fx.tap` skip their callback when the receiver
+fails; `Fx.mapError` skips its callback when the receiver succeeds; `Fx.access`
+reads the environment only on the success path. `Fx.flatMap` short-circuits on
+failure, and `Fx.tap` keeps the original value after running its work.
+
+The package ships **no runner**. Roadmap task 1.3.1 adds the runtime entry
+point that evaluates a description; until then only the repository's tests
+evaluate one, through the test-only FFI described below. Do not add a public
+evaluator, and do not expose the representation to make one possible.
+
 ## Tests and coverage
 
 ```bash

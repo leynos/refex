@@ -7,7 +7,7 @@
       "control": "fx-hold-io",
       "expect": {
         "file": "Case.res",
-        "line": 2,
+        "line": 3,
         "fragments": [
           "This can't be called, it's not a function.",
           "The function has type:"
@@ -21,7 +21,7 @@
       "control": "fx-provide-fx",
       "expect": {
         "file": "Case.res",
-        "line": 2,
+        "line": 3,
         "fragments": [
           "This can't be called, it's not a function.",
           "The function has type:"
@@ -35,7 +35,7 @@
       "control": "fx-build-fx",
       "expect": {
         "file": "Case.res",
-        "line": 1,
+        "line": 2,
         "fragments": [
           "This has type: 'a => 'b",
           "But it's expected to have type:"
@@ -49,7 +49,7 @@
       "control": "fx-add-requirement",
       "expect": {
         "file": "Case.res",
-        "line": 5,
+        "line": 6,
         "fragments": [
           "is not a subtype of",
           "Type clock = {\"clock\": int} is not a subtype of"
@@ -61,7 +61,7 @@
       "kind": "accept",
       "castScanExemption": {
         "kind": ":>",
-        "line": 5,
+        "line": 6,
         "reason": "Variance witness; ADR 005 bans `:>` only in composition."
       }
     },
@@ -71,7 +71,7 @@
       "control": "fx-widen-result",
       "expect": {
         "file": "Case.res",
-        "line": 7,
+        "line": 8,
         "fragments": [
           "is not a subtype of",
           "Type narrow = ClockError.t is not compatible with type wide = WideError.t"
@@ -83,7 +83,7 @@
       "kind": "accept",
       "castScanExemption": {
         "kind": ":>",
-        "line": 7,
+        "line": 8,
         "reason": "Variance witness for the result error parameter; ADR 005 scopes `:>` to requirement rows."
       }
     },
@@ -93,7 +93,7 @@
       "control": "fx-function-export",
       "expect": {
         "file": "Case.res",
-        "line": 1,
+        "line": 2,
         "fragments": ["type variables that cannot be generalized"]
       }
     },
@@ -104,7 +104,7 @@
       "file": "cases/wrong-reason-control.res.txt",
       "expect": {
         "file": "Case.res",
-        "line": 2,
+        "line": 3,
         "fragments": [
           "This can't be called, it's not a function.",
           "The function has type:"

@@ -45,6 +45,15 @@ const warningBlock = `
   this open statement shadows the module identifier Fx (which is later used)
 `;
 
+const plainWarningBlock = `
+  ${RED}Warning number 44${RESET}
+  ${CYAN}/tmp/refex-fixtures-probe/src/GuideSnippets.res${RESET}:${DIM}1:1-10${RESET}
+
+  1 ${DIM}│${RESET} open Refex
+
+  this open statement shadows the module identifier Fx (which is later used)
+`;
+
 const syntaxBlock = `
   ${RED}Syntax error!${RESET}
   ${CYAN}/tmp/refex-fixtures-probe/src/Case.res${RESET}:${DIM}2:14${RESET}
@@ -65,6 +74,7 @@ const errorExpectation = {
   ],
 };
 
+/** Reads one file from the compiler-fixture directory as UTF-8 text. */
 const fixture = (path) =>
   readFileSync(`tests/fixtures/compiler/fx-surface/${path}`, "utf8");
 
@@ -91,6 +101,11 @@ describe("parseDiagnostics", () => {
     expect(diagnostics[0].text).toContain(
       "This can't be called, it's not a function. The function has type:",
     );
+  });
+
+  test("counts a warning header with or without the promoted suffix", () => {
+    const diagnostics = parseDiagnostics(`${warningBlock}${plainWarningBlock}`);
+    expect(diagnostics.map(({ kind }) => kind)).toEqual(["warning", "warning"]);
   });
 
   test("ignores build prologue and keeps the trailing summary", () => {
@@ -140,6 +155,15 @@ describe("matchesExpectation", () => {
     expect(
       matchesExpectation(
         parseDiagnostics(`${warningBlock}${errorBlock}`),
+        errorExpectation,
+      ),
+    ).toBe(false);
+  });
+
+  test("rejects an unpromoted warning beside the expected error", () => {
+    expect(
+      matchesExpectation(
+        parseDiagnostics(`${plainWarningBlock}${errorBlock}`),
         errorExpectation,
       ),
     ).toBe(false);
@@ -210,7 +234,7 @@ describe("scanForCasts", () => {
       scanForCasts(fixture("cases/fx-add-requirement.res")).map(
         ({ kind, line }) => ({ kind, line }),
       ),
-    ).toEqual([{ kind: ":>", line: 5 }]);
+    ).toEqual([{ kind: ":>", line: 6 }]);
   });
 
   test("flags the fx-widen-result result coercion", () => {
@@ -218,7 +242,7 @@ describe("scanForCasts", () => {
       scanForCasts(fixture("cases/fx-widen-result.res")).map(
         ({ kind, line }) => ({ kind, line }),
       ),
-    ).toEqual([{ kind: ":>", line: 7 }]);
+    ).toEqual([{ kind: ":>", line: 8 }]);
   });
 
   test("only the two declared variance witnesses carry an exemption", () => {
@@ -233,8 +257,8 @@ describe("scanForCasts", () => {
           hasReason: reason.length > 0,
         })),
     ).toEqual([
-      { id: "fx-add-requirement", kind: ":>", line: 5, hasReason: true },
-      { id: "fx-widen-result", kind: ":>", line: 7, hasReason: true },
+      { id: "fx-add-requirement", kind: ":>", line: 6, hasReason: true },
+      { id: "fx-widen-result", kind: ":>", line: 8, hasReason: true },
     ]);
   });
 });

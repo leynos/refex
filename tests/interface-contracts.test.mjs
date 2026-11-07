@@ -77,8 +77,12 @@ const expectedSurface = {
   ],
 };
 
-// Compares the exported name, kind, and signature of every item. Throws
-// naming the first difference so an unexpected export is easy to locate.
+/**
+ * Compares the exported name, kind, and signature of every item.
+ *
+ * Throws naming the first difference so an unexpected export is easy to
+ * locate.
+ */
 function assertSurface(actual, expected) {
   const projected = actual.map((item) => [
     item.name,
@@ -92,6 +96,12 @@ function assertSurface(actual, expected) {
   }
 }
 
+/**
+ * Returns the exported items `rescript-tools doc` reports for one interface.
+ *
+ * Throws when the tool fails, so a missing or unparsable interface is a test
+ * failure rather than an empty surface.
+ */
 function documentedSurface(file) {
   const result = Bun.spawnSync([
     process.execPath,

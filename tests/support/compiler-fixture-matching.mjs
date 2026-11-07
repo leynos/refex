@@ -20,15 +20,20 @@ const ESCAPE = String.fromCharCode(27);
 const ANSI = new RegExp(`${ESCAPE}\\[[0-9;]*[A-Za-z]`, "g");
 
 // The three diagnostic headers a build can print. ReScript 12.3.1 promotes a
-// warning to an error with the `(configured as error)` suffix.
+// warning to an error with the `(configured as error)` suffix, but an
+// unpromoted warning header counts too: the fixture configuration promotes
+// every warning, so an unpromoted one is a wrong diagnostic that must not be
+// absorbed into the expected error block.
 const HEADER =
-  /(We've found a bug for you!|Warning number \d+ \(configured as error\)|Syntax error!)/g;
+  /(We've found a bug for you!|Warning number \d+(?: \(configured as error\))?|Syntax error!)/g;
 
 // The `path:line:column` line that follows every header.
 const LOCATION = /([^\s:]+):(\d+):\d+/;
 
+/** Collapses runs of whitespace so diagnostic text compares stably. */
 const collapse = (text) => text.replace(/\s+/g, " ").trim();
 
+/** Classifies one matched header as `syntax`, `warning`, or `error`. */
 function kindOf(header) {
   if (header === "Syntax error!") return "syntax";
   if (header.startsWith("Warning number")) return "warning";
@@ -66,9 +71,9 @@ export function parseDiagnostics(output) {
  * Accepts exactly one diagnostic matching the expectation.
  *
  * The single diagnostic must name the expected file and first line, and its
- * normalized text must contain every fragment. A promoted warning, a second
- * error, a syntax error, a wrong file or line, or a missing fragment all
- * reject.
+ * normalized text must contain every fragment. A warning (promoted or not), a
+ * second error, a syntax error, a wrong file or line, or a missing fragment
+ * all reject.
  */
 export function matchesExpectation(diagnostics, expect) {
   if (diagnostics.length !== 1) return false;

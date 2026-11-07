@@ -82,13 +82,17 @@ and, once provided, yields `IO.t<'a, 'e>`. Build one with `Fx.succeed`,
 environment with `Fx.contramapEnvironment`.
 
 Building a description and calling `Fx.provide` run no user callback, and
-provision does not traverse the description. Environment reads, projections,
-and every user function run only when the resulting `IO.t` is evaluated, once
-per evaluation. `Fx.flatMap` short-circuits on failure, and `Fx.tap` runs its
-work once in order and keeps the original value; if the work fails, the whole
-description fails with that error. `Fx.accessEffect` runs the description it
-returns in the same environment, and `Fx.contramapEnvironment` projects the
-environment once per evaluation.
+`Fx.provide` does not traverse the description. Nothing runs until the resulting
+`IO.t` is evaluated, and each user function then runs at most once per
+evaluation. Which functions run depends on the branch taken: `Fx.map`,
+`Fx.flatMap`, and `Fx.tap` skip their callback when the receiver fails,
+`Fx.mapError` skips its callback when the receiver succeeds, and `Fx.access`
+reads the environment only on the success path. `Fx.flatMap` short-circuits on
+failure, and `Fx.tap` runs its work once in order and keeps the original value;
+if the work fails, the whole description fails with that error.
+`Fx.accessEffect` runs the description it returns in the same environment, and
+`Fx.contramapEnvironment` projects the environment once per evaluation, before
+the description runs.
 
 Two services:
 

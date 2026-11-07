@@ -1,3 +1,4 @@
+/** Environment projection from a large record to its small field. */
 type small = {count: int}
 type large = {small: small, label: string}
 let count = Refex.Fx.access(environment => environment.count)

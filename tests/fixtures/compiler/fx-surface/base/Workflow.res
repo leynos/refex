@@ -1,3 +1,4 @@
+/** Composed workflows exercising tap, map, flatMap, and accessEffect. */
 let stamp = () =>
   Clock.now()
   ->Refex.Fx.tap(time => Log.write("tick " ++ Int.toString(time)))

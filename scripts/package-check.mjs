@@ -20,6 +20,12 @@ const root = process.cwd();
 const manifest = await Bun.file("package.json").json();
 const fixture = mkdtempSync(join(tmpdir(), "refex-package-"));
 
+/**
+ * Runs one command in the fixture and returns its standard output.
+ *
+ * Throws with the command, output, and error text when the command fails, so a
+ * packaging or consumer failure is diagnosable from the gate log.
+ */
 function run(command, cwd = fixture) {
   const result = Bun.spawnSync(command, {
     cwd,
