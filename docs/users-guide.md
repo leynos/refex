@@ -83,16 +83,19 @@ environment with `Fx.contramapEnvironment`.
 
 Building a description and calling `Fx.provide` run no user callback, and
 `Fx.provide` does not traverse the description. Nothing runs until the resulting
-`IO.t` is evaluated, and each user function then runs at most once per
-evaluation. Which functions run depends on the branch taken: `Fx.map`,
-`Fx.flatMap`, and `Fx.tap` skip their callback when the receiver fails,
-`Fx.mapError` skips its callback when the receiver succeeds, and `Fx.access`
-reads the environment only on the success path. `Fx.flatMap` short-circuits on
-failure, and `Fx.tap` runs its work once in order and keeps the original value;
-if the work fails, the whole description fails with that error.
-`Fx.accessEffect` runs the description it returns in the same environment, and
-`Fx.contramapEnvironment` projects the environment once per evaluation, before
-the description runs.
+`IO.t` is evaluated. The limit is per combinator invocation, not per user
+function across the whole evaluation: an `IO` or `Fx` combinator runs its
+callback at most once per evaluation of that combinator's result, and a
+description reused in two places is evaluated once for each place, so its
+callbacks can run more than once in a single evaluation. Which functions run
+depends on the branch taken: `Fx.map`, `Fx.flatMap`, and `Fx.tap` skip their
+callback when the receiver fails, `Fx.mapError` skips its callback when the
+receiver succeeds, and `Fx.access` reads the environment only on the success
+path. `Fx.flatMap` short-circuits on failure, and `Fx.tap` runs its work once
+in order and keeps the original value; if the work fails, the whole description
+fails with that error. `Fx.accessEffect` runs the description it returns in the
+same environment, and `Fx.contramapEnvironment` projects the environment once
+per evaluation, before the description runs.
 
 Two services:
 

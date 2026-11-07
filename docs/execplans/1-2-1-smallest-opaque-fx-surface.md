@@ -425,6 +425,21 @@ regenerated `typos.toml` are excluded from every count below.
   `Bootstrap`, so it now identifies them as new. CodeRabbit also repeated that
   D-7 selects no proof but that the saved check may not accept a recorded scope
   decision; that remains an owner question rather than a repair.
+- [ ] (2026-11-07) Review 5813754480 on head `0f6cd1f` raised one inline
+  finding and re-scoped four pre-merge rows. The repair set is under gate. The
+  migration note no longer requires replacing working thunks: `IO` and `Fx` are
+  optional descriptions until roadmap task 1.3.1 supplies a runner, and the
+  note keeps the instruction not to call, inspect, evaluate, or forge one. The
+  users' guide now states the callback limit per combinator invocation and
+  explains that a reused description is evaluated once per place, so its
+  callbacks can run more than once in a single evaluation. The developers'
+  guide separates the absent ReScript runner from direct JavaScript evaluation
+  of the generated thunks, which the consumer in `scripts/package-check.mjs`
+  performs, and repeats that the representation has no compatibility guarantee.
+  The module-level row asks for docstrings in the generated `.res.mjs` modules;
+  that is rebutted, because the compiler strips source docstrings,
+  `scripts/check-generated.mjs` rejects any hand edit to compiler output, and
+  AGENTS.md forbids hand-editing it. The proof row stays rebutted under D-7.
 
 ## Surprises & discoveries
 
@@ -2271,4 +2286,11 @@ under D-7. No interface, milestone, acceptance criterion, or tolerance changes.
 `Progress`. It corrected the error-widening pair header, which misdescribed
 both cases as differing by a cast, and the migration note's claim that the `IO`
 and `Fx` module paths were unchanged. No interface, milestone, acceptance
+criterion, or tolerance changes.
+
+2026-11-07, revision 12: recorded review 5813754480 in `Progress`. It corrected
+the migration note's mandatory-thunk replacement, the users' guide's
+per-evaluation callback claim, and the developer guide's claim that only the
+tests evaluate a description, and it recorded the evidence for rejecting the
+request to docstring generated JavaScript. No interface, milestone, acceptance
 criterion, or tolerance changes.

@@ -31,11 +31,16 @@ operations and the evaluation rules.
 ## What a consumer must change
 
 1. Delete every `Refex.Bootstrap` import and `Bootstrap.identity` call.
-2. Replace hand-rolled thunks with `IO.suspend`, and sequence them with
-   `IO.flatMap` and `IO.mapError`.
-3. Describe environment-dependent work as `Fx.t` and apply it with
-   `Fx.provide`; do not call, inspect, or forge a description.
-4. Update archive expectations. The package contains `src/IO.res`,
+2. Treat `IO` and `Fx` as optional descriptions, not a required replacement for
+   working thunks. The package ships no runner, so a description built with
+   `IO.suspend`, `IO.flatMap`, or `IO.mapError` cannot be evaluated from
+   ReScript yet. Keep code that already runs, and adopt the descriptions when
+   roadmap task 1.3.1 supplies the runner.
+3. Do not call, inspect, evaluate, or forge a description. Its representation
+   is private and carries no compatibility promise.
+4. If and when you do describe environment-dependent work, use `Fx.t` and apply
+   it with `Fx.provide`.
+5. Update archive expectations. The package contains `src/IO.res`,
    `src/IO.resi`, `src/IO.res.mjs`, and the same three files for `Fx`. No
    `Bootstrap` file remains.
 

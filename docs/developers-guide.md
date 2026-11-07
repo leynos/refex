@@ -100,10 +100,21 @@ fails; `Fx.mapError` skips its callback when the receiver succeeds; `Fx.access`
 reads the environment only on the success path. `Fx.flatMap` short-circuits on
 failure, and `Fx.tap` keeps the original value after running its work.
 
-The package ships **no runner**. Roadmap task 1.3.1 adds the runtime entry
-point that evaluates a description; until then only the repository's tests
-evaluate one, through the test-only FFI described below. Do not add a public
-evaluator, and do not expose the representation to make one possible.
+The package ships **no runner**. That is a statement about the published
+ReScript API, not about the generated JavaScript. Roadmap task 1.3.1 adds the
+ReScript entry point that evaluates a description.
+
+The generated JavaScript can still be evaluated directly. `IO.t` compiles to a
+zero-argument thunk and `Fx.t` to an environment-to-thunk function, so
+`src/IO.res.mjs` and `src/Fx.res.mjs` export ordinary functions: applying an
+`Fx.t` to an environment yields the thunk an `IO.t` produces, and calling that
+thunk runs the description. The JavaScript consumer in
+`scripts/package-check.mjs` does exactly that, with no test-only FFI; the FFI
+described below exists for the ReScript tests, not for JavaScript.
+
+Direct evaluation depends on the current representation, which is private and
+carries no compatibility guarantee. Do not add a public evaluator, and do not
+expose the representation to make one possible.
 
 ## Tests and coverage
 
