@@ -1,4 +1,4 @@
-/** Compiler fixture case; cases.json records acceptance or the expected diagnostic. */
+/** Fixture pair: dropping an environment requirement is rejected; adding one is accepted. */
 type clock = {"clock": int}
 type both = {"clock": int, "log": int}
 type clockFx = Refex.Fx.t<int, string, clock>

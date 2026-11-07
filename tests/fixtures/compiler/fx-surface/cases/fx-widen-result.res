@@ -1,4 +1,4 @@
-/** Compiler fixture case; cases.json records acceptance or the expected diagnostic. */
+/** Fixture pair: widening an error without a cast is rejected; the cast is accepted. */
 type narrow = ClockError.t
 type wide = WideError.t
 type narrowFx = Refex.Fx.t<int, narrow, {"clock": int}>

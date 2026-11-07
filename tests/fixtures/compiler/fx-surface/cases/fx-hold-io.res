@@ -1,3 +1,3 @@
-/** Compiler fixture case; cases.json records acceptance or the expected diagnostic. */
+/** Fixture pair: calling an IO.t is a type error; binding it is accepted. */
 let io: Refex.IO.t<int, string> = Refex.IO.succeed(1)
 let good = io

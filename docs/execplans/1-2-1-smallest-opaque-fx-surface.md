@@ -404,6 +404,17 @@ regenerated `typos.toml` are excluded from every count below.
   claim, and adds the developers' guide section on the opaque descriptions. The
   proof-scrutiny area is rebutted under D-7, and the 0.1.0 migration item is
   inapplicable to an unpublished private package.
+- [ ] (2026-11-07) Second hosted review, 5810739489 and 5810739603, on head
+  `dc4ea37` left four pre-merge rows. The repair set is under gate. Each of the
+  thirteen case fixtures now carries a pair-specific module docstring, and each
+  reject/control pair shares byte-identical first lines so `differsByOneLine`
+  still holds; the base `Main.res` docstring names the composed projection it
+  actually provides. The developers' guide now states that `Fx.provide` returns
+  `IO.suspend(() => fx(environment))` and that provision does not traverse the
+  description. `docs/migration-0.1.0.md` records the `Bootstrap` removal and the
+  `IO`/`Fx` public surface, and `docs/contents.md` indexes it. The proof row
+  is rebutted again under D-7; nothing in review 5810739489 supplies new
+  evidence against it.
 
 ## Surprises & discoveries
 
@@ -2238,3 +2249,10 @@ ready and run hosted review, and amended C-14 accordingly; merging and
 publishing remain forbidden. Recorded the repair set for CodeRabbit review
 5808513718 in `Progress`. No interface, milestone, acceptance criterion, or
 tolerance changes.
+
+2026-11-07, revision 10: recorded the second repair set in `Progress`, for
+CodeRabbit review 5810739489 and 5810739603 on head `dc4ea37`. It adds
+pair-specific case-fixture docstrings, corrects the base fixture docstring,
+corrects the `Fx.provide` description in the developers' guide, and adds
+`docs/migration-0.1.0.md` with an index entry. The proof row stays rebutted
+under D-7. No interface, milestone, acceptance criterion, or tolerance changes.

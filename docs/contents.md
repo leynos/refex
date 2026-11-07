@@ -55,6 +55,8 @@ evidence, not refex conformance results.
 ## Implemented bootstrap and contribution
 
 - [User guide](users-guide.md): what is installable today, and what is not.
+- [Migrating to 0.1.0](migration-0.1.0.md): the `Bootstrap` removal and the
+  `IO` and `Fx` surface, for anyone who used the bootstrap probe.
 - [Developer guide](developers-guide.md): build, tests, package checks,
   analysis, and continuous-integration operation.
 - [Repository layout](repository-layout.md): paths and ownership boundaries.

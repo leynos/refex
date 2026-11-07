@@ -85,11 +85,13 @@ interfaces, so ReScript consumers cannot call, inspect, or forge one. Their
 representations are private to `src/` and carry no compatibility promise.
 
 `IO.t` is a suspended computation that yields `result<'a, 'e>` when evaluated.
-`Fx.t` is a function from an environment `'r` to an `IO.t`; `Fx.provide`
-applies that function and wraps the result in `IO.suspend`, so the environment
-is captured without running anything. Every `Fx` combinator returns an
-environment closure that only builds `IO` thunks, which is why no user callback
-runs while a description is being built or provided.
+`Fx.t` is a function from an environment `'r` to an `IO.t`. `Fx.provide`
+captures the environment and suspends application of the `Fx` function until
+evaluation: it returns `IO.suspend(() => fx(environment))`, so the application
+happens inside the thunk, not at provision time. Provision does not traverse
+the description. Every `Fx` combinator returns an environment closure that only
+builds `IO` thunks, which is why no user callback runs while a description is
+being built or provided.
 
 Evaluation is deferred and branch-conditional. Nothing runs until the `IO.t` is
 evaluated, and each user function then runs at most once per evaluation.
