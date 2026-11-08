@@ -459,6 +459,15 @@ regenerated `typos.toml` are excluded from every count below.
   source docstrings from compiler output, `scripts/check-generated.mjs` rejects
   any divergence from a rebuild, and AGENTS.md forbids hand-editing that
   output. The proof row stays rebutted under D-7.
+- [ ] (2026-11-08) The pre-merge table for head `ab69388` added one new warning
+  row, User-Facing Documentation, which asked for the semantics of `IO.suspend`,
+  `IO.flatMap`, and `IO.mapError` in the users' guide. The `IO` section now
+  states when `suspend` runs its callback, how `flatMap` sequences and
+  short-circuits, how `mapError` touches only the failure path, and that the
+  callback limit is per combinator invocation. The module-level documentation
+  and property/proof rows stay rebutted as in the previous bullet. CodeRabbit
+  also paused automatic reviews after repeated pushes; the resume command is
+  dispatched through the queue rather than from a manual comment.
 
 ## Surprises & discoveries
 
@@ -2323,3 +2332,7 @@ acceptance criterion, or tolerance changes.
 the second-person pronoun from step 4 of the migration note and recorded the
 generation-pipeline form of the module-level documentation row. No interface,
 milestone, acceptance criterion, or tolerance changes.
+
+2026-11-08, revision 15: recorded the new User-Facing Documentation row in
+`Progress` and the `IO` operation semantics it asked for in the users' guide.
+No interface, milestone, acceptance criterion, or tolerance changes.

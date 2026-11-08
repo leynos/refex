@@ -62,6 +62,16 @@ Building a description runs nothing. For ReScript consumers the type is
 abstract: the `.resi` interface prevents them from calling, inspecting, or
 forging one.
 
+`IO.suspend` defers construction: its callback runs when the description is
+evaluated, at most once per evaluation, and must return the description to run.
+`IO.flatMap` evaluates its receiver, applies its callback to a success value,
+and evaluates the description that callback returns; a failure is returned
+unchanged and the callback is not called. `IO.mapError` touches only the
+failure path: it maps the error and returns a success value unchanged, without
+calling its mapper. These are the `IO` forms of the `Fx` rules below, and the
+callback limit is the same: per combinator invocation, so a description reused
+in two places is evaluated once for each place.
+
 JavaScript consumers import the generated module, where `IO.t` is an ordinary
 zero-argument function. They can call it and observe the `result` it returns.
 That representation is an implementation detail with no compatibility promise;
