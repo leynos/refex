@@ -36,6 +36,10 @@ evidence, not refex conformance results.
 - [ADR 007](adr-007-shared-work-lifecycle-contract.md): candidate behavioural
   contract for shared work, joined closure, unresolved generations, retained
   recovery, and host-exit limits.
+- [ADR 008](adr-008-first-semantic-modules-and-module-visibility.md): accepted
+  decision that `IO` and `Fx` are the package's public modules, replacing the
+  retired bootstrap probe, and that `public` is a declaration enforced by
+  module and export-set contracts.
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
   probes and the static binding audit behind ADR 004; source evidence only.
 - [Verification feasibility](evidence/verification-feasibility.md): the FX-1
@@ -45,10 +49,14 @@ evidence, not refex conformance results.
   behind ADRs 005 and 006; source evidence only.
 - [Execution plan for roadmap step 1.1](execplans/1-1-freeze-validator-hypotheses.md):
   the completed plan for freezing the validator hypotheses.
+- [Execution plan for roadmap task 1.2.1](execplans/1-2-1-smallest-opaque-fx-surface.md):
+  the completed plan for the smallest opaque `Fx` surface.
 
 ## Implemented bootstrap and contribution
 
 - [User guide](users-guide.md): what is installable today, and what is not.
+- [Migrating to 0.1.0](migration-0.1.0.md): the `Bootstrap` removal and the
+  `IO` and `Fx` surface, for anyone who used the bootstrap probe.
 - [Developer guide](developers-guide.md): build, tests, package checks,
   analysis, and continuous-integration operation.
 - [Repository layout](repository-layout.md): paths and ownership boundaries.

@@ -251,3 +251,11 @@ infallibility and variance is named rather than hidden.
   and [§7](design.md#7-native-await-as-a-gated-experiment).
 - [ADR 004](adr-004-runtime-boundary.md) and
   [ADR 005](adr-005-structural-dependency-environments.md).
+
+## Amendments
+
+[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) records that
+the invariant error parameter produces weak error types for unannotated
+top-level `IO` and `Fx` descriptions. Consumers annotate such descriptions or
+export functions instead. The invariant, expected errors as ordinary variants,
+and explicit injection through `mapError` are unchanged.

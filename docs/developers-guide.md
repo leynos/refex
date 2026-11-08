@@ -73,10 +73,51 @@ existing equivalent and document ownership before extracting a new helper.
 
 ReScript 12.3.1 does not copy doc comments from `.res`/`.resi` source into
 generated JavaScript. Neither a leading `/** ... */` module comment nor a
-`@doc` attribute survives the build, so `src/Bootstrap.res.mjs` carries no
-docstrings by design. Document the ReScript source and its interface; do not
-hand-edit the output to add comments, and do not read the absence of docstrings
-there as missing documentation.
+`@doc` attribute survives the build, so the generated `src/*.res.mjs` files
+carry no docstrings by design. Document the ReScript source and its interface;
+do not hand-edit the output to add comments, and do not read the absence of
+docstrings there as missing documentation.
+
+## Opaque `IO` and `Fx` descriptions
+
+`IO.t<'a, 'e>` and `Fx.t<'a, 'e, 'r>` are both abstract in their `.resi`
+interfaces, so ReScript consumers cannot call, inspect, or forge one. Their
+representations are private to `src/` and carry no compatibility promise.
+
+`IO.t` is a suspended computation that yields `result<'a, 'e>` when evaluated.
+`Fx.t` is a function from an environment `'r` to an `IO.t`. `Fx.provide`
+captures the environment and suspends application of the `Fx` function until
+evaluation: it returns `IO.suspend(() => fx(environment))`, so the application
+happens inside the thunk, not at provision time. Provision does not traverse
+the description. Every `Fx` combinator returns an environment closure that only
+builds `IO` thunks, which is why no user callback runs while a description is
+being built or provided.
+
+Evaluation is deferred and branch-conditional. Nothing runs until the `IO.t` is
+evaluated. The callback limit is per combinator invocation, not per user
+function across the whole evaluation: a description reused in two places is
+evaluated once for each place, so a shared reader such as `Fx.access` can run
+more than once in a single evaluation. `Fx.map`, `Fx.flatMap`, and `Fx.tap`
+skip their callback when the receiver fails; `Fx.mapError` skips its callback
+when the receiver succeeds; `Fx.access` reads the environment only on the
+success path. `Fx.flatMap` short-circuits on failure, and `Fx.tap` keeps the
+original value after running its work.
+
+The package ships **no runner**. That is a statement about the published
+ReScript API, not about the generated JavaScript. Roadmap task 1.3.1 adds the
+ReScript entry point that evaluates a description.
+
+The generated JavaScript can still be evaluated directly. `IO.t` compiles to a
+zero-argument thunk and `Fx.t` to an environment-to-thunk function, so
+`src/IO.res.mjs` and `src/Fx.res.mjs` export ordinary functions: applying an
+`Fx.t` to an environment yields the thunk an `IO.t` produces, and calling that
+thunk runs the description. The JavaScript consumer in
+`scripts/package-check.mjs` does exactly that, with no test-only FFI; the FFI
+described below exists for the ReScript tests, not for JavaScript.
+
+Direct evaluation depends on the current representation, which is private and
+carries no compatibility guarantee. Do not add a public evaluator, and do not
+expose the representation to make one possible.
 
 ## Tests and coverage
 
@@ -85,16 +126,18 @@ make test
 make coverage
 ```
 
-The test target compiles first and explicitly selects
-`tests/Bootstrap.test.res.mjs`, the authored JavaScript consumer, and the
-repository contract suites. This prevents a green run that never executes the
-ReScript smoke. Contract tests cover package and compiler boundaries, workflow
-permissions and pins, privileged metadata-only operations, `make -j` gate
-order, the Dependabot configuration, the Markdown rule policy and its ignore
-paths, the Bun coverage exclusion, registration of every authored suite in the
-`test` target, and the ADR index and status vocabulary. Controlled bad fixtures
-must fail the same invariant checks that accept the repository; every contract
-helper has at least one paired negative control.
+The test target compiles first and explicitly selects `tests/IO.test.res.mjs`,
+`tests/FxSequencing.test.res.mjs`, `tests/FxEnvironment.test.res.mjs`,
+`tests/IoLaws.test.res.mjs`, `tests/FxLaws.test.res.mjs`,
+`tests/FxEnvironmentLaws.test.res.mjs`, the authored JavaScript consumer, and
+the repository contract suites. This prevents a green run that never executes
+the ReScript smoke. Contract tests cover package and compiler boundaries,
+workflow permissions and pins, privileged metadata-only operations, `make -j`
+gate order, the Dependabot configuration, the Markdown rule policy and its
+ignore paths, the Bun coverage exclusion, registration of every authored suite
+in the `test` target, and the ADR index and status vocabulary. Controlled bad
+fixtures must fail the same invariant checks that accept the repository; every
+contract helper has at least one paired negative control.
 
 Bun does not discover `.test.res.mjs` output, so a new suite runs only once the
 `test` target names it. `makefile-contracts` fails when any `tests/*.test.mjs`
@@ -103,18 +146,19 @@ or `tests/*.test.res` suite is missing from that list, so add the path to the
 
 The contract tests are split one concern per file — `package-contracts`,
 `dependency-contracts`, `markdown-contracts`, `workflow-contracts`,
-`generated-gate`, `makefile-contracts`, and `documentation-contracts` — so each
-stays within the authored file size limit. Assertions are shared through two
-modules that belong to these suites alone:
+`generated-gate`, `makefile-contracts`, `interface-contracts`, and
+`documentation-contracts` — so each stays within the authored file size limit.
+Assertions are shared through two modules that belong to these suites alone:
 `tests/support/package-dependency-contracts.mjs` serves `package-contracts` and
 `dependency-contracts`, and `tests/support/toolchain-workflow-contracts.mjs`
 serves `markdown-contracts`, `workflow-contracts`, and `makefile-contracts`.
-`generated-gate` and `documentation-contracts` use neither. When a support
-module approaches the size limit, split it along the same subject boundary
-rather than growing a general-purpose test file. Helpers that only one suite
-needs stay private to that suite: the suite-registration check in
-`makefile-contracts` and the ADR index check in `documentation-contracts` do.
-Add a new contract to the file that owns its subject.
+`generated-gate`, `interface-contracts`, and `documentation-contracts` use
+neither. When a support module approaches the size limit, split it along the
+same subject boundary rather than growing a general-purpose test file. Helpers
+that only one suite needs stay private to that suite: the suite-registration
+check in `makefile-contracts` and the ADR index check in
+`documentation-contracts` do. Add a new contract to the file that owns its
+subject.
 
 `scripts/check-generated.mjs` cannot be tested as a helper, because it is a
 script that reads Git state. The suite therefore builds throwaway Git
@@ -123,16 +167,86 @@ matching output, stale output, missing output, untracked output, and a
 repository with no committed production output. A gate that always exited `0`
 would pass the real repository and fail these.
 
-Coverage uses Bun's text and LCOV reporters for the behavioural and consumer
-tests. It measures generated JavaScript under ReScript 12, not perfect ReScript
-source-line attribution. Repository-contract and gate implementation coverage
-is not product coverage. CI uploads `coverage/lcov.info` for 14 days. There is
-no threshold, ratchet, or external publication service. Introduce a meaningful
-baseline only once product code exists.
+Coverage uses Bun's text and LCOV reporters for the behavioural, law, and
+consumer tests. It measures generated JavaScript under ReScript 12, not perfect
+ReScript source-line attribution. Task 1.2.1 establishes the product baseline:
+every generated function and line under `src/` runs in those suites.
+Repository-contract and gate implementation coverage is not product coverage.
+CI uploads `coverage/lcov.info` for 14 days. There is no threshold, ratchet, or
+external publication service; introduce one only through a recorded decision.
 
 `bunfig.toml` excludes `tests/**` from both coverage reports because Bun's
 default test patterns do not recognize the compiler's `.test.res.mjs` output.
 This corrects current coverage, not speculative workspace configuration.
+
+### Law and property suites
+
+`tests/FastCheck.res` binds fast-check 4.10.2 through a narrow set of concrete
+externals; `rescript-fast-check` predates ReScript 12 and is unmaintained. The
+binding and the model are test code only and never enter the package.
+
+`tests/FxLawModel.res` owns the defunctionalized description syntax, its
+arbitraries bounded at depth four, `build`, which maps every constructor onto
+the production operations with traced callbacks, and `denote`, an independent
+executable model. `tests/LawHarness.res` owns observation: each term carries
+the array its callbacks write to, each side is evaluated twice, and traces are
+compared only at the strength a law claims. `tests/LawSuite.res` owns the
+shared run count and timeout. `tests/IoLaws.test.res` checks OB-6,
+`tests/FxLaws.test.res` checks OB-7, `tests/FxAgreement.test.res` checks
+inertness, model agreement, and classification (OB-1 and OB-9), and
+`tests/FxEnvironmentLaws.test.res` checks OB-7 and OB-8. The Fx suites are
+split across files only to keep each inside the authored-size tolerance.
+Constructor payloads are positional rather than inlined records, because
+ReScript 12.3.1 rejects an inlined record payload when a constructor is used
+inside a generated lambda.
+
+Each law runs 200 generated cases. A failure reports the fast-check `seed` and
+shrink `path`; replay it by passing the same `seed` and `path` to `assert`.
+Development and ablation counterexamples are kept as named `examples` beside
+the agreement property, so a reintroduced defect fails immediately rather than
+waiting for the generator. The classification test pins a seed, asserts
+success, failure, depth-four, and per-constructor coverage, and enforces the
+generator's depth-four upper bound as well as its reachability. Constructor
+alternatives are weighted three-to-one against leaves: an unweighted generator
+left four constructors below the 30 per cent presence threshold.
+
+### Compiler fixtures
+
+`tests/compiler-fixtures.test.mjs` builds a temporary consumer that installs
+exactly the package's `files` allowlist into `node_modules/refex/`, symlinks
+the pinned toolchain, and compiles `tests/fixtures/compiler/fx-surface/base/`.
+The base's nine modules exercise multi-module accumulation, projection,
+injection, and opacity. The fixture project lives under `os.tmpdir()` and
+`afterAll` removes it; it is never packaged.
+`tests/support/compiler-fixture-matching.mjs` holds the matcher, the cast scan,
+and the one-line comparison, and its only permitted callers are the runner and
+`compiler-fixture-matching.test.mjs`. It is not a generic test framework.
+
+A case is one file under `cases/`, named `<id>.res`, with one entry in
+`cases.json`. Keep each source formatter-stable, so `rescript format` leaves it
+unchanged, build it as `src/Case.res`, and record the diagnostic's file, first
+line, and stable fragments. Match stable message fragments after collapsing
+whitespace, never a whole message or a mangled module name. Every negative case
+needs a positive control that differs by exactly one line; a syntax-broken case
+is stored as `<id>.res.txt` and is excluded from `rescript format`. The runner
+asserts that the id/file set in `cases.json` equals the files under `cases/`.
+
+Accepted sources are the only place the runner scans for casts. The scan is
+deliberately syntactic and reports `Obj.magic`, `:>`, `%identity`, `%raw`, and
+`external`. A case may declare `castScanExemption` with the kind, line, and
+reason of one variance witness. The runner scans the whole source regardless:
+the declared finding must appear exactly once, and any other finding, even a
+second coercion of the same kind, fails. ADR 005 scopes its `:>` ban to
+requirement rows, so `fx-widen-result` records why its `result` coercion is
+permitted while `fx-add-requirement` records the requirement-row witness.
+
+Outside a record's defining module, qualify the field access:
+`environment["clock"].Clock.now()`. The unqualified
+`environment["clock"].now()` fails with "now refers to a record field, but no
+corresponding record type is in scope" (R-2). Diagnostics are specific to
+ReScript 12.3.1; the runner first fails closed on any other compiler version.
+Each case has a 60-second timeout and the suite has a 120-second budget and
+logs its wall-clock time.
 
 ## Formatting and analysis
 
@@ -172,22 +286,47 @@ make package-check
 
 This gate cleans and rebuilds, checks generated synchronization, creates a real
 archive with `bun pm pack --ignore-scripts`, and compares its contents against
-an independent explicit seven-file allowlist. The archive contains README,
-`LICENSE`, package metadata, ReScript configuration, and the bootstrap source,
-interface, and generated ESM. Tests, dev scripts, coverage, editor state, and
-unrelated documents must never enter it.
+an independent explicit ten-file allowlist. The archive contains README,
+`LICENSE`, package metadata, ReScript configuration, and the `IO` and `Fx`
+sources, interfaces, and generated ESM. Tests, dev scripts, coverage, editor
+state, and unrelated documents must never enter it.
 
 A temporary clean consumer installs the archive with the matching compiler,
-then checks frozen installation, imports and executes the JavaScript entry
-point, compiles `Refex.Bootstrap`, and executes that compiled consumer. No
+then checks frozen installation, imports the packed `IO` and `Fx` ESM and
+evaluates a small `Fx.provide` description. It then copies the compiler-fixture
+base into the consumer, compiles the nine modules against the archive, and
+executes `Main.res.mjs`, which runs the composed workflow and the projection. No
 `rescript-bun` package enters the fixture. A `finally` block removes the
 archive and fixture on success or failure. System tar only inspects the locally
 produced archive; no publishing command exists.
 
-The only module export is `refex/src/Bootstrap.res.mjs`. ReScript consumers
-emit that concrete package path automatically, so an alias-only `bootstrap`
-export would compile but fail at execution. The archive checker executes the
-compiled consumer to verify this integration detail.
+The module exports are `refex/src/IO.res.mjs` and `refex/src/Fx.res.mjs`.
+ReScript consumers emit those concrete package paths automatically, so an
+alias-only export would compile but fail at execution. The archive checker
+executes the compiled consumer to verify this integration detail.
+
+## Test-only foreign function interfaces
+
+Production `src/` contains no `external`, cast, or `%raw`. Tests have exactly
+two documented exceptions. `tests/IoEvaluation.res` binds
+`tests/support/io-evaluation.mjs`, which evaluates an opaque `IO.t` through the
+representation recorded by decision D-2 in the 1.2.1 ExecPlan; roadmap task
+1.3.1 replaces it with the private runtime entry. `tests/FastCheck.res` binds
+fast-check 4.10.2 for the law and property suites. Neither exception may grow
+into a general platform escape.
+
+## Surface contracts
+
+`tests/package-contracts.test.mjs` calls `publicModulesContract`: the `public`
+declaration plus the documented `internalModules` list must equal the
+`src/*.res` inventory, and every module must have a `.resi`.
+`tests/interface-contracts.test.mjs` runs `rescript-tools doc` on each `.resi`
+and compares the exported names, kinds, and signatures with an exact table.
+
+On ReScript 12.3.1, `public` is a declaration rather than an enforcement point:
+a module omitted from it stays reachable as `Refex.<Module>`. The contracts,
+not the allowlist, are therefore the boundary. ADR 008 and the planning probes
+in `docs/evidence/type-level-probes.md` record the evidence.
 
 ## CI, auditing, and dependency automation
 
@@ -220,7 +359,7 @@ none reaches the portable runtime or the packed consumer.
 | KaTeX 0.16.47    | [GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7) | Pin override to stable 0.19.0 and verify Markdown lint.                               |
 | smol-toml 1.8.0  | [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2) | Pin override to stable 1.9.0 and verify Markdown lint.                                |
 | js-yaml 5.2.3    | [GHSA-r3ph-w7gj-g6xm](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm) | Pin override to stable 5.4.3 and verify Markdown lint.                                |
-| minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) | Pin override to stable 11.0.1 and verify Markdown lint.                               |
+| minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) | Pin override to stable 11.0.4 and verify Markdown lint.                               |
 | braces 3.0.3     | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Replace markdownlint-cli2 with markdownlint-cli and verify the identical rule policy. |
 
 `braces` had no patched registry release and the upstream maintainer disputes
@@ -232,6 +371,11 @@ The two linters share rule semantics, so the committed policy and its findings
 are unchanged; `--dot` preserves dot-directory coverage, which the replacement
 does not enable by default. The repository-contract suite rejects a return to
 the vulnerable linter, a floating pin, or a loss of `--dot`.
+
+`markdownlint-cli` 0.49.1 pins `minimatch ~10.2.5`, which resolves to the
+affected 10.2.6. The `minimatch` override moves that single transitive instance
+to 11.0.4. Remove the override once `markdownlint-cli` admits minimatch 11 and
+`make audit` stays clean without it.
 
 Do not manufacture an audit pass with a severity cutoff or ignore list. If a
 future advisory has no replacement path, record it here and keep `make audit`

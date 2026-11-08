@@ -181,6 +181,167 @@ the ADR 006 recovery-family and uninhabited-channel claims hold as worded, with
 the trusted base named. The array-versus-list variance trade-off is recorded
 for ADR 006's cause representation.
 
+## Planning probes for task 1.2.1
+
+Status: source evidence for roadmap task 1.2.1 and
+[ADR 008](../adr-008-first-semantic-modules-and-module-visibility.md), not
+refex conformance. Dates: 31 October 2026 (planning) and 2 November 2026
+(re-run). Pins: ReScript 12.3.1 and Bun 1.4.2, as above.
+
+### Claim for task 1.2.1
+
+On the pinned toolchain, `sources[].public` in `rescript.json` is a declaration
+only: omitting a module from it does not stop a separately compiled consumer
+from reaching that module through the package namespace. The undocumented
+`namespace-entry` key does hide modules from a consumer. Both results decide
+whether a "private kernel" can hold the test-only evaluator that roadmap task
+1.2.1 needs.
+
+### Procedure for the namespace probes
+
+Run from the repository root after `make install`, with the repository's own
+`node_modules` linked into the scratch projects:
+
+```bash
+#!/usr/bin/env bash
+# Reproduce planning probes for EP-1.2.1. Usage: probe.sh REPO_ROOT
+set -uo pipefail
+REPO=$1
+if ! P=$(mktemp -d "${TMPDIR:-/tmp}/refex-ns-XXXXXX"); then
+  echo "cannot create the probe scratch directory" >&2
+  exit 1
+fi
+trap 'rm -rf "$P"' EXIT
+lib=$P/lib; con=$P/consumer; mkdir -p "$lib/src" "$con/src" "$con/node_modules"
+ln -s "$REPO/node_modules" $lib/node_modules
+for f in "$REPO"/node_modules/* "$REPO"/node_modules/.bin "$REPO"/node_modules/@rescript; do
+  ln -sfn "$f" $con/node_modules/
+done
+build() {
+  local output status
+  output=$(cd "$1" && bun run --bun rescript build 2>&1)
+  status=$?
+  printf '%s\n' "$output" \
+    | grep -E "error|Error|bug|can't|cannot|not a|subtype|variances|expected|Compiled" \
+    | head -6
+  return $status
+}
+expect_build() {
+  local expected=$1 status=0
+  build "$2" || status=$?
+  if [[ $expected == ok && $status -ne 0 ]]; then
+    echo "probe build failed unexpectedly: $2" >&2
+    exit 1
+  fi
+  if [[ $expected == fail && $status -eq 0 ]]; then
+    echo "probe build succeeded unexpectedly: $2" >&2
+    exit 1
+  fi
+}
+SPECS='"package-specs":{"module":"esmodule","in-source":true},"suffix":".res.mjs"'
+WARN='"warnings":{"number":"+A","error":"+A"}'
+libcfg() {
+  echo "{\"name\":\"refex\",\"namespace\":true,$1\"sources\":[{\"dir\":\"src\",\"public\":$2}],$SPECS,$WARN}" \
+    > $lib/rescript.json
+}
+install_copy() {
+  rm -rf $con/node_modules/refex $con/lib; mkdir $con/node_modules/refex
+  cp -r $lib/src $lib/package.json $lib/rescript.json $con/node_modules/refex/
+  rm -f $con/node_modules/refex/src/*.mjs
+}
+install_link() {
+  rm -rf $con/node_modules/refex $con/lib
+  ln -s $lib $con/node_modules/refex
+}
+echo '{"name":"refex","private":true,"version":"0.0.0"}' > $lib/package.json
+echo '{"name":"consumer","private":true,"type":"module"}' > $con/package.json
+echo "{\"name\":\"consumer\",\"sources\":[\"src\"],\"dependencies\":[\"refex\"],$SPECS,$WARN}" \
+  > $con/rescript.json
+printf "type t<+'a, 'e>\nlet succeed: 'a => t<'a, 'e>\n" > $lib/src/IO.resi
+printf "type t<'a, 'e> = unit => result<'a, 'e>\n" > $lib/src/IO.res
+printf "let succeed = (value): t<'a, 'e> => () => Ok(value)\n" >> $lib/src/IO.res
+printf 'let evaluate: IO.t<int, string> => int\n' > $lib/src/Kernel.resi
+printf 'let evaluate = (_: IO.t<int, string>) => 42\n' > $lib/src/Kernel.res
+echo 'let io: Refex.IO.t<int, string> = Refex.IO.succeed(1)' > $con/src/Main.res
+echo "== ns1: Kernel absent from public, symbolic-link dependency"
+libcfg "" '["IO"]'; expect_build ok $lib; install_link
+echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build ok $con
+(cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("link ran:", leaked)' > run.mjs && bun run.mjs)
+echo "== ns2: Kernel absent from public, copied package"
+install_copy; expect_build ok $con
+(cd $con && echo 'import {leaked} from "./src/Escape.res.mjs"; console.log("copy ran:", leaked)' > run.mjs && bun run.mjs)
+echo "== ns6: bare IO (listed in public) from consumer"
+echo 'let x: IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build fail $con
+echo "== ns7: nonsense public value accepted"
+libcfg "" '"bogus-value-should-be-rejected"'; expect_build ok $lib
+echo "== ns8: namespace-entry hides Kernel"
+libcfg '"namespace-entry":"Refex",' '["IO"]'
+printf 'module IO = IO\n' > $lib/src/Refex.res; printf 'module IO = IO\n' > $lib/src/Refex.resi
+expect_build ok $lib; install_copy
+echo 'let leaked = Refex.Kernel.evaluate(Main.io)' > $con/src/Escape.res; expect_build fail $con
+echo 'let ok: Refex.IO.t<int, string> = Main.io' > $con/src/Escape.res; expect_build ok $con
+rm -rf "$P"
+```
+
+### Observations
+
+The re-run on 2 November 2026 reproduced every observation, with ANSI escapes
+stripped and extra incremental-build lines omitted:
+
+```plaintext
+== ns1: Kernel absent from public, symbolic-link dependency
+Compiled 2 modules
+Compiled 2 modules
+link ran: 42
+== ns2: Kernel absent from public, copied package
+Compiled 4 modules
+copy ran: 42
+== ns6: bare IO (listed in public) from consumer
+Compiled 1 modules
+We've found a bug for you!
+The module or file IO can't be found.
+== ns7: nonsense public value accepted
+Compiled 2 modules
+== ns8: namespace-entry hides Kernel
+Compiled 3 modules
+Compiled 5 modules
+We've found a bug for you!
+The module or file Refex.Kernel can't be found.
+Compiled 5 modules
+```
+
+- `ns1` and `ns2`: a consumer both compiled and ran `Refex.Kernel.evaluate`
+  while `Kernel` was absent from `public`, first with a symbolic-link dependency
+  (`ns1`) and then with a copied package (`ns2`), each reproduced separately.
+  Omitting a module from `public` does not make it unreachable.
+- `ns6` is the negative control for namespace confusion: the un-namespaced
+  `IO` name fails even though `IO` is listed in `public`, so the `ns1` result
+  reflects the namespace, not the allowlist.
+- `ns7`: the build accepts a nonsense `public` value without complaint, so the
+  field is not validated either.
+- `ns8`: with `"namespace-entry": "Refex"` and an entry module that re-exports
+  only `IO`, `Refex.Kernel` is not found while `Refex.IO.t` resolves. The key
+  hides modules from consumers.
+
+### Limits of the namespace probes
+
+- The `namespace-entry` result covers consumers of the built package. Whether
+  in-package development sources (`type: "dev"`) can still reach a hidden
+  module is untested.
+- The probes use a toy `IO` and a trivial kernel, not refex source or its
+  final module set.
+- The Rewatch configuration specification at the `v12.3.1` tag marks both
+  forms of `public` as not implemented; a later compiler may change this.
+  `rescript-legacy` was not tried.
+
+### Decision for task 1.2.1
+
+A "private kernel" holding a runner cannot be enforced by leaving a module out
+of `public`; every `src/` module is reachable. ADR 008 therefore treats
+`public` as a declaration guarded by module-inventory and export-set contracts,
+and hands the question of hiding adapter modules to task 1.3.1 with
+`namespace-entry` as a candidate mechanism.
+
 ## Appendix A: harness
 
 `harness.py`, SHA-256

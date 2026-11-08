@@ -1,20 +1,22 @@
 # refex context
 
-Status: draft v0.2 vocabulary and provenance record. Last substantive revision:
-12 October 2026. Audience: contributors, reviewers, and agents working on
+Status: draft v0.3 vocabulary and provenance record. Last substantive revision:
+2 November 2026. Audience: contributors, reviewers, and agents working on
 refex. Companions:
 [terms of reference](terms-of-reference.md), [technical design](design.md), [roadmap](roadmap.md),
 and [contents](contents.md).
 
 ## 1. Status and document authority
 
-The inspected implementation baseline is
-`aa3c0f71816b84da95765616589f38a075b2f26c`. It contains a private `0.0.0`
-package and disposable `Bootstrap.identity`, not an effects API. Draft PR #7 at
-`569f1b0f1d3d93983df71dd0f00951dbd4e8230a` adds product documents but no
-semantic implementation. [Package metadata](../package.json), the
-[source interface](../src/Bootstrap.resi), and [user guide](users-guide.md)
-describe the implemented state.
+The implementation baseline is roadmap task 1.2.1 on the
+`1-2-1-smallest-opaque-fx-surface` branch. It contains a private `0.0.0`
+package with opaque `IO` and `Fx` descriptions and no runner; the disposable
+bootstrap probe has been retired. [Package metadata](../package.json), the
+[`Fx` interface](../src/Fx.resi), and the [user guide](users-guide.md) describe
+the implemented state. Earlier inspected baselines, including
+`aa3c0f71816b84da95765616589f38a075b2f26c` and draft PR #7 at
+`569f1b0f1d3d93983df71dd0f00951dbd4e8230a`, remain provenance for the bootstrap
+record rather than descriptions of the current surface.
 
 Use these evidence labels:
 
@@ -352,13 +354,34 @@ Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
   binding Effect 3.22.2; statically audited as prior art, not selected.
 - **C16:** [Primavera][primavera] at commit
   `e468f2aad98384818ff861cc8ceb790bd5a766ed`, MIT; prior art for the capability
-  objects of [ADR 005](adr-005-structural-dependency-environments.md).
+  objects of [ADR 005](adr-005-structural-dependency-environments.md). Its
+  `lib/sig.mli` gives the signatures of `local`, `perform`, and `perform_value`
+  that correspond to `contramapEnvironment` and `accessEffect`.
 - **C17:** [LemmaScript][lemmascript] 0.6.4, Dafny 4.11.0, and Z3 4.12.1, with
   TypeScript 5.9.3 and bignumber.js 11.1.5; exercised by the
   [verification feasibility](evidence/verification-feasibility.md) experiment
   on toy modules only.
-- **C18:** [fast-check][fast-check] 4.10.2, the planned development dependency
-  for property and scheduler tests in roadmap tasks 1.3.x; not installed.
+- **C18:** [fast-check][fast-check] 4.10.2, MIT, whose only runtime dependency
+  is `pure-rand ^8.0.0`; integrity
+  `sha512-iK2f+YrcmoeGqk6fA0ea2bptcu/itMIm4NfEozq6N25+aG6h7s5HZbB/k1aV7b5w5sFLMCbbtRUsTVR+BgC3xw==`;
+  an exact development dependency since roadmap task 1.2.1, used by the IO and
+  Fx law suites. It is not a runtime dependency and roadmap tasks 1.3.x may
+  revisit the binding.
+
+Sources inspected on 2 November 2026, for roadmap task 1.2.1:
+
+- **C19:** the ReScript manual's
+  [configuration page][rescript-config], which documents `sources[].public` as
+  "explicitly allow which modules can be seen from outside" and describes every
+  other file as private. It documents the intended meaning of the field, not
+  its enforcement on the pinned compiler.
+- **C20:** the Rewatch
+  [configuration specification][rewatch-spec] at tag `v12.3.1`, which marks
+  both forms of `Source.public` as not implemented, and
+  [rescript issue 6760][rewatch-issue], whose migration plan lists "Source
+  `public`" as not implemented and `namespace-entry` as a rewatch-only field.
+  Together with probes `ns1` to `ns8`, these establish that `public` is a
+  declaration on the pinned toolchain.
 
 ## 8. Lody learning crosswalk
 
@@ -407,3 +430,6 @@ importing Lody's architecture, ledger size, or migration policy wholesale.
 [effect-npm]: https://www.npmjs.com/package/effect
 [lemmascript]: https://github.com/midspiral/LemmaScript
 [fast-check]: https://www.npmjs.com/package/fast-check
+[rescript-config]: https://rescript-lang.org/docs/manual/build-configuration
+[rewatch-spec]: https://github.com/rescript-lang/rescript/blob/v12.3.1/rewatch/CompilerConfigurationSpec.md
+[rewatch-issue]: https://github.com/rescript-lang/rescript/issues/6760

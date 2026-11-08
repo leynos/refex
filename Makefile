@@ -21,6 +21,12 @@ TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=$(UV_CACHE_DIR) UV_TOOL_DIR=$(UV_TOOL_DIR) \
 	$(UV) tool run --python 3.14.7 --from \
 	"git+https://github.com/leynos/typos-config-builder.git@c8a4f95d7cf7f6a1b7517f2775d122d47d5721eb" \
 	typos-config-builder
+# One list for the formatter and its check, so a checked path is always a
+# formatted path. The fixture globs are explicit because `**` is not portable.
+RES_FILES = src/*.res src/*.resi tests/*.res \
+	tests/fixtures/compiler/fx-surface/base/*.res \
+	tests/fixtures/compiler/fx-surface/base/*.resi \
+	tests/fixtures/compiler/fx-surface/cases/*.res
 
 .PHONY: help install build watch clean fmt check-fmt check-generated typecheck lint \
 	test coverage markdownlint spelling docs-check package-check audit all
@@ -42,13 +48,13 @@ clean: ## Remove compiler output and coverage artefacts
 	rm -rf coverage
 
 fmt: ## Apply canonical ReScript, support-file and Markdown formatting
-	$(RESCRIPT) format src/*.res src/*.resi tests/*.res
+	$(RESCRIPT) format $(RES_FILES)
 	$(BIOME) format --write .
 	$(MDTABLEFIX) --in-place $(MDTABLEFIX_RULES)
 	$(MDLINT) --fix "**/*.md"
 
 check-fmt: ## Check formatting without rewriting source
-	$(RESCRIPT) format --check src/*.res src/*.resi tests/*.res
+	$(RESCRIPT) format --check $(RES_FILES)
 	$(BIOME) check --linter-enabled=false --assist-enabled=false .
 	$(MDTABLEFIX) --check $(MDTABLEFIX_RULES)
 
@@ -65,16 +71,27 @@ lint: ## Enforce compiler and authored support-file static checks
 
 test: ## Compile and explicitly execute the ReScript and JavaScript suites
 	+$(MAKE) build
-	$(BUN) test ./tests/Bootstrap.test.res.mjs ./tests/consumer.test.mjs \
+	$(BUN) test ./tests/FxSequencing.test.res.mjs \
+		./tests/FxEnvironment.test.res.mjs ./tests/IO.test.res.mjs \
+		./tests/IoLaws.test.res.mjs ./tests/FxLaws.test.res.mjs \
+		./tests/FxAgreement.test.res.mjs ./tests/FxEnvironmentLaws.test.res.mjs \
+		./tests/consumer.test.mjs \
+		./tests/compiler-fixture-matching.test.mjs ./tests/compiler-fixtures.test.mjs \
 		./tests/dependency-contracts.test.mjs \
 		./tests/documentation-contracts.test.mjs ./tests/generated-gate.test.mjs \
+		./tests/interface-contracts.test.mjs \
 		./tests/makefile-contracts.test.mjs ./tests/markdown-contracts.test.mjs \
 		./tests/package-contracts.test.mjs ./tests/workflow-contracts.test.mjs
 
 coverage: ## Measure generated JavaScript and write text plus LCOV reports
 	+$(MAKE) build
 	$(BUN) test --coverage --coverage-reporter=text --coverage-reporter=lcov \
-		--coverage-dir=coverage ./tests/Bootstrap.test.res.mjs ./tests/consumer.test.mjs
+		--coverage-dir=coverage ./tests/FxSequencing.test.res.mjs \
+		./tests/FxEnvironment.test.res.mjs \
+		./tests/IO.test.res.mjs ./tests/IoLaws.test.res.mjs \
+		./tests/FxLaws.test.res.mjs ./tests/FxAgreement.test.res.mjs \
+		./tests/FxEnvironmentLaws.test.res.mjs \
+		./tests/consumer.test.mjs
 
 markdownlint: ## Lint Markdown with the committed policy
 	$(MDLINT) "**/*.md"
