@@ -450,6 +450,15 @@ regenerated `typos.toml` are excluded from every count below.
   that the proof row be re-evaluated against D-7 without describing the tests
   as proof, so later reconciliation says the tests are conformance evidence for
   evaluation order, not a proof of Lemmas S and I.
+- [ ] (2026-11-08) CodeRabbit review 5816625325 on head `c4e4d87` raised one
+  inline finding: step 4 of the migration note addressed the reader in the
+  second person. Step 4 now reads "If describing environment-dependent work",
+  and the instruction itself is unchanged. The module-level documentation row
+  returned in a new form, asking that the generation and generated-output
+  checks preserve docstrings; it stays rebutted, because ReScript 12.3.1 strips
+  source docstrings from compiler output, `scripts/check-generated.mjs` rejects
+  any divergence from a rebuild, and AGENTS.md forbids hand-editing that
+  output. The proof row stays rebutted under D-7.
 
 ## Surprises & discoveries
 
@@ -2309,3 +2318,8 @@ criterion, or tolerance changes.
 It accepted the generated-JavaScript rebuttal and corrected the developers'
 guide's remaining per-evaluation callback claim. No interface, milestone,
 acceptance criterion, or tolerance changes.
+
+2026-11-08, revision 14: recorded review 5816625325 in `Progress`. It removed
+the second-person pronoun from step 4 of the migration note and recorded the
+generation-pipeline form of the module-level documentation row. No interface,
+milestone, acceptance criterion, or tolerance changes.
