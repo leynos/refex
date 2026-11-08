@@ -38,8 +38,8 @@ operations and the evaluation rules.
    roadmap task 1.3.1 supplies the runner.
 3. Do not call, inspect, evaluate, or forge a description. Its representation
    is private and carries no compatibility promise.
-4. If and when you do describe environment-dependent work, use `Fx.t` and apply
-   it with `Fx.provide`.
+4. If describing environment-dependent work, use `Fx.t` and apply it with
+   `Fx.provide`.
 5. Update archive expectations. The package contains `src/IO.res`,
    `src/IO.resi`, `src/IO.res.mjs`, and the same three files for `Fx`. No
    `Bootstrap` file remains.
