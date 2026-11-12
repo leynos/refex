@@ -99,7 +99,7 @@ dry-run mode until those controls exist; major updates always need review.
 
 ## Amendments
 
-[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) adds the
+[ADR 008](adr-0008-first-semantic-modules-and-module-visibility.md) adds the
 package's first semantic modules, `IO` and `Fx`, to the archive allowlist, each
 with its `.resi` and generated ESM. EP-M5 of roadmap task 1.2.1 retired
 `Bootstrap`; the consequence above, that new semantic code must replace the

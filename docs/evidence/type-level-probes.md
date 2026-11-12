@@ -184,8 +184,8 @@ for ADR 006's cause representation.
 ## Planning probes for task 1.2.1
 
 Status: source evidence for roadmap task 1.2.1 and
-[ADR 008](../adr-008-first-semantic-modules-and-module-visibility.md), not
-refex conformance. Dates: 31 October 2026 (planning) and 2 November 2026
+[ADR 008](../adrs/adr-0008-first-semantic-modules-and-module-visibility.md),
+not refex conformance. Dates: 31 October 2026 (planning) and 2 November 2026
 (re-run). Pins: ReScript 12.3.1 and Bun 1.4.2, as above.
 
 ### Claim for task 1.2.1

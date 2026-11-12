@@ -356,8 +356,8 @@ Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
 - **C16:** [Primavera][primavera] at commit
   `e468f2aad98384818ff861cc8ceb790bd5a766ed`, MIT; prior art for the capability
   objects of [ADR 005](adrs/adr-0005-structural-dependency-environments.md). Its
-  `lib/sig.mli` gives the signatures of `local`, `perform`, and `perform_value`
-  that correspond to `contramapEnvironment` and `accessEffect`.
+  `lib/sig.mli` gives the signatures of `local`, `perform`, and
+  `perform_value` that correspond to `contramapEnvironment` and `accessEffect`.
 - **C17:** [LemmaScript][lemmascript] 0.6.4, Dafny 4.11.0, and Z3 4.12.1, with
   TypeScript 5.9.3 and bignumber.js 11.1.5; exercised by the
   [verification feasibility](evidence/verification-feasibility.md) experiment

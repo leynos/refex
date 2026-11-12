@@ -4,7 +4,7 @@ Status: accepted. Date: 2 November 2026.
 
 ## Context
 
-[ADR 001](adr-001-repository-bootstrap.md) decides that the bootstrap package
+[ADR 001](adr-0001-repository-bootstrap.md) decides that the bootstrap package
 keeps one disposable public `Bootstrap` module, together with an archive
 allowlist that names only that module's source, interface, and generated ESM.
 Its Consequences require new semantic code to replace the disposable module.
@@ -13,9 +13,9 @@ descriptions.
 
 Two accepted or provisional decisions constrain how the replacement may be
 published. ADR 001 fixes the archive contents.
-[ADR 004](adr-004-runtime-boundary.md) permits, for its bounded trial, "private
+[ADR 004](adr-0004-runtime-boundary.md) permits, for its bounded trial, "private
 `src/` modules absent from the public allowlist".
-[ADR 006](adr-006-complete-outcomes.md) requires `'e` to be invariant in
+[ADR 006](adr-0006-complete-outcomes.md) requires `'e` to be invariant in
 `IO.resi`. The compiler checks a declared variance against the concrete
 definition, but it does not require invariance: `unit => result<'a, 'e>` is
 covariant in `'e`, so an invariant declaration is accepted trivially. The
@@ -36,7 +36,7 @@ ReScript 12.3.1's default build, Rewatch:
   hidden module is untested.
 
 The evidence is recorded in
-[type-level probes](evidence/type-level-probes.md#planning-probes-for-task-121).
+[type-level probes](../evidence/type-level-probes.md#planning-probes-for-task-121).
 
 ## Decision
 
@@ -113,7 +113,7 @@ encapsulation, with its own evidence, when it introduces the execution adapter.
 - If replacing `Bootstrap` requires a further public module beyond `IO` and
   `Fx`, this decision is incomplete and needs a new ADR.
 - Evidence: `ns1`, `ns2`, `ns6`, `ns7`, and `ns8` in
-  [type-level probes](evidence/type-level-probes.md#planning-probes-for-task-121).
+  [type-level probes](../evidence/type-level-probes.md#planning-probes-for-task-121).
 
 ## Consequences
 
@@ -156,13 +156,13 @@ variants, or to explicit injection through `mapError`.
 
 ## References
 
-- [Type-level probes](evidence/type-level-probes.md), especially the planning
+- [Type-level probes](../evidence/type-level-probes.md), especially the planning
   probes for task 1.2.1.
-- [ADR 001](adr-001-repository-bootstrap.md),
-  [ADR 004](adr-004-runtime-boundary.md), and
-  [ADR 006](adr-006-complete-outcomes.md).
-- [ADR 005](adr-005-structural-dependency-environments.md) for the `IO.t` and
+- [ADR 001](adr-0001-repository-bootstrap.md),
+  [ADR 004](adr-0004-runtime-boundary.md), and
+  [ADR 006](adr-0006-complete-outcomes.md).
+- [ADR 005](adr-0005-structural-dependency-environments.md) for the `IO.t` and
   Reader signatures that fix `provide`.
-- [Technical design §2.3](design.md#23-backend-selection-and-execution-boundary)
-  and [§3](design.md#3-io-requirements-and-pipelines).
-- [Roadmap task 1.2.1](roadmap.md#12-prove-dependency-and-error-composition-through-separate-modules).
+- [Technical design §2.3](../design.md#23-backend-selection-and-execution-boundary)
+  and [§3](../design.md#3-io-requirements-and-pipelines).
+- [Roadmap task 1.2.1](../roadmap.md#12-prove-dependency-and-error-composition-through-separate-modules).
