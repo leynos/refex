@@ -8,8 +8,8 @@ and be reachable from `docs/contents.md`. The status token is the text after
 trial.` reads as `provisional`. Discovery rejects a malformed ADR filename
 instead of skipping it, so a mistyped name cannot hide from the index and
 status checks. Negative controls drop an index link, invent a status, remove
-the status line, link a missing ADR, and supply malformed filenames, so a
-contract that accepts everything fails here.
+the status line, link a missing ADR, and supply malformed filenames or a
+repeated serial, so a contract that accepts everything fails here.
 
 The helper is private to this suite because no other suite reads ADRs, so
 there is no second caller to justify a shared support module.
@@ -33,13 +33,25 @@ const ADR_FILE = /^adr-\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 // the status checks, so a mistyped new filename would pass unnoticed.
 const ADR_CANDIDATE = /^adr-.*\.md$/;
 
-// Throws naming the first candidate that is not named like an ADR. Files that
+// Throws naming the first candidate that is not named like an ADR, or whose
+// serial an earlier ADR already uses: one serial identifies one decision, and
+// two files sharing it leave every "ADR NNNN" reference ambiguous. Files that
 // do not start with `adr-` belong to no contract here and are ignored.
 function assertAdrNames(names) {
+  const serials = new Map();
   for (const name of names) {
-    if (ADR_CANDIDATE.test(name) && !ADR_FILE.test(name)) {
+    if (!ADR_CANDIDATE.test(name)) {
+      continue;
+    }
+    if (!ADR_FILE.test(name)) {
       throw new Error(`${name} is not a valid ADR filename`);
     }
+    const serial = name.slice(4, 8);
+    const first = serials.get(serial);
+    if (first) {
+      throw new Error(`${name} reuses the ADR serial in ${first}`);
+    }
+    serials.set(serial, name);
   }
 }
 
@@ -145,6 +157,24 @@ describe("Documentation contracts", () => {
   ])("rejects %s", (_name, file) => {
     expect(() => discoverAdrFiles([file], () => "")).toThrow(
       `${file} is not a valid ADR filename`,
+    );
+  });
+
+  test("discovers ADRs whose serials differ", () => {
+    const names = ["adr-0008-first-slug.md", "adr-0009-second-slug.md"];
+    expect(discoverAdrFiles(names, () => "").map(({ path }) => path)).toEqual(
+      names.map((name) => `docs/adrs/${name}`),
+    );
+  });
+
+  test("rejects a repeated ADR serial", () => {
+    expect(() =>
+      discoverAdrFiles(
+        ["adr-0008-first-slug.md", "adr-0008-second-slug.md"],
+        () => "Status: proposed.",
+      ),
+    ).toThrow(
+      "adr-0008-second-slug.md reuses the ADR serial in adr-0008-first-slug.md",
     );
   });
 
