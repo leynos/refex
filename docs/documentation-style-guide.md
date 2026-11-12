@@ -526,8 +526,7 @@ Name ADR files using the pattern `adrs/adr-nnnn-title-slug.md`, relative to the
 - `nnnn` is a four-digit, zero-padded serial number, unique among the ADRs in
   the repository and allocated independently of RFC numbers.
 - `title-slug` is a kebab-case ASCII rendering of the ADR title, without the
-  `Architectural decision record (ADR) nnnn:` prefix, following the same slug
-  rules as RFC filenames.
+  `ADR NNN:` prefix, following the same slug rules as RFC filenames.
 - Number ADRs sequentially in allocation order rather than by date, and do not
   renumber an ADR after publication.
 
@@ -592,7 +591,7 @@ Include these sections as appropriate to the decision's complexity:
 ### ADR template
 
 ```markdown
-# Architectural decision record (ADR) nnnn: <title>
+# ADR NNN: <title>
 
 Status: <status>. Date: YYYY-MM-DD.
 
@@ -634,6 +633,9 @@ Status: <status>. Date: YYYY-MM-DD.
 _Table 1: Comparison of options._
 
 ## Decision outcome / proposed direction
+
+<For product ADRs, open with a one-sentence Y-statement that names the rejected
+alternatives and the accepted downside.>
 
 <State the chosen or recommended approach and summarize the rationale.>
 
