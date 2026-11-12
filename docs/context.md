@@ -384,6 +384,16 @@ Sources inspected on 2 November 2026, for roadmap task 1.2.1:
   Together with probes `ns1` to `ns8`, these establish that `public` is a
   declaration on the pinned toolchain.
 
+Sources inspected on 9 November 2026, for roadmap task 1.2.2 planning:
+
+- **C21:** the [ReScript object manual][objects], retrieved through Firecrawl,
+  describes structural object typing and the need for an annotation when a
+  value must conform to a declared object type. This rolling v12/latest page
+  does not establish open-row inference across refex interfaces on 12.3.1. The
+  pinned compiler fixtures, planned in
+  [the 1.2.2 ExecPlan](execplans/1-2-2-positive-and-negative-compiler-fixtures.md),
+  must supply that evidence. No toolchain change follows from this source.
+
 ## 8. Lody learning crosswalk
 
 This crosswalk separates source observations from refex proposals. Neither the
