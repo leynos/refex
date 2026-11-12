@@ -7,9 +7,9 @@ Date: 17 October 2026. Pins: ReScript 12.3.1, LemmaScript 0.6.4, TypeScript
 ## Claim
 
 FX-1 asks which constructs that
-[ADR 007](../adr-007-shared-work-lifecycle-contract.md)'s representation
-guidance and [ADR 006](../adr-006-complete-outcomes.md)'s cause model rely on
-can be verified against the compiler's own JavaScript by the
+[ADR 007](../adrs/adr-0007-shared-work-lifecycle-contract.md)'s representation
+guidance and [ADR 006](../adrs/adr-0006-complete-outcomes.md)'s cause model
+rely on can be verified against the compiler's own JavaScript by the
 `rescript-deductive-verification` route, and whether that route can state
 lemmas of the shape a 1.3.3 proof would need. It runs disposable toy modules in
 a scratch directory. Nothing here is refex source, and no refex property is

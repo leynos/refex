@@ -210,9 +210,10 @@ atomicity, crash recovery, or protection against non-cooperating actors.
 
 The brief establishes ReScript-first ergonomics, React for both game clients,
 `rescript-schema` as the schema starting point, and three validators.
-[ADR 002](adr-002-portable-core-and-bun-boundary.md) keeps core source portable
-and Bun development-only. [ADR 003](adr-003-formatting-and-analysis-policy.md)
-sets formatting/analysis policy. These decisions remain unchanged.
+[ADR 002](adrs/adr-0002-portable-core-and-bun-boundary.md) keeps core source
+portable and Bun development-only.
+[ADR 003](adrs/adr-0003-formatting-and-analysis-policy.md) sets
+formatting/analysis policy. These decisions remain unchanged.
 
 Reader/IO, structural requirements, scoped layers, and private Effect execution
 are proposed mechanisms. Open rows must survive `.resi` tests. Direct FFI
@@ -344,7 +345,7 @@ Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
   integrity
   `sha512-BY4/28NlpOd99yzmV741xbVGmp+1U7tks4oB7F/Png64bTa5tm5eCA6W0RiXsnuLDDoJpjfVSo4Dnq4BZb/89Q==`,
   probed in the [runtime-boundary audit](evidence/runtime-boundary-audit.md)
-  and provisionally selected by [ADR 004](adr-004-runtime-boundary.md).
+  and provisionally selected by [ADR 004](adrs/adr-0004-runtime-boundary.md).
   Observations hold for this version only.
 - **C14:** `effect` 3.22.2, MIT, with runtime dependencies `fast-check ^3.23.1`
   and `@standard-schema/spec ^1.0.0`; probed for comparison in the same audit.
@@ -354,9 +355,9 @@ Sources inspected on 15 to 17 October 2026, for roadmap step 1.1:
   binding Effect 3.22.2; statically audited as prior art, not selected.
 - **C16:** [Primavera][primavera] at commit
   `e468f2aad98384818ff861cc8ceb790bd5a766ed`, MIT; prior art for the capability
-  objects of [ADR 005](adr-005-structural-dependency-environments.md). Its
-  `lib/sig.mli` gives the signatures of `local`, `perform`, and `perform_value`
-  that correspond to `contramapEnvironment` and `accessEffect`.
+  objects of [ADR 005](adrs/adr-0005-structural-dependency-environments.md). Its
+  `lib/sig.mli` gives the signatures of `local`, `perform`, and
+  `perform_value` that correspond to `contramapEnvironment` and `accessEffect`.
 - **C17:** [LemmaScript][lemmascript] 0.6.4, Dafny 4.11.0, and Z3 4.12.1, with
   TypeScript 5.9.3 and bignumber.js 11.1.5; exercised by the
   [verification feasibility](evidence/verification-feasibility.md) experiment

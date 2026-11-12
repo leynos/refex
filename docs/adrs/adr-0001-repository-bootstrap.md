@@ -91,7 +91,7 @@ to implement effects. New semantic code must replace the disposable module and
 supply real behavioural tests. The advisory audit passes: transitive pins clear
 the reportable advisories, and the Markdown linter was replaced rather than
 waived, so no severity cutoff or ignore list exists. The
-[developer guide](developers-guide.md) records each disposition.
+[developer guide](../developers-guide.md) records each disposition.
 
 Required CI protection and repository settings need administrative operations
 the connected integration does not expose. Dependabot automerge remains in
@@ -99,7 +99,7 @@ dry-run mode until those controls exist; major updates always need review.
 
 ## Amendments
 
-[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) adds the
+[ADR 008](adr-0008-first-semantic-modules-and-module-visibility.md) adds the
 package's first semantic modules, `IO` and `Fx`, to the archive allowlist, each
 with its `.resi` and generated ESM. EP-M5 of roadmap task 1.2.1 retired
 `Bootstrap`; the consequence above, that new semantic code must replace the

@@ -7,7 +7,7 @@ Status: candidate. Date: 17 October 2026.
 Goal G2 requires that expected errors stay typed while every transformation and
 boundary conversion preserves simultaneous defects, interruptions, and release
 failures.
-[Design §4](design.md#4-expected-failures-defects-interruption-and-release-failures)
+[Design §4](../design.md#4-expected-failures-defects-interruption-and-release-failures)
 proposes ordinary error variants, an opaque `Cause`, a conservative `result`
 relationship, and explicit promise projection, and leaves the release-issue
 payload open as decision D8.
@@ -16,7 +16,7 @@ The two evidence records established the following:
 
 - Neither Effect line keeps a simultaneous release defect through `mapError`,
   and Effect 4.0.5's `runPromise` rejects with the bare expected error
-  ([runtime-boundary audit](evidence/runtime-boundary-audit.md), P2 and P5).
+  ([runtime-boundary audit](../evidence/runtime-boundary-audit.md), P2 and P5).
 - Effect 4.0.5's cause is a flat, occurrence-ordered list of reasons, and
   `Effect.all` reports only the first of two concurrent failures; an adapter
   can still observe body and finalizer exits separately and collect each
@@ -24,7 +24,7 @@ The two evidence records established the following:
 - ReScript 12.3.1 has no empty variant. An abstract `Never.t` implemented as
   `{absurd: 'a. 'a}` resists `let rec` construction but can be forged through
   `%identity`, a polymorphic `@val external`, or `%raw`
-  ([type-level probes](evidence/type-level-probes.md), `n1` to `n5`).
+  ([type-level probes](../evidence/type-level-probes.md), `n1` to `n5`).
 - A recovery signature with a free output error type rejects lossless
   propagation and is implementable without casts only by erasing expected leaves
   (`f2` to `f4`).
@@ -185,9 +185,9 @@ These statements are hypotheses about a future proof. None is verified.
   old `Expected` leaf from a mixed cause.
 
 The verification feasibility experiment
-([FX-1](evidence/verification-feasibility.md)) verified a toy cause tree with
-array children and a record of functions as provenance: kind, child count, and
-child kinds were preserved one level deep, and defect and provenance leaves
+([FX-1](../evidence/verification-feasibility.md)) verified a toy cause tree
+with array children and a record of functions as provenance: kind, child count,
+and child kinds were preserved one level deep, and defect and provenance leaves
 were unchanged, with every mutant killed. LC-1 to LC-3 are selected for
 machine-checked proof against the compiled JavaScript of the pure cause module,
 with the conditions below. Task 1.2.3 exercises LC-4 in the recovery fixture,
@@ -244,18 +244,18 @@ infallibility and variance is named rather than hidden.
 
 ## References
 
-- [Runtime-boundary audit](evidence/runtime-boundary-audit.md) and
-  [type-level probes](evidence/type-level-probes.md).
+- [Runtime-boundary audit](../evidence/runtime-boundary-audit.md) and
+  [type-level probes](../evidence/type-level-probes.md).
 - Technical design
-  [§4](design.md#4-expected-failures-defects-interruption-and-release-failures)
-  and [§7](design.md#7-native-await-as-a-gated-experiment).
-- [ADR 004](adr-004-runtime-boundary.md) and
-  [ADR 005](adr-005-structural-dependency-environments.md).
+  [§4](../design.md#4-expected-failures-defects-interruption-and-release-failures)
+  and [§7](../design.md#7-native-await-as-a-gated-experiment).
+- [ADR 004](adr-0004-runtime-boundary.md) and
+  [ADR 005](adr-0005-structural-dependency-environments.md).
 
 ## Amendments
 
-[ADR 008](adr-008-first-semantic-modules-and-module-visibility.md) records that
-the invariant error parameter produces weak error types for unannotated
+[ADR 0008](adr-0008-first-semantic-modules-and-module-visibility.md) records
+that the invariant error parameter produces weak error types for unannotated
 top-level `IO` and `Fx` descriptions. Consumers annotate such descriptions or
 export functions instead. The invariant, expected errors as ordinary variants,
 and explicit injection through `mapError` are unchanged.

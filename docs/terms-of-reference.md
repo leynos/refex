@@ -277,14 +277,14 @@ compatibility, upgrades, licences, and maintenance before any release change.
 host's retention, inspection, retry, transfer, and force-exit policy. Require
 an experiment showing that ignoring a diagnostic does not lose a recovery
 owner; record separately what cannot survive process exit.
-[ADR 007](adr-007-shared-work-lifecycle-contract.md) proposes a core owner
-registry and host-exit report.
+[ADR 007](adrs/adr-0007-shared-work-lifecycle-contract.md) proposes a core
+owner registry and host-exit report.
 
 **Q7: What permits resource replacement?** Each adapter must name its release
 predicate, identity/generation guarantees, and any cross-process limits.
 Evidence of a finished wrapper alone cannot resolve this question.
-[ADR 007](adr-007-shared-work-lifecycle-contract.md) proposes a release receipt
-or verified isolation as the gate.
+[ADR 007](adrs/adr-0007-shared-work-lifecycle-contract.md) proposes a release
+receipt or verified isolation as the gate.
 
 Implementation owners remain unassigned. The owner accepts decisions through
 review; the [design](design.md#12-open-decisions-and-adoption) specifies the
@@ -309,9 +309,10 @@ inspected documents, and unperformed experiments.
 - [Lody PR #1452][lody-pr]: documentation/guidance revision and stated limits.
 - [Lody evidence record](context.md#8-lody-learning-crosswalk): pinned notes
   supporting the additional lifecycle requirements.
-- [Bootstrap](adr-001-repository-bootstrap.md),
-  [portable boundary](adr-002-portable-core-and-bun-boundary.md), and
-  [analysis policy](adr-003-formatting-and-analysis-policy.md): accepted scope.
+- [Bootstrap](adrs/adr-0001-repository-bootstrap.md),
+  [portable boundary](adrs/adr-0002-portable-core-and-bun-boundary.md), and
+  [analysis policy](adrs/adr-0003-formatting-and-analysis-policy.md): accepted
+  scope.
 
 [reventless]: https://www.npmjs.com/package/@reventlessdev/rescript-effect
 [relude]: https://github.com/reazen/relude

@@ -1,5 +1,8 @@
 # Documentation contents
 
+This page, [documentation contents](contents.md), is the index for refex's
+product and contributor documentation.
+
 The product documents distinguish intended outcomes and proposed mechanisms
 from the implemented bootstrap. Draft designs do not supersede accepted ADRs or
 establish a working effects API.
@@ -24,22 +27,22 @@ evidence, not refex conformance results.
 
 ## Product decisions, evidence, and plans
 
-- [ADR 004](adr-004-runtime-boundary.md): provisional runtime
-  boundary authorizing a bounded trial of `effect` 4.0.5 behind private
-  bindings.
-- [ADR 005](adr-005-structural-dependency-environments.md): candidate open-row
-  capability objects with function exports, named diagnostic sites, and
-  explicit projection as the sound fallback.
-- [ADR 006](adr-006-complete-outcomes.md): candidate refex-owned cause tree,
-  conservative recovery types, an abstract uninhabited channel, and lossless
-  promise and native-await boundaries.
-- [ADR 007](adr-007-shared-work-lifecycle-contract.md): candidate behavioural
-  contract for shared work, joined closure, unresolved generations, retained
-  recovery, and host-exit limits.
-- [ADR 008](adr-008-first-semantic-modules-and-module-visibility.md): accepted
-  decision that `IO` and `Fx` are the package's public modules, replacing the
-  retired bootstrap probe, and that `public` is a declaration enforced by
-  module and export-set contracts.
+- [ADR 004](adrs/adr-0004-runtime-boundary.md):
+  provisional runtime boundary authorizing a bounded trial of `effect` 4.0.5
+  behind private bindings.
+- [ADR 005](adrs/adr-0005-structural-dependency-environments.md):
+  candidate open-row capability objects with function exports, named diagnostic
+  sites, and explicit projection as the sound fallback.
+- [ADR 006](adrs/adr-0006-complete-outcomes.md):
+  candidate refex-owned cause tree, conservative recovery types, an abstract
+  uninhabited channel, and lossless promise and native-await boundaries.
+- [ADR 007](adrs/adr-0007-shared-work-lifecycle-contract.md):
+  candidate behavioural contract for shared work, joined closure, unresolved
+  generations, retained recovery, and host-exit limits.
+- [ADR 0008](adrs/adr-0008-first-semantic-modules-and-module-visibility.md):
+  accepted decision that `IO` and `Fx` are the package's public modules,
+  replacing the retired bootstrap probe, and that `public` is a declaration
+  enforced by module and export-set contracts.
 - [Runtime-boundary audit](evidence/runtime-boundary-audit.md): executed Effect
   probes and the static binding audit behind ADR 004; source evidence only.
 - [Verification feasibility](evidence/verification-feasibility.md): the FX-1
@@ -54,18 +57,20 @@ evidence, not refex conformance results.
 
 ## Implemented bootstrap and contribution
 
+- [Documentation style guide](documentation-style-guide.md): repository
+  documentation conventions.
 - [User guide](users-guide.md): what is installable today, and what is not.
 - [Migrating to 0.1.0](migration-0.1.0.md): the `Bootstrap` removal and the
   `IO` and `Fx` surface, for anyone who used the bootstrap probe.
 - [Developer guide](developers-guide.md): build, tests, package checks,
   analysis, and continuous-integration operation.
 - [Repository layout](repository-layout.md): paths and ownership boundaries.
-- [ADR 001](adr-001-repository-bootstrap.md): reproducible baselines, scope,
-  versions, and generated-output policy.
-- [ADR 002](adr-002-portable-core-and-bun-boundary.md): portable core,
-  development bindings, and future adapter seams.
-- [ADR 003](adr-003-formatting-and-analysis-policy.md): canonical formatting,
-  warning errors, and analysis limits.
+- [ADR 001](adrs/adr-0001-repository-bootstrap.md):
+  reproducible baselines, scope, versions, and generated-output policy.
+- [ADR 002](adrs/adr-0002-portable-core-and-bun-boundary.md):
+  portable core, development bindings, and future adapter seams.
+- [ADR 003](adrs/adr-0003-formatting-and-analysis-policy.md):
+  canonical formatting, warning errors, and analysis limits.
 
 See the [README](../README.md) for the runnable bootstrap quick start and
 [AGENTS.md](../AGENTS.md) for contributor instructions.
