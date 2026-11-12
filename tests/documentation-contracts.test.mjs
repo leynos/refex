@@ -9,7 +9,9 @@ trial.` reads as `provisional`. Discovery rejects a malformed ADR filename
 instead of skipping it, so a mistyped name cannot hide from the index and
 status checks. Negative controls drop an index link, invent a status, remove
 the status line, link a missing ADR, and supply malformed filenames or a
-repeated serial, so a contract that accepts everything fails here.
+repeated serial, so a contract that accepts everything fails here. Two
+properties over generated names hold discovery to the filename grammar and to
+serial uniqueness, because a table of examples cannot cover the whole grammar.
 
 The helper is private to this suite because no other suite reads ADRs, so
 there is no second caller to justify a shared support module.
@@ -17,6 +19,7 @@ there is no second caller to justify a shared support module.
 
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
+import fc from "fast-check";
 
 const STATUSES = [
   "accepted for bootstrap",
@@ -32,6 +35,38 @@ const ADR_FILE = /^adr-\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 // name rather than filtering it out: a dropped ADR escapes both the index and
 // the status checks, so a mistyped new filename would pass unnoticed.
 const ADR_CANDIDATE = /^adr-.*\.md$/;
+
+// Generators mirror the filename grammar so the properties below can compare
+// discovery with ADR_FILE over valid names and near misses alike.
+const SERIAL = fc
+  .integer({ min: 0, max: 9999 })
+  .map((serial) => String(serial).padStart(4, "0"));
+const SLUG_PART = fc
+  .array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789"), {
+    minLength: 1,
+    maxLength: 6,
+  })
+  .map((chars) => chars.join(""));
+const SLUG = fc
+  .array(SLUG_PART, { minLength: 1, maxLength: 3 })
+  .map((parts) => parts.join("-"));
+const VALID_NAME = fc
+  .tuple(SERIAL, SLUG)
+  .map(([serial, slug]) => `adr-${serial}-${slug}.md`);
+const NOISE = fc
+  .array(
+    fc.constantFrom(
+      ..."abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-é",
+    ),
+    { maxLength: 6 },
+  )
+  .map((chars) => chars.join(""));
+const CANDIDATE_NAME = fc.oneof(
+  VALID_NAME,
+  fc
+    .tuple(NOISE, fc.constantFrom("_", "A", "-", ".", "é"), NOISE)
+    .map(([head, noise, tail]) => `adr-${head}${noise}${tail}.md`),
+);
 
 // Throws naming the first candidate that is not named like an ADR, or whose
 // serial an earlier ADR already uses: one serial identifies one decision, and
@@ -175,6 +210,34 @@ describe("Documentation contracts", () => {
       ),
     ).toThrow(
       "adr-0008-second-slug.md reuses the ADR serial in adr-0008-first-slug.md",
+    );
+  });
+
+  test("accepts a name exactly when it matches the filename grammar", () => {
+    fc.assert(
+      fc.property(CANDIDATE_NAME, (name) => {
+        if (ADR_FILE.test(name)) {
+          expect(discoverAdrFiles([name], () => "")).toEqual([
+            { path: `docs/adrs/${name}`, text: "" },
+          ]);
+          return;
+        }
+        expect(() => discoverAdrFiles([name], () => "")).toThrow(
+          `${name} is not a valid ADR filename`,
+        );
+      }),
+    );
+  });
+
+  test("rejects every pair of ADRs that shares a serial", () => {
+    fc.assert(
+      fc.property(SERIAL, (serial) => {
+        const first = `adr-${serial}-first-slug.md`;
+        const second = `adr-${serial}-second-slug.md`;
+        expect(() => discoverAdrFiles([first, second], () => "")).toThrow(
+          `${second} reuses the ADR serial in ${first}`,
+        );
+      }),
     );
   });
 
