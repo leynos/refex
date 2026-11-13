@@ -526,27 +526,24 @@ Name ADR files using the pattern `adrs/adr-nnnn-title-slug.md`, relative to the
 - `nnnn` is a four-digit, zero-padded serial number, unique among the ADRs in
   the repository and allocated independently of RFC numbers.
 - `title-slug` is a kebab-case ASCII rendering of the ADR title, without the
-  `ADR NNN:` prefix, following the same slug rules as RFC filenames.
+  `Architectural decision record (ADR) nnnn:` prefix, following the same slug
+  rules as RFC filenames.
 - Number ADRs sequentially in allocation order rather than by date, and do not
   renumber an ADR after publication.
 
 ### Required sections
 
-Every ADR must begin with a title, then a status line, then the following
-sections in order:
+Every ADR must include the following sections in order:
 
-- **Status line:** The first non-blank line after the title must begin
-  `Status:` and use one of the statuses listed in the repository developer
-  guide. For an accepted status, include the date and a brief summary of what
-  was decided.
-- **Date:** The date the ADR was created or last updated (format: YYYY-MM-DD),
-  recorded on the status line.
+- **Status:** One of `Proposed`, `Accepted`, `Superseded`, or `Deprecated`. For
+  `Accepted` status, include the date and a brief summary of what was decided.
+- **Date:** The date the ADR was created or last updated (format: YYYY-MM-DD).
 - **Context and problem statement:** Describe the situation, constraints, and
   the problem or question that prompted the decision. Include enough background
   for readers unfamiliar with the history.
 
 When an accepted ADR needs a targeted correction rather than replacement, add an
-`Amended by ADR-nnnn (YYYY-MM-DD)` banner to its status line and an
+`Amended by ADR-nnnn (YYYY-MM-DD)` banner to its Status section and an
 `## Amendments` section that preserves the original decision as history.
 
 ### Conditional sections
@@ -591,9 +588,15 @@ Include these sections as appropriate to the decision's complexity:
 ### ADR template
 
 ```markdown
-# ADR NNN: <title>
+# Architectural decision record (ADR) nnnn: <title>
 
-Status: <status>. Date: YYYY-MM-DD.
+## Status
+
+<Proposed | Accepted | Superseded | Deprecated>.
+
+## Date
+
+YYYY-MM-DD.
 
 ## Context and problem statement
 
@@ -633,9 +636,6 @@ Status: <status>. Date: YYYY-MM-DD.
 _Table 1: Comparison of options._
 
 ## Decision outcome / proposed direction
-
-<For product ADRs, open with a one-sentence Y-statement that names the rejected
-alternatives and the accepted downside.>
 
 <State the chosen or recommended approach and summarize the rationale.>
 
