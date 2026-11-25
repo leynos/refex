@@ -15,7 +15,7 @@ repository's `AGENTS.md` carry the builder's canonical spelling block.
 The Makefile pins the builder through `TYPOS_CONFIG_BUILDER_VERSION`, set to
 the release tag `v0.1.4`. The runner wiring recorded in ADR 001 (cache and tool
 directories, Python 3.14.7) is unchanged. `AGENTS.md` carries the canonical
-spelling block in place of its hand-written spelling bullets.
+spelling block in place of its handwritten spelling bullets.
 
 This supersedes only the spelling-builder row of ADR 001's version table; ADR
 001 is left as accepted.
