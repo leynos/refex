@@ -16,10 +16,11 @@ UV ?= uv
 # so the environment must win where it supplies a location.
 UV_CACHE_DIR ?= .uv-cache
 UV_TOOL_DIR ?= .uv-tools
-# v0.1.3, pinned to the peeled tag commit rather than a mutable ref.
+# The spelling baseline requires a release tag at or above v0.1.3.
+TYPOS_CONFIG_BUILDER_VERSION ?= v0.1.4
 TYPOS_CONFIG_BUILDER = UV_CACHE_DIR=$(UV_CACHE_DIR) UV_TOOL_DIR=$(UV_TOOL_DIR) \
 	$(UV) tool run --python 3.14.7 --from \
-	"git+https://github.com/leynos/typos-config-builder.git@c8a4f95d7cf7f6a1b7517f2775d122d47d5721eb" \
+	"git+https://github.com/leynos/typos-config-builder.git@$(TYPOS_CONFIG_BUILDER_VERSION)" \
 	typos-config-builder
 # One list for the formatter and its check, so a checked path is always a
 # formatted path. The fixture globs are explicit because `**` is not portable.
