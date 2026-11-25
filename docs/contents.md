@@ -71,6 +71,8 @@ evidence, not refex conformance results.
   portable core, development bindings, and future adapter seams.
 - [ADR 003](adrs/adr-0003-formatting-and-analysis-policy.md):
   canonical formatting, warning errors, and analysis limits.
+- [ADR 009](adrs/adr-0009-spelling-builder-release-tag.md):
+  the spelling builder pinned to a release tag.
 
 See the [README](../README.md) for the runnable bootstrap quick start and
 [AGENTS.md](../AGENTS.md) for contributor instructions.
