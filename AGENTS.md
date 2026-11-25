@@ -59,10 +59,19 @@
   external API identifiers and the conventional `LICENSE` filename.
 - Wrap prose at 80 columns and code blocks at 120. Use sentence-case headings,
   dash bullets, numbered sequential steps, and language-labelled fences.
-- `make spelling` runs the pinned shared `typos-config-builder` gate. It
-  regenerates `typos.toml` from the shared Oxford dictionary and
-  `typos.local.toml`, then checks tracked Markdown and phrase corrections.
-- Never edit `typos.toml` by hand. Add narrowly scoped identifier exceptions
-  to `typos.local.toml`; shared spelling rules belong upstream.
-- Commit regenerated spelling configuration when policy changes. Review
-  unrelated policy churn separately from functional changes.
+
+<!-- typos-config-builder:agents-md:start -->
+
+## Spelling
+
+- `make spelling` runs the pinned `typos-config-builder gate`, which
+  regenerates `typos.toml` from the shared en-GB-oxendict dictionary and
+  `typos.local.toml`, then checks spelling and the shared phrase corrections.
+- `typos.toml` is generated: never edit it by hand. Put narrow
+  repository-specific exceptions in `typos.local.toml`, as exact or full-line
+  patterns rather than bare accepted words.
+- When `make spelling` changes `typos.toml`, commit the regenerated file. If
+  the change is unrelated to your work, commit it in a separate base pull
+  request and stack your branch on it, so each review diff stays focused.
+
+<!-- typos-config-builder:agents-md:end -->

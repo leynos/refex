@@ -35,19 +35,19 @@ Registry checks confirm ReScript/runtime 12.3.1, `rescript-bun` 2.1.0, and Bun
 compatibility fallback is needed. The upstream Bun bindings' main commit
 `b82e963ebcef3a99276605eae5e23875b7483515` matches the 2.1.0 npm git head.
 
-| Tool                    | Exact bootstrap version                             |
-| ----------------------- | --------------------------------------------------- |
-| ReScript and runtime    | 12.3.1                                              |
-| Bun                     | 1.4.2                                               |
-| ReScript Bun bindings   | 2.1.0                                               |
-| Biome                   | 2.5.15                                              |
-| markdownlint-cli        | 0.49.1                                              |
-| YAML contract parser    | 2.9.1                                               |
-| mdtablefix              | 0.6.1                                               |
-| uv                      | 0.12.23                                             |
-| Spelling builder        | 0.1.3 at `c8a4f95d7cf7f6a1b7517f2775d122d47d5721eb` |
-| Spelling Python         | 3.14.7                                              |
-| Optional Make validator | mbake 1.4.6                                         |
+| Tool                    | Exact bootstrap version       |
+| ----------------------- | ----------------------------- |
+| ReScript and runtime    | 12.3.1                        |
+| Bun                     | 1.4.2                         |
+| ReScript Bun bindings   | 2.1.0                         |
+| Biome                   | 2.5.15                        |
+| markdownlint-cli        | 0.49.1                        |
+| YAML contract parser    | 2.9.1                         |
+| mdtablefix              | 0.6.1                         |
+| uv                      | 0.12.23                       |
+| Spelling builder        | 0.1.4 at release tag `v0.1.4` |
+| Spelling Python         | 3.14.7                        |
+| Optional Make validator | mbake 1.4.6                   |
 
 mdtablefix 0.6.1 advances the reference's 0.6.0, including released fixes for
 list numbering across nested headings and wrapping only at source whitespace.
