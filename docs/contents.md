@@ -54,6 +54,8 @@ evidence, not refex conformance results.
   the completed plan for freezing the validator hypotheses.
 - [Execution plan for roadmap task 1.2.1](execplans/1-2-1-smallest-opaque-fx-surface.md):
   the completed plan for the smallest opaque `Fx` surface.
+- [Execution plan for roadmap task 1.2.2](execplans/1-2-2-positive-and-negative-compiler-fixtures.md):
+  draft compiler-fixture plan awaiting approval before implementation.
 
 ## Implemented bootstrap and contribution
 
