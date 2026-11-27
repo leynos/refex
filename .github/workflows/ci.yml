@@ -36,7 +36,7 @@ jobs:
           version: '0.12.23'
           python-version: '3.14.7'
       - name: Install Markdown formatter from a prebuilt release
-        uses: leynos/shared-actions/.github/actions/install-mdtablefix@ff1dd759dfffc0db3459e30e833f52437ee62b57 # reviewed baseline
+        uses: leynos/shared-actions/.github/actions/install-mdtablefix@872f59f53717b5bebe8e24b2f4a7496b089a939a # reviewed baseline
         with:
           version: '0.6.1'
       - name: Install frozen dependency graph
