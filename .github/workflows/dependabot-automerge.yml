@@ -15,8 +15,8 @@ on:
 permissions: {}
 
 concurrency:
-  group: dependabot-automerge-${{ inputs.pull-request-number || github.event.pull_request.number }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
 
 jobs:
   metadata:
